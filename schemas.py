@@ -20,3 +20,6 @@ class UserCreate(BaseModel):
 # for validating the registration response
 class UserResponse(BaseModel):
     username: str
+
+class RefreshTokenRequest(BaseModel):
+    token: str
