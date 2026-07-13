@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
+from models import RoleEnum
 
 # for validating responses with access and refresh tokens
 class TokenResponse(BaseModel):
@@ -15,6 +16,7 @@ class UserCreate(BaseModel):
 # for validating the registration response
 class UserResponse(BaseModel):
     username: str
+    role: RoleEnum
 
 class RefreshTokenRequest(BaseModel):
     token: str

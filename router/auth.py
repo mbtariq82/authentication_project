@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta, timezone
 from typing import Annotated
-
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
-from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -10,49 +8,9 @@ from models import RefreshToken, User
 from schemas import TokenResponse, UserCreate, UserResponse, RefreshTokenRequest
 from fastapi.security import OAuth2PasswordRequestForm
 
-
-from config import (
-    SECRET_KEY,
-    ALGORITHM,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    REFRESH_TOKEN_EXPIRE_DAYS,
-)
-
-from security import pwd_context
+from security import pwd_context, create_access_token, create_refresh_token, decode_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-def create_access_token(subject: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-    payload = {
-        "sub": subject,
-        "exp": expire,
-        "type": "access",
-    }     # might be good to include iat as well
-    return jwt.encode(
-        payload, 
-        SECRET_KEY, 
-        algorithm=ALGORITHM
-    )
-
-def create_refresh_token(subject: str) -> tuple[str, datetime]:
-    expire = datetime.now(timezone.utc) + timedelta(
-        days=REFRESH_TOKEN_EXPIRE_DAYS
-    )
-    payload = {
-        "sub": subject,
-        "exp": expire,
-        "type": "refresh",
-    }     # might be good to include iat as well
-
-    jwt_token = jwt.encode(
-        payload, 
-        SECRET_KEY, 
-        algorithm=ALGORITHM
-    )
-    return (jwt_token, expire)
 
 @router.post("/login", response_model=TokenResponse)
 def login(
@@ -124,10 +82,7 @@ def refresh_token(
     request: RefreshTokenRequest,
     db: Session = Depends(get_db)
 ):
-    try:
-        payload = jwt.decode(request.token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError as exc:
-        raise HTTPException(status_code=401, detail="Invalid refresh token") from exc
+    payload = decode_token(request.token)
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid token type")
     refresh_record = (

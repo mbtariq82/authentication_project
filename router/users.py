@@ -33,9 +33,28 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+def get_current_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required",
+        )
+
+    return current_user
 
 @router.get("/me", response_model=UserResponse)
 def me(
     current_user: User = Depends(get_current_user),
 ):
     return current_user
+
+@router.get("/admin-only")
+def admin_only(
+    current_admin: User = Depends(get_current_admin),
+):
+    return {
+        "message": "You have admin access",
+        "username": current_admin.username,
+    }
