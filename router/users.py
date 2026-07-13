@@ -17,10 +17,7 @@ def get_current_user(
     access_token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError as exc:
-        raise HTTPException(status_code=401, detail="Invalid access token") from exc
+    payload = decode_token(access_token)
     if payload.get("type") != "access":
         raise HTTPException(status_code=401, detail="Invalid token type")
 
@@ -36,7 +33,7 @@ def get_current_user(
 def get_current_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role != "admin":
+    if current_user.role != RoleEnum.ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required",

@@ -112,7 +112,7 @@ def refresh_token(
 
 
 @router.post("/logout")
-def Logout(
+def logout(
     request: RefreshTokenRequest,
     db: Session = Depends(get_db)
 ):
