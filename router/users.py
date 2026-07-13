@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User
 from schemas import UserResponse
-from fastapi import APIRouter, Depends, HTTPException
-from jose import JWTError, jwt
-
-from config import SECRET_KEY, ALGORITHM
-
 from security import oauth2_scheme
 
 router = APIRouter(prefix="/users", tags=["users"])

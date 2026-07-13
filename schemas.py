@@ -1,5 +1,4 @@
-from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from models import RoleEnum
 
 # for validating responses with access and refresh tokens
