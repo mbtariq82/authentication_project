@@ -7,11 +7,6 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
-# for validating the login request
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
 # for validating the registration request
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)

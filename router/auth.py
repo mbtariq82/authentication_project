@@ -3,12 +3,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import RefreshToken, User
-from schemas import UserLogin, TokenResponse, UserCreate, UserResponse, RefreshTokenRequest
+from schemas import TokenResponse, UserCreate, UserResponse, RefreshTokenRequest
+from fastapi.security import OAuth2PasswordRequestForm
+
 
 from config import (
     SECRET_KEY,
@@ -17,8 +18,9 @@ from config import (
     REFRESH_TOKEN_EXPIRE_DAYS,
 )
 
+from security import pwd_context
+
 router = APIRouter(prefix="/auth", tags=["auth"])
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_access_token(subject: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
@@ -54,16 +56,19 @@ def create_refresh_token(subject: str) -> tuple[str, datetime]:
 
 @router.post("/login", response_model=TokenResponse)
 def login(
-    user_login: UserLogin,
+    form_data: Annotated[
+        OAuth2PasswordRequestForm,  # OAuth2PasswordRequestForm makes your /login endpoint compatible with the OAuth2 scheme advertised to Swagger
+        Depends(),
+    ],
     db: Session = Depends(get_db)      
 ):
     user = (
         db.query(User)
-        .filter(User.username == user_login.username)
+        .filter(User.username == form_data.username)
         .first()
     )
     if not user or not pwd_context.verify(
-        user_login.password, 
+        form_data.password, 
         user.hashed_password
     ):
         raise HTTPException(
@@ -88,7 +93,7 @@ def login(
         "token_type": "bearer",
     }
 
-# currently we are not issuing refresh or access tokens during registration
+# we are not issuing refresh or access tokens during registration
 @router.post("/register", response_model=UserResponse)
 def register(
     user_create: UserCreate,
@@ -149,3 +154,18 @@ def refresh_token(
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+
+
+@router.post("/logout")
+def Logout(
+    request: RefreshTokenRequest,
+    db: Session = Depends(get_db)
+):
+    refresh_record = (
+        db.query(RefreshToken)
+        .filter(RefreshToken.token == request.token)
+        .first()
+    )
+    if refresh_record:
+        db.delete(refresh_record)
+        db.commit()
