@@ -7,5 +7,4 @@ app = FastAPI(title="JWT Authentication Project")
 app.include_router(auth.router)
 app.include_router(users.router)
 
-
-Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)

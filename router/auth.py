@@ -1,30 +1,30 @@
 from typing import Annotated
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from database import get_db
 from models import RefreshToken, User
 from schemas import TokenResponse, UserCreate, UserResponse, RefreshTokenRequest
-from fastapi.security import OAuth2PasswordRequestForm
-
 from security import pwd_context, create_access_token, create_refresh_token, decode_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
-def login(
+async def login(
     form_data: Annotated[
         OAuth2PasswordRequestForm,  # OAuth2PasswordRequestForm makes your /login endpoint compatible with the OAuth2 scheme advertised to Swagger
         Depends(),
     ],
-    db: Session = Depends(get_db)      
+    db: AsyncSession = Depends(get_db)      
 ):
-    user = (
-        db.query(User)
-        .filter(User.username == form_data.username)
-        .first()
+    result = await db.execute(
+        select(User).where(User.username == form_data.username)
     )
+    user = result.scalar_one_or_none()
+
     if not user or not pwd_context.verify(
         form_data.password, 
         user.hashed_password
@@ -43,7 +43,7 @@ def login(
     )
 
     db.add(refresh_token_obj)
-    db.commit()
+    await db.commit()
 
     return {
         "access_token": access_token,
@@ -53,15 +53,15 @@ def login(
 
 # we are not issuing refresh or access tokens during registration
 @router.post("/register", response_model=UserResponse)
-def register(
+async def register(
     user_create: UserCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    existing_user = (
-        db.query(User)
-        .filter(User.username == user_create.username)
-        .first()
+    existing_user = await db.execute(
+        select(User).where(User.username == user_create.username)
     )
+    existing_user = existing_user.scalar_one_or_none()
+
     if existing_user:
         raise HTTPException(
             status_code=409, 
@@ -72,38 +72,42 @@ def register(
         username=user_create.username,
         hashed_password=pwd_context.hash(user_create.password),
     )
+
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
     return new_user
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token(
+async def refresh_token(
     request: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     payload = decode_token(request.token)
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid token type")
-    refresh_record = (
-        db.query(RefreshToken)
-        .filter(RefreshToken.token == request.token)
-        .first()
+
+    refresh_record = await db.execute(
+        select(RefreshToken).where(RefreshToken.token == request.token)
     )
+    refresh_record = refresh_record.scalar_one_or_none()
+
     if not refresh_record or refresh_record.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Refresh token expired or revoked")
+
     user = (
-        db.query(User)
-        .filter(User.id == int(payload.get("sub")))
-        .first()
+        await db.execute(select(User).where(User.id == int(payload.get("sub"))))
     )
+    user = user.scalar_one_or_none()
+
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     new_access_token = create_access_token(subject=str(user.id))
     new_refresh_token, new_expire = create_refresh_token(subject=str(user.id))
     refresh_record.token = new_refresh_token
     refresh_record.expires_at = new_expire
-    db.commit()
+    
+    await db.commit()
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
@@ -112,15 +116,14 @@ def refresh_token(
 
 
 @router.post("/logout")
-def logout(
+async def logout(
     request: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    refresh_record = (
-        db.query(RefreshToken)
-        .filter(RefreshToken.token == request.token)
-        .first()
+    refresh_record = await db.execute(
+        select(RefreshToken).where(RefreshToken.token == request.token)
     )
+    refresh_record = refresh_record.scalar_one_or_none()
     if refresh_record:
-        db.delete(refresh_record)
-        db.commit()
+        await db.delete(refresh_record)
+        await db.commit()
