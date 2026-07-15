@@ -17,5 +17,5 @@ if SECRET_KEY is None:
     raise RuntimeError("SECRET_KEY environment variable is not set")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1
 REFRESH_TOKEN_EXPIRE_DAYS = 7
