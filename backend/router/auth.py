@@ -20,10 +20,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    form_data: Annotated[
-        OAuth2PasswordRequestForm,  # OAuth2PasswordRequestForm makes your /login endpoint compatible with the OAuth2 scheme advertised to Swagger
-        Depends(),
-    ],
+    form_data: OAuth2PasswordRequestForm = Depends(),
     service: AuthService = Depends(get_auth_service)      
 ):
         return await service.login(
