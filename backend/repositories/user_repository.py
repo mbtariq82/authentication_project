@@ -8,6 +8,7 @@ class UserRepository:
         self.db = db
 
     async def get_by_username(self, username: str) -> User | None:
-        return self.db.scalar(
+        result = await self.db.execute(
             select(User).where(User.username == username)
         )
+        return result.scalar_one_or_none()

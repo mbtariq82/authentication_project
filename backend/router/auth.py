@@ -9,9 +9,12 @@ from sqlalchemy import select
 
 
 from database import get_db
+from dependencies import get_auth_service 
 from models import RefreshToken, User
 from schemas import TokenResponse, UserCreate, UserResponse, RefreshTokenRequest
 from security import pwd_context, create_access_token, create_refresh_token, decode_token
+from services.auth_service import AuthService
+from dependencies import get_auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -21,36 +24,12 @@ async def login(
         OAuth2PasswordRequestForm,  # OAuth2PasswordRequestForm makes your /login endpoint compatible with the OAuth2 scheme advertised to Swagger
         Depends(),
     ],
-    db: AsyncSession = Depends(get_db)      
+    service: AuthService = Depends(get_auth_service)      
 ):
-    repository = UserRepository(db)
-    user = await repository.get_by_username(form_data.username)
-
-    if not user or not pwd_context.verify(
-        form_data.password, 
-        user.hashed_password
-    ):
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid username or password"
+        return await service.login(
+            form_data.username,
+            form_data.password
         )
-    access_token = create_access_token(subject=str(user.id))
-    refresh_token, expire = create_refresh_token(subject=str(user.id))
-
-    refresh_token_obj = RefreshToken(
-        token=refresh_token,
-        user_id=user.id,
-        expires_at=expire,
-    )
-
-    db.add(refresh_token_obj)
-    await db.commit()
-
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
 
 # we are not issuing refresh or access tokens during registration
 @router.post("/register", response_model=UserResponse)
