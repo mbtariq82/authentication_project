@@ -1,21 +1,26 @@
-from pydantic import BaseModel, Field
-from models import RoleEnum
+from pydantic import BaseModel#, Field
 
-# for validating responses with access and refresh tokens
+class RegisterCommand(BaseModel):
+    username: str
+    password: str
+    #email
+    #full_name
+
+class LoginCommand(BaseModel):
+    username: str
+    password: str
+    #captcha
+    #mfa
+
+class LogoutCommand(BaseModel):
+    token: str
+    #session_id
+
+class RefreshCommand(BaseModel):
+    token: str
+    #session_id
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-
-# for validating the registration request
-class UserCreate(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
-    password: str = Field(min_length=6, max_length=100)
-
-# for validating the registration response
-class UserResponse(BaseModel):
-    username: str
-    role: RoleEnum
-
-class RefreshTokenRequest(BaseModel):
-    token: str

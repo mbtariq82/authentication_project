@@ -1,9 +1,8 @@
 TO DO:
-- domain driven design
-- cache
+- services, repositories (x)
 - redis
+- dependency injection
 - react
-
 
 
 
@@ -38,3 +37,6 @@ Domain driven design
 HTTP standardizes how browsers and servers communicate.
 OAuth 2.0 standardizes how applications obtain access tokens.
 OpenAPI standardizes how APIs describe themselves.
+
+
+routers are capable of automatic type conversion
