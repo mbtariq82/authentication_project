@@ -1,6 +1,12 @@
+import { useState } from "react";
 import "./App.css";
 
 function App() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
   return (
     <main className="auth-page">
       <section className="product-preview">
@@ -35,27 +41,43 @@ function App() {
           <form className="login-form">
             <div className="form-field">
               <label htmlFor="email">Email</label>
-              <input id="email" type="email" placeholder="you@example.com" />
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
             </div>
 
             <div className="form-field">
               <div className="password-label-row">
                 <label htmlFor="password">Password</label>
-                <button type="button" className="show-password-button">
-                  Show
+                <button
+                  type="button"
+                  className="show-password-button"
+                  onClick={() => setShowPassword((current) => !current)}
+                >
+                  {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
 
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
               />
             </div>
 
             <div className="form-options">
               <label className="remember-option">
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                />
                 <span>Remember me</span>
               </label>
 
