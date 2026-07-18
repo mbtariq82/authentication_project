@@ -4,6 +4,10 @@
 - redis
 - react + vite
 
+## Issues
+- store hash of refresh key instead of raw key
+- 204 No Content response
+
 ## NOTES
 Authentication: who is this user
 Authorisation: can this user perform this action
