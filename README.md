@@ -1,8 +1,6 @@
 ## TO DO:
-- move non-HTTP logic out of users router
-- complete DDD concepts
-- redis
-- react + vite
+- fontend (react + vite) => codex prompt ()
+- redis ()
 
 ## Issues
 - store hash of refresh key instead of raw key
