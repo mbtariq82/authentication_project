@@ -21,5 +21,5 @@ class UserRepository:
     
     async def add(self, user: User) -> User:
         self.db.add(user)
-        await self.db.flush()
+        await self.db.flush() # we need User.id
         return user

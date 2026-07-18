@@ -14,7 +14,6 @@ class RefreshTokenRepository:
     async def create(self, token: str, user_id: int,expires_at: datetime) -> None:
         refresh_token = RefreshToken(token=token, user_id=user_id, expires_at=expires_at)
         self.db.add(refresh_token)
-        await self.db.flush()
     
     async def get_by_token(self, token: str) -> RefreshToken | None:
         result = await self.db.execute(
