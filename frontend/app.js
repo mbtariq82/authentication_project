@@ -1,4 +1,3 @@
-// This connects the HTML buttons to the functions in api.js
 import {
   apiRequest,
   clearTokens,
@@ -64,7 +63,7 @@ async function handleAdminRequest() {
    * Change this path if your endpoint is under a router prefix,
    * for example "/users/admin-only".
    */
-  await callProtectedEndpoint("/users/admin-only");
+  await callProtectedEndpoint("/users/admin");
 }
 
 async function callProtectedEndpoint(path) {

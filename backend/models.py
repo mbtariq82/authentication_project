@@ -1,12 +1,7 @@
-import enum
-
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from database import Base
-
-class RoleEnum(str, enum.Enum):
-    ADMIN = "admin"
-    USER = "user"
+from enums import RoleEnum
 
 class User(Base):
     __tablename__ = "users"
@@ -19,7 +14,6 @@ class User(Base):
     refresh_tokens = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
-
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

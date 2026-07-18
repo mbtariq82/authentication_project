@@ -101,6 +101,20 @@ class AuthService:
             await self.db.rollback()
             raise
 
+    async def authenticate(self, access_token: str) -> User:
+        try:
+            payload = decode_token(access_token)
+            token_type = payload.get("type")
+            subject = payload.get("sub")
+            user_id = int(subject)
+        except Exception:
+            raise
+
+        user = await self.user_repository.get_by_id(user_id)
+        if user is None:
+            raise 
+        return user
+
     async def _issue_tokens(self, user: User) -> TokenResponse:
         access_token = create_access_token(subject=str(user.id))
         refresh_token, expires_at = create_refresh_token(subject=str(user.id))
