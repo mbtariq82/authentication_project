@@ -65,6 +65,32 @@ function App() {
             <button type="submit" className="sign-in-button">
               Sign in
             </button>
+            <div className="auth-divider">
+              <span>Or continue with</span>
+            </div>
+
+            <div className="alternative-login-options">
+              <button type="button" className="alternative-login-button">
+                <span className="auth-icon">◉</span>
+                Sign in with a passkey
+              </button>
+
+              <div className="oauth-button-row">
+                <button type="button" className="alternative-login-button">
+                  <span className="auth-icon">G</span>
+                  Google
+                </button>
+
+                <button type="button" className="alternative-login-button">
+                  <span className="auth-icon">⌘</span>
+                  GitHub
+                </button>
+              </div>
+            </div>
+
+            <p className="register-link">
+              Don&apos;t have an account? <a href="#">Create account</a>
+            </p>
           </form>
         </div>
       </section>
