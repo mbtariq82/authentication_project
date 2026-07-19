@@ -3,7 +3,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException
-
+from uuid import uuid4
 
 from config import (
     SECRET_KEY,
@@ -46,7 +46,8 @@ def create_refresh_token(subject: str) -> tuple[str, datetime]:
         "sub": subject,
         "exp": expire,
         "type": "refresh",
-    }     # might be good to include iat as well
+        "jti": str(uuid4()),
+    }     
 
     jwt_token = jwt.encode(
         payload, 

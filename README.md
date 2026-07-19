@@ -43,9 +43,23 @@
 - service layer (x)
 - SOLID (x)
 
-## Frontend notes
-ANIMATED BACKGROUND VS AROURA/GRADIENT BACKGROUND VS GLASSMORPHISM VS SPLIT SCREEN PREVIEW
+example flow for login:
+React UI
+    ↓
+LoginForm
+    ↓
+authClient
+    ↓
+FastAPI /auth/login
+    ↓
+AuthService
+    ↓
+Repositories
+    ↓
+Postgres
 
+
+## Frontend notes
 
 
 
