@@ -1,16 +1,34 @@
 import { getAccessToken } from "../auth/tokenStorage";
+import { refreshTokens } from "./authClient";
 
-export async function apiFetch(
+async function performRequest(
   input: RequestInfo,
   init: RequestInit = {},
-) {
-  const token = getAccessToken();
+): Promise<Response> {
+  const accessToken = getAccessToken();
 
   return fetch(input, {
     ...init,
     headers: {
       ...init.headers,
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: accessToken ? `Bearer ${accessToken}` : "",
     },
   });
+}
+
+export async function fetchWithAuth(
+  input: RequestInfo,
+  init: RequestInit = {},
+): Promise<Response> {
+  let response = await performRequest(input, init);
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  await refreshTokens();
+
+  response = await performRequest(input, init);
+
+  return response;
 }

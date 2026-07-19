@@ -9,7 +9,6 @@ function DashboardPage() {
 
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   async function handleLogout() {
@@ -39,21 +38,12 @@ function DashboardPage() {
     }
 
     void loadCurrentUser();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return (
       <main className="dashboard-state">
         <p>Loading your account...</p>
-      </main>
-    );
-  }
-
-  if (errorMessage) {
-    return (
-      <main className="dashboard-state">
-        <h1>Unable to load dashboard</h1>
-        <p>{errorMessage}</p>
       </main>
     );
   }
@@ -97,10 +87,6 @@ function DashboardPage() {
             {user.username.charAt(0).toUpperCase()}
           </div>
 
-          <div>
-            <strong>{user.username}</strong>
-            <p>{user.role.toLowerCase()}</p>
-          </div>
         </div>
       </aside>
 
@@ -131,7 +117,6 @@ function DashboardPage() {
             <div>
               <p className="card-label">Signed in as</p>
               <h2>{user.username}</h2>
-              <span className="role-badge">{user.role}</span>
             </div>
           </article>
 
@@ -161,11 +146,6 @@ function DashboardPage() {
             <div>
               <dt>Username</dt>
               <dd>{user.username}</dd>
-            </div>
-
-            <div>
-              <dt>Role</dt>
-              <dd>{user.role}</dd>
             </div>
 
             <div>

@@ -1,4 +1,8 @@
-import type { TokenResponse } from "../api/authClient";
+export type TokenResponse = {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+};
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";

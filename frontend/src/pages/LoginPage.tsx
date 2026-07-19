@@ -4,11 +4,6 @@ import LoginForm from "../components/LoginForm";
 function LoginPage() {
   const navigate = useNavigate();
 
-  function handleLoginSuccess(username: string) {
-    console.log(`Logged in as ${username}`);
-    navigate("/dashboard");
-  }
-
   return (
     <main className="auth-page">
       <section className="product-preview">
@@ -40,7 +35,9 @@ function LoginPage() {
             <p>Enter your details to continue.</p>
           </header>
 
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
+          <LoginForm
+            onLoginSuccess={() => navigate("/dashboard", { replace: true })}
+          />
         </div>
       </section>
     </main>

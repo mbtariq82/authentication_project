@@ -1,6 +1,6 @@
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,12 +18,6 @@ class RefreshTokenRepository:
     async def get_by_token(self, token: str) -> RefreshToken | None:
         result = await self.db.execute(
             select(RefreshToken).where(RefreshToken.token == token)
-        )
-        return result.scalar_one_or_none()
-
-    async def get_by_id(self, user_id: int) -> User | None:
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
         )
         return result.scalar_one_or_none()
 

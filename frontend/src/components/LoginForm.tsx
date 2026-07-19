@@ -3,9 +3,9 @@ import type { SyntheticEvent } from "react";
 import { login } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 
-type LoginStatus = "idle" | "loading" | "success" | "error";
+type LoginStatus = "idle" | "loading" | "error";
 type LoginFormProps = {
-  onLoginSuccess: (email: string) => void;
+  onLoginSuccess: () => void;
 };
 
 function LoginForm({ onLoginSuccess }: LoginFormProps) {
@@ -31,9 +31,7 @@ function LoginForm({ onLoginSuccess }: LoginFormProps) {
       });
 
       saveTokens(tokens);
-
-      setLoginStatus("success");
-      onLoginSuccess(username);
+      onLoginSuccess();
     } catch (error) {
       setLoginStatus("error");
 
@@ -54,6 +52,7 @@ function LoginForm({ onLoginSuccess }: LoginFormProps) {
           name="username"
           type="text"
           value={username}
+          disabled={loginStatus === "loading"}
           onChange={(event) => setUsername(event.target.value)}
           autoComplete="username"
           required
@@ -67,6 +66,7 @@ function LoginForm({ onLoginSuccess }: LoginFormProps) {
             type="button"
             className="show-password-button"
             onClick={() => setShowPassword((current) => !current)}
+            disabled={loginStatus === "loading"}
           >
             {showPassword ? "Hide" : "Show"}
           </button>
@@ -77,6 +77,7 @@ function LoginForm({ onLoginSuccess }: LoginFormProps) {
           name="password"
           type={showPassword ? "text" : "password"}
           value={password}
+          disabled={loginStatus === "loading"}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
           required
@@ -104,9 +105,6 @@ function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {loginStatus === "loading" ? "Signing in..." : "Sign in"}
       </button>
 
-      {loginStatus === "success" && (
-        <p className="login-message login-message-success">Login successful.</p>
-      )}
       {loginStatus === "error" && (
         <p className="login-message login-message-error">{errorMessage}</p>
       )}

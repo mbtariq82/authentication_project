@@ -1,7 +1,6 @@
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from database import Base
-from enums import RoleEnum
 
 class User(Base):
     __tablename__ = "users"
@@ -9,7 +8,6 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(Enum(RoleEnum, name="roleenum"), default=RoleEnum.USER, nullable=False)
 
     refresh_tokens = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"

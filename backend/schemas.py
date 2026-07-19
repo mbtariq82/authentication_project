@@ -12,7 +12,6 @@ breaking the API, and vice versa.
 """
 
 from pydantic import BaseModel, ConfigDict#, Field
-from enums import RoleEnum
 
 class RegisterCommand(BaseModel):
     username: str
@@ -47,4 +46,3 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     username: str
-    role: RoleEnum
