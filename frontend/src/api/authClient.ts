@@ -20,6 +20,8 @@ type ApiErrorResponse = {
   detail?: string;
 };
 
+let refreshPromise: Promise<void> | null = null;
+
 export async function login(
   credentials: LoginCredentials,
 ): Promise<TokenResponse> {
@@ -67,7 +69,7 @@ export async function revokeRefreshToken(): Promise<void> {
   }
 }
 
-export async function refreshTokens(): Promise<void> {
+async function performTokenRefresh(): Promise<void> {
   const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
@@ -88,11 +90,21 @@ export async function refreshTokens(): Promise<void> {
     const errorData = (await response.json()) as ApiErrorResponse;
 
     throw new Error(
-        errorData.detail ?? 'Token refresh failed: ${response.status}'
+      errorData.detail ?? `Token refresh failed: ${response.status}`,
     );
   }
 
-  const tokens: TokenResponse = await response.json();
+  const tokens = (await response.json()) as TokenResponse;
 
   saveTokens(tokens);
+}
+
+export function refreshTokens(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = performTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
 }

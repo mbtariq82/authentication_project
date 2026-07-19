@@ -1,6 +1,6 @@
 # Need to revisit dependency injection
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
