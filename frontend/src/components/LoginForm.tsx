@@ -1,5 +1,4 @@
-import { useState } from "react";
-import type { SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { login } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 
