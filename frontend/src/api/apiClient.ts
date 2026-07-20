@@ -1,7 +1,7 @@
 import { getAccessToken } from "../auth/tokenStorage";
 import { refreshTokens } from "./authClient";
 
-async function performRequest(
+function performRequest(
   input: RequestInfo,
   init: RequestInit = {},
 ): Promise<Response> {

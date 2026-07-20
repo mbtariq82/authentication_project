@@ -47,7 +47,7 @@ export async function login(
   return response.json() as Promise<TokenResponse>;
 }
 
-export async function revokeRefreshToken(): Promise<void> {
+export async function logout(): Promise<void> {
   const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
@@ -67,6 +67,16 @@ export async function revokeRefreshToken(): Promise<void> {
   if (!response.ok) {
     throw new Error(`Logout failed: ${response.status}`);
   }
+}
+
+export function refreshTokens(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = performTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
 }
 
 async function performTokenRefresh(): Promise<void> {
@@ -97,14 +107,4 @@ async function performTokenRefresh(): Promise<void> {
   const tokens = (await response.json()) as TokenResponse;
 
   saveTokens(tokens);
-}
-
-export function refreshTokens(): Promise<void> {
-  if (!refreshPromise) {
-    refreshPromise = performTokenRefresh().finally(() => {
-      refreshPromise = null;
-    });
-  }
-
-  return refreshPromise;
 }

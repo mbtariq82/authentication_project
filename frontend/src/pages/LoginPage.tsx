@@ -1,47 +1,79 @@
+import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
-import LoginForm from "../components/LoginForm";
 
-function LoginPage() {
+import { login } from "../api/authClient";
+import { saveTokens } from "../auth/tokenStorage";
+
+export function LoginPage() {
   const navigate = useNavigate();
 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(
+    event: SubmitEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const tokens = await login({
+        username,
+        password,
+      });
+
+      saveTokens(tokens);
+
+      navigate("/dashboard");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Login failed.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <main className="auth-page">
-      <section className="product-preview">
-        <div className="preview-content">
-          <span className="preview-badge">Developer Platform</span>
+    <main className="login-page">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h1>Sign in</h1>
 
-          <h1>Secure access to your workspace.</h1>
+        <label htmlFor="username">Username</label>
 
-          <p>
-            Build, deploy and manage your applications with enterprise-grade
-            authentication.
-          </p>
+        <input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          autoComplete="username"
+          required
+        />
 
-          <div className="dashboard-placeholder">Dashboard Preview</div>
+        <label htmlFor="password">Password</label>
 
-          <div className="status-cards">
-            <div className="status-card">✓ 99.98% uptime</div>
-            <div className="status-card">🔒 OAuth Ready</div>
-          </div>
-        </div>
-      </section>
-      <section className="login-panel">
-        <div className="login-content">
-          <header className="login-header">
-            <p className="login-eyebrow">Workspace access</p>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          required
+        />
 
-            <h2>Welcome back</h2>
+        {error && <p className="error-message">{error}</p>}
 
-            <p>Enter your details to continue.</p>
-          </header>
-
-          <LoginForm
-            onLoginSuccess={() => navigate("/dashboard", { replace: true })}
-          />
-        </div>
-      </section>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
     </main>
   );
 }
-
-export default LoginPage;
