@@ -1,6 +1,6 @@
 ## TO DO:
-- fontend (react + vite) => codex prompt ()
 - redis ()
+- tests
 
 ## Issues
 - /users/me getting called twice from the frontend
