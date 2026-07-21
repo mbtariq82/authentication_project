@@ -7,7 +7,9 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String(255), nullable=True)
+    google_subject = Column(String, unique=True, index=True, nullable=True)
 
     refresh_tokens = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"

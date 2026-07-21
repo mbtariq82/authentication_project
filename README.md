@@ -1,5 +1,6 @@
 ## TO DO:
-- redis ()
+- admin role => revoke, promote buttons on dashboard
+- redis
 - tests
 
 ## Issues
