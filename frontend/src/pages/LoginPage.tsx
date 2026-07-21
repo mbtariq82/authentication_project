@@ -2,6 +2,8 @@ import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 
 import { login } from "../api/authClient";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
+import { googleLogin } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 
 export function LoginPage() {
@@ -41,6 +43,17 @@ export function LoginPage() {
     }
   }
 
+  async function handleGoogleCredential(idToken: string) {
+    setError("");
+
+    const tokens = await googleLogin({
+      id_token: idToken,
+    });
+
+    saveTokens(tokens);
+    navigate("/dashboard");
+  }
+
   return (
     <main className="login-page">
       <form className="login-form" onSubmit={handleSubmit}>
@@ -73,6 +86,11 @@ export function LoginPage() {
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
+        <GoogleLoginButton
+          onCredential={handleGoogleCredential}
+          onError={setError}
+        />
+        {error && <p>{error}</p>}
       </form>
     </main>
   );

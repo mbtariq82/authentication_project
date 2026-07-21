@@ -1,13 +1,13 @@
 from datetime import datetime, timezone
 from fastapi import HTTPException   # ideally this should be replaced with custom handling
-from sqlalchemy.ext.asyncio import AsyncSession # we need this for commiting to the DB
+from sqlalchemy.ext.asyncio import AsyncSession # we need this for commiting to the DB but we could remove this by introducing a unit of work
 from jose import JWTError
 
 from models import User 
-from schemas import RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand
+from schemas import RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, GoogleLoginCommand
 from repositories.user_repository import UserRepository
 from repositories.refresh_token_repository import RefreshTokenRepository
-from security import create_access_token, create_refresh_token, pwd_context, decode_token
+from security import create_access_token, create_refresh_token, pwd_context, decode_token, verify_google_id_token
 
 class AuthService:
     def __init__(
@@ -114,6 +114,35 @@ class AuthService:
         if user is None:
             raise 
         return user
+    
+    async def google_login(self, command: GoogleLoginCommand) -> TokenResponse:
+        google_identity = verify_google_id_token(command.id_token)
+        if not google_identity.email_verified:
+            raise HTTPException(
+                status_code=401,
+                detail="Google email is not verified",
+        )
+
+        user = await self.user_repository.get_by_google_subject(
+            google_identity.subject
+        )
+        if not user:
+            user = await self.user_repository.get_by_email(
+                google_identity.email
+            )
+        if not user:
+            user = User(
+                email=google_identity.email,
+                google_subject=google_identity.subject
+            )
+
+            await self.user_repository.add(user)
+        elif user.google_subject is None:
+            user.google_subject = google_claims.subject
+
+        await self.db.commit()
+
+        return await self._issue_tokens(user)
 
     async def _issue_tokens(self, user: User) -> TokenResponse:
         access_token = create_access_token(subject=str(user.id))

@@ -45,4 +45,16 @@ class TokenResponse(BaseModel):
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    username: str
+    username: str | None
+
+class GoogleLoginCommand(BaseModel):
+    id_token: str
+    #device_id
+    #referrel_code
+    #remember_me
+
+# response type from Google
+class GoogleIdentity(BaseModel):
+    subject: str
+    email: str
+    email_verified: bool

@@ -16,6 +16,10 @@ export type TokenResponse = {
   token_type: string;
 };
 
+export type GoogleLoginCommand = {
+  id_token: string;
+};
+
 type ApiErrorResponse = {
   detail?: string;
 };
@@ -69,6 +73,7 @@ export async function logout(): Promise<void> {
   }
 }
 
+// TO DO: simplify, we do not need to consider the race condition atp
 export function refreshTokens(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = performTokenRefresh().finally(() => {
@@ -78,7 +83,6 @@ export function refreshTokens(): Promise<void> {
 
   return refreshPromise;
 }
-
 async function performTokenRefresh(): Promise<void> {
   const refreshToken = getRefreshToken();
 
@@ -107,4 +111,24 @@ async function performTokenRefresh(): Promise<void> {
   const tokens = (await response.json()) as TokenResponse;
 
   saveTokens(tokens);
+}
+
+export async function googleLogin(
+  command: GoogleLoginCommand,
+): Promise<TokenResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+
+    throw new Error(errorData.detail ?? "Google login failed.");
+  }
+
+  return response.json() as Promise<TokenResponse>;
 }

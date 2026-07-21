@@ -4,12 +4,16 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException
 from uuid import uuid4
+from google.auth.transport import requests
+from google.oauth2 import id_token
 
+from schemas import GoogleIdentity
 from config import (
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS,
+    GOOGLE_CLIENT_ID
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -55,3 +59,22 @@ def create_refresh_token(subject: str) -> tuple[str, datetime]:
         algorithm=ALGORITHM
     )
     return (jwt_token, expire)
+
+def verify_google_id_token(token: str) -> GoogleIdentity:
+    try:
+        payload = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Google ID token",
+        ) from exc
+
+    return GoogleIdentity(
+        subject=payload["sub"],
+        email=payload["email"],
+        email_verified=payload["email_verified"],
+    )
