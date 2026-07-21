@@ -8,7 +8,7 @@ import {
 } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
 
-function DashboardPage() {
+export function DashboardPage() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<UserResponse | null>(null);
@@ -88,5 +88,3 @@ function DashboardPage() {
     </main>
   );
 }
-
-export default DashboardPage;

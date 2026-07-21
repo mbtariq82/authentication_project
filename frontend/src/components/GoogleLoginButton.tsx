@@ -1,8 +1,8 @@
 import { GoogleLogin } from "@react-oauth/google";
 
-type GoogleLoginButtonProps = {
+interface GoogleLoginButtonProps {
   onCredential: (idToken: string) => Promise<void>;
-  onError: (message: string) => void;
+  onError: () => void;
 };
 
 export function GoogleLoginButton({
@@ -15,19 +15,13 @@ export function GoogleLoginButton({
         const idToken = credentialResponse.credential;
 
         if (!idToken) {
-          onError("Google did not return an ID token.");
+          onError();
           return;
         }
 
-        try {
-          await onCredential(idToken);
-        } catch {
-          onError("Google login failed.");
-        }
+        await onCredential(idToken);
       }}
-      onError={() => {
-        onError("Google login failed.");
-      }}
+      onError={onError}
     />
   );
 }

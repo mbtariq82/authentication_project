@@ -88,7 +88,7 @@ export function LoginPage() {
         </button>
         <GoogleLoginButton
           onCredential={handleGoogleCredential}
-          onError={setError}
+          onError={() => setError("Google login failed.")}
         />
         {error && <p>{error}</p>}
       </form>

@@ -68,6 +68,7 @@ def verify_google_id_token(token: str) -> GoogleIdentity:
             GOOGLE_CLIENT_ID,
         )
     except ValueError as exc:
+        print(exc)
         raise HTTPException(
             status_code=401,
             detail="Invalid Google ID token",

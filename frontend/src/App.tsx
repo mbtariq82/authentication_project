@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router";
 import { LoginPage } from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import "./App.css";
 
 function App() {
