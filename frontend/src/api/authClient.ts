@@ -73,7 +73,7 @@ export async function logout(): Promise<void> {
   }
 }
 
-// TO DO: simplify, we do not need to consider the race condition atp
+// TO DO: simplify, we do not need to consider the race condition ATP
 export function refreshTokens(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = performTokenRefresh().finally(() => {

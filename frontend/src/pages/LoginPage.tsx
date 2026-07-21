@@ -86,10 +86,12 @@ export function LoginPage() {
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
+
         <GoogleLoginButton
           onCredential={handleGoogleCredential}
           onError={() => setError("Google login failed.")}
         />
+
         {error && <p>{error}</p>}
       </form>
     </main>
