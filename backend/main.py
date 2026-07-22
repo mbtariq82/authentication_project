@@ -1,10 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from redis_client import redis_client
 
 from database import Base, engine
 from router import auth, users
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await redis_client.ping()
+    print("Connected to Redis")
+    yield
+    await redis_client.aclose()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

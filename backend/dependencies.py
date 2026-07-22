@@ -9,9 +9,17 @@ from services.auth_service import AuthService
 from repositories.user_repository import UserRepository
 from repositories.refresh_token_repository import RefreshTokenRepository
 from security import oauth2_scheme
+from services.login_rate_limiter import LoginRateLimiter
+from redis_client import redis_client
+
+def get_login_rate_limiter() -> LoginRateLimiter:
+    return LoginRateLimiter(redis_client)
 
 def get_auth_service(
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    login_rate_limiter: LoginRateLimiter = Depends(
+        get_login_rate_limiter
+    )
 ) -> AuthService:
     return AuthService(
         db=db,

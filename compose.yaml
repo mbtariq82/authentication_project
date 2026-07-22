@@ -1,0 +1,22 @@
+services:
+  redis:
+    image: redis:8
+    container_name: redis
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+# we have to declare the volumes because
+# multiple different services can share
+# the same persistent storage
