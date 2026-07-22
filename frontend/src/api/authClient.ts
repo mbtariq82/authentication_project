@@ -1,11 +1,13 @@
-import {
-  getRefreshToken,
-  saveTokens
-} from "../auth/tokenStorage";
+import { getRefreshToken, saveTokens } from "../auth/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export type LoginCredentials = {
+export type LoginCommand = {
+  username: string;
+  password: string;
+};
+
+export type RegisterCommand = {
   username: string;
   password: string;
 };
@@ -26,13 +28,11 @@ type ApiErrorResponse = {
 
 let refreshPromise: Promise<void> | null = null;
 
-export async function login(
-  credentials: LoginCredentials,
-): Promise<TokenResponse> {
+export async function login(command: LoginCommand): Promise<TokenResponse> {
   const formData = new URLSearchParams();
 
-  formData.append("username", credentials.username);
-  formData.append("password", credentials.password);
+  formData.append("username", command.username);
+  formData.append("password", command.password);
 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
@@ -111,6 +111,26 @@ async function performTokenRefresh(): Promise<void> {
   const tokens = (await response.json()) as TokenResponse;
 
   saveTokens(tokens);
+}
+
+export async function register(
+  command: RegisterCommand,
+): Promise<TokenResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+
+    throw new Error(errorData.detail ?? "Registration failed.");
+  }
+
+  return response.json() as Promise<TokenResponse>;
 }
 
 export async function googleLogin(

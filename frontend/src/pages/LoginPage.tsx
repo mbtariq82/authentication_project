@@ -1,12 +1,12 @@
 import { useState, type SubmitEvent } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { login } from "../api/authClient";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { googleLogin } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 
-export function LoginPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -45,18 +45,25 @@ export function LoginPage() {
 
   async function handleGoogleCredential(idToken: string) {
     setError("");
+    setIsSubmitting(true);
 
-    const tokens = await googleLogin({
-      id_token: idToken,
-    });
+    try {
+      const tokens = await googleLogin({
+        id_token: idToken,
+      });
 
-    saveTokens(tokens);
-    navigate("/dashboard");
+      saveTokens(tokens);
+      navigate("/dashboard");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Google login failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <main className="login-page">
-      <form className="login-form" onSubmit={handleSubmit}>
+    <main className="auth-page">
+      <form className="auth-form" onSubmit={handleSubmit}>
         <h1>Sign in</h1>
 
         <label htmlFor="username">Username</label>
@@ -92,7 +99,9 @@ export function LoginPage() {
           onError={() => setError("Google login failed.")}
         />
 
-        {error && <p>{error}</p>}
+        <p>
+          Don&apos;t have an account? <Link to="/register">Create one</Link>
+        </p>
       </form>
     </main>
   );

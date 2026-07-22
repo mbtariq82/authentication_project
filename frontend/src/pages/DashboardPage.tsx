@@ -8,7 +8,7 @@ import {
 } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
 
-export function DashboardPage() {
+export default function DashboardPage() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<UserResponse | null>(null);
