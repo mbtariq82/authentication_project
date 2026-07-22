@@ -1,12 +1,14 @@
-/* Login Page */
-.login-page {
+/* Authentication pages */
+
+.auth-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 2rem;
+  background: #f4f6f8;
 }
 
-.login-form {
+.auth-form {
   width: 100%;
   max-width: 24rem;
 
@@ -19,18 +21,19 @@
   border: 1px solid #d1d5db;
   border-radius: 0.75rem;
   background: white;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
 }
 
-.login-form h1 {
-  margin: 0;
+.auth-form h1 {
+  margin: 0 0 0.5rem;
   text-align: center;
 }
 
-.login-form label {
+.auth-form label {
   font-weight: 600;
 }
 
-.login-form input {
+.auth-form input {
   padding: 0.75rem;
   font: inherit;
 
@@ -38,20 +41,45 @@
   border-radius: 0.5rem;
 }
 
-.login-form button {
+.auth-form input:focus {
+  border-color: #18202a;
+  outline: 2px solid rgba(24, 32, 42, 0.15);
+}
+
+.auth-form button {
   padding: 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #18202a;
+  color: white;
   font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.login-form button:disabled {
+.auth-form button:hover:not(:disabled) {
+  background: #2d3745;
+}
+
+.auth-form button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.auth-form p {
+  margin: 0;
+  text-align: center;
+}
+
+.auth-form a {
+  color: #18202a;
+  font-weight: 600;
 }
 
 .error-message {
   margin: 0;
   color: #dc2626;
+  text-align: left;
 }
 
 /* Dashboard */

@@ -24,7 +24,8 @@ def get_auth_service(
     return AuthService(
         db=db,
         user_repository = UserRepository(db),
-        refresh_token_repository = RefreshTokenRepository(db)
+        refresh_token_repository = RefreshTokenRepository(db),
+        login_rate_limiter=login_rate_limiter
     )
 
 async def get_current_user(
