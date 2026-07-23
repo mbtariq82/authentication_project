@@ -1,13 +1,23 @@
 from datetime import datetime, timezone
-from fastapi import HTTPException   # ideally this should be replaced with custom handling
-from sqlalchemy.ext.asyncio import AsyncSession # we need this for commiting to the DB but we could remove this by introducing a unit of work
+# we need this for commiting to the DB but we could remove this by introducing a unit of work
+from sqlalchemy.ext.asyncio import AsyncSession 
 from jose import JWTError
 
-from models import User 
-from schemas import RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, GoogleLoginCommand
+from models import User
+from schemas import (
+    RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, 
+    GoogleLoginCommand
+)
 from repositories.user_repository import UserRepository
 from repositories.refresh_token_repository import RefreshTokenRepository
-from security import create_access_token, create_refresh_token, pwd_context, decode_token, verify_google_id_token
+from security import (
+    create_access_token, create_refresh_token, pwd_context, decode_token, 
+    verify_google_id_token
+)
+from exceptions import (
+    UsernameAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
+    InvalidGoogleTokenError, GoogleEmailNotVerifiedError, GoogleAccountConflictError
+)
 
 class AuthService:
     def __init__(
@@ -23,10 +33,7 @@ class AuthService:
     async def register(self, command: RegisterCommand) -> TokenResponse:
         existing_user = await self.user_repository.get_by_username(command.username)
         if existing_user:
-            raise HTTPException(
-                status_code=409, 
-                detail="Username already registered"
-            )
+            raise UsernameAlreadyRegisteredError()
         new_user = User(
             username=command.username,
             hashed_password=pwd_context.hash(command.password),
@@ -46,11 +53,8 @@ class AuthService:
 
     async def login(self, command: LoginCommand) -> TokenResponse:
         user = await self.user_repository.get_by_username(command.username)
-        if not user or not pwd_context.verify(command.password, user.hashed_password):
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid username or password"
-            )
+        if not user or not pwd_context.verify(command.password, user.hashed_password): # verify should run in a seperate thread and not block the rest of the function
+            raise InvalidCredentialsError()
 
         try:
             token_response = await self._issue_tokens(user)
@@ -63,23 +67,17 @@ class AuthService:
     async def refresh(self, command: RefreshCommand) -> TokenResponse:
         try:
             payload = decode_token(command.token)
-        except JWTError as exc:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid or expired token"
-            )
-        
+        except (JWTError, TypeError, ValueError) as exc:
+            raise InvalidRefreshTokenError() from exc
         if payload.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid token type")
-        
+            raise InvalidRefreshTokenError()
         stored_token = await self.refresh_token_repository.get_by_token(command.token)
         if not stored_token or stored_token.expires_at < datetime.now(timezone.utc):
-            raise HTTPException(
-                status_code=401, 
-                detail="Refresh token expired or revoked"
-            )
-
+            raise InvalidRefreshTokenError()
         user = await self.user_repository.get_by_id(int(payload.get("sub")))
+        if not user:
+            raise InvalidRefreshTokenError()
+        
         try:
             # Rotation: invalidate the old token before issuing a new one.
             await self.refresh_token_repository.delete(stored_token)
@@ -101,27 +99,28 @@ class AuthService:
             await self.db.rollback()
             raise
 
-    async def authenticate(self, access_token: str) -> User:
-        try:
-            payload = decode_token(access_token)
-            token_type = payload.get("type")
-            subject = payload.get("sub")
-            user_id = int(subject)
-        except Exception:
-            raise
+    # # change name to get_user_from_access_token
+    # async def authenticate(self, access_token: str) -> User:
+    #     try:
+    #         payload = decode_token(access_token)
+    #         token_type = payload.get("type")
+    #         subject = payload.get("sub")
+    #         user_id = int(subject)
+    #     except Exception:
+    #         raise
 
-        user = await self.user_repository.get_by_id(user_id)
-        if user is None:
-            raise 
-        return user
+    #     # cache-aside pattern
+    #     # user = await self.
+
+    #     user = await self.user_repository.get_by_id(user_id)
+    #     if user is None:
+    #         raise 
+    #     return user
     
     async def google_login(self, command: GoogleLoginCommand) -> TokenResponse:
         google_identity = verify_google_id_token(command.id_token)
         if not google_identity.email_verified:
-            raise HTTPException(
-                status_code=401,
-                detail="Google email is not verified",
-        )
+            raise GoogleEmailNotVerifiedError()
 
         user = await self.user_repository.get_by_google_subject(
             google_identity.subject
@@ -135,14 +134,20 @@ class AuthService:
                 email=google_identity.email,
                 google_subject=google_identity.subject
             )
-
             await self.user_repository.add(user)
         elif user.google_subject is None:
-            user.google_subject = google_claims.subject
+            user.google_subject = google_identity.subject
+        
+        if (
+            user.google_subject is not None
+            and user.google_subject != google_identity.subject
+        ):
+            raise GoogleAccountConflictError()
 
+        token_response = await self._issue_tokens(user)
         await self.db.commit()
 
-        return await self._issue_tokens(user)
+        return token_response
 
     async def _issue_tokens(self, user: User) -> TokenResponse:
         access_token = create_access_token(subject=str(user.id))

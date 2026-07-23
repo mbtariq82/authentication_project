@@ -24,3 +24,10 @@ React concepts:
 api: 
 - match the backend and create 1 file per router
 - useful to have a low-level apiClient.ts for retries, auth etc.
+
+Other tech stacks:
+- react/svelte/vue: UI libraries
+- vite: client-side build tool
+- next.js/remix/tanstack start: full-stack frontend framework
+- generally you choose either a client-side build tool (like Vite) or a full-stack framework (like Next.js or Remix) as the foundation of your app
+- next.js is built on top of react

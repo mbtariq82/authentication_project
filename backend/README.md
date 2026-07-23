@@ -1,10 +1,8 @@
 ## TO DO:
-- admin role => revoke, promote buttons on dashboard
-- redis
-    - IP limiter       → checked before authentication
-    - Username limiter → incremented only after invalid credentials
-    - Successful login → clears the username failure counter
 - tests
+- PATCH /users/me
+- PATCH /users/me/password
+- DELETE /users/me
 
 ## Issues
 - /users/me getting called twice from the frontend
@@ -45,6 +43,9 @@
 - repository pattern (x)
     - Repositories exist for aggregate roots, not for every table.
     - abstract repos (interfaces)
+    - only for postgres
+- cache (similar to repositories)
+    - only for redis
 - service layer (x)
 - SOLID (x)
 
@@ -62,15 +63,3 @@ AuthService
 Repositories
     ↓
 Postgres
-
-
-## Frontend notes
-
-
-
-
-- react/svelte/vue: UI libraries
-- vite: client-side build tool
-- next.js/remix/tanstack start: full-stack frontend framework
-- generally you choose either a client-side build tool (like Vite) or a full-stack framework (like Next.js or Remix) as the foundation of your app
-- next.js is built on top of react

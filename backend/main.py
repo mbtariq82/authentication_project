@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from redis_client import redis_client
+from exception_handlers import register_exception_handlers
 
-from database import Base, engine
 from router import auth, users
 
 @asynccontextmanager
@@ -14,6 +14,8 @@ async def lifespan(app: FastAPI):
     await redis_client.aclose()
 
 app = FastAPI(lifespan=lifespan)
+
+register_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,5 +30,3 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
-
-#Base.metadata.create_all(bind=engine)
