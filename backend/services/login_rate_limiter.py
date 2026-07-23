@@ -1,19 +1,19 @@
 from redis.asyncio import Redis
-
+from fastapi import HTTPException # ideally this should be replaced with custom handling
 
 class LoginRateLimiter:
     def __init__(
         self,
         redis: Redis,
-        maximum_attempts: int = 5,
+        max_attempts: int = 5,
         window_seconds: int = 60,
     ):
         self.redis = redis
-        self.maximum_attempts = maximum_attempts
+        self.max_attempts = max_attempts
         self.window_seconds = window_seconds
 
-    async def record_failed_attempt(self, identifier: str) -> int:
-        key = self._build_key(identifier)
+    async def check(self, identifier: str) -> None:
+        key = f"login_rate_limit:{identifier}"
 
         attempts = await self.redis.incr(key)
 
@@ -23,23 +23,13 @@ class LoginRateLimiter:
                 self.window_seconds,
             )
 
-        return attempts
+        if attempts > self.max_attempts:
+            retry_after = await self.redis.ttl(key)
 
-    async def is_blocked(self, identifier: str) -> bool:
-        key = self._build_key(identifier)
-
-        attempts = await self.redis.get(key)
-
-        if attempts is None:
-            return False
-
-        return int(attempts) >= self.maximum_attempts
-
-    async def reset(self, identifier: str) -> None:
-        await self.redis.delete(
-            self._build_key(identifier),
-        )
-
-    @staticmethod
-    def _build_key(identifier: str) -> str:
-        return f"login_attempts:{identifier.lower()}"
+            raise HTTPException(
+                status_code=429,
+                detail="Too many login attempts. Please try again later.",
+                headers={
+                    "Retry-After": str(max(retry_after, 1)),
+                },
+            )

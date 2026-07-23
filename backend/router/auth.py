@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from dependencies import get_auth_service 
+from dependencies import get_auth_service, enforce_login_rate_limit
 from schemas import RegisterCommand, LoginCommand, LogoutCommand, RefreshCommand, TokenResponse, GoogleLoginCommand
 from services.auth_service import AuthService
 
@@ -14,7 +14,11 @@ async def register(
 ):
     return await service.register(command)
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[Depends(enforce_login_rate_limit)],
+)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     service: AuthService = Depends(get_auth_service)      

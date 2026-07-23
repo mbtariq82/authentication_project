@@ -1,6 +1,9 @@
 ## TO DO:
 - admin role => revoke, promote buttons on dashboard
 - redis
+    - IP limiter       → checked before authentication
+    - Username limiter → incremented only after invalid credentials
+    - Successful login → clears the username failure counter
 - tests
 
 ## Issues

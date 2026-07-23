@@ -8,7 +8,6 @@ from schemas import RegisterCommand, LoginCommand, LogoutCommand, TokenResponse,
 from repositories.user_repository import UserRepository
 from repositories.refresh_token_repository import RefreshTokenRepository
 from security import create_access_token, create_refresh_token, pwd_context, decode_token, verify_google_id_token
-from services.login_rate_limiter import LoginRateLimiter
 
 class AuthService:
     def __init__(
@@ -16,12 +15,10 @@ class AuthService:
         db: AsyncSession,         # commit should be in the service because of atomicity
         user_repository: UserRepository,
         refresh_token_repository: RefreshTokenRepository,
-        login_rate_limiter: LoginRateLimiter
     ):
         self.db = db
         self.user_repository = user_repository
         self.refresh_token_repository = refresh_token_repository
-        self.login_rate_limiter = login_rate_limiter
  
     async def register(self, command: RegisterCommand) -> TokenResponse:
         existing_user = await self.user_repository.get_by_username(command.username)
