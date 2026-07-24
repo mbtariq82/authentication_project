@@ -25,7 +25,8 @@ class SqlAlchemyAuthUnitOfWork(AbstractAuthUnitOfWork):
         traceback
     ) -> None:
         try:
-            await self.rollback()
+            if exc_type:
+                await self.rollback()
         finally:
             await self.session.close()
 
