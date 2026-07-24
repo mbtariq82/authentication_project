@@ -5,9 +5,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import RefreshToken, User
+from repositories.abstract_refresh_token_repository import AbstractRefreshTokenRepository
 
-
-class SqlAlchemyRefreshTokenRepository:
+class SqlAlchemyRefreshTokenRepository(AbstractRefreshTokenRepository):
     def __init__(self, db: AsyncSession):
         self.db = db
 

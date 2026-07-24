@@ -1,8 +1,9 @@
 from redis.asyncio import Redis
+
 from schemas import UserResponse
+from cache.abstract_user_cache import AbstractUserCache
 
-
-class RedisUserCache:
+class RedisUserCache(AbstractUserCache):
     def __init__(
         self,
         redis: Redis,
