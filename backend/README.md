@@ -1,4 +1,7 @@
 ## TO DO:
+- split dependencies into multiple files
+- split schemas into multiple files?
+- split models into multiple files?
 - tests
 - PATCH /users/me
 - PATCH /users/me/password

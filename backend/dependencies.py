@@ -13,13 +13,10 @@ from repositories.user_repository import UserRepository
 from repositories.refresh_token_repository import RefreshTokenRepository
 from redis_client import redis_client
 from cache.user_cache import UserCache
+from cache.abstract_user_cache import AbstractUserCache
 from rate_limiting.login_rate_limiter import LoginRateLimiter
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
-
-# Databases
-async def get_db():
-    async with async_session_factory() as session:
-        yield session
+from unit_of_work.sqlalchemy_redis_user_unit_of_work import SqlAlchemyRedisUserUnitOfWork
 
 def get_redis() -> Redis:
     return redis_client
@@ -48,17 +45,17 @@ def get_user_cache(
 
 # Services
 def get_auth_service() -> AuthService:
-    uow = SqlAlchemyAuthUnitOfWork(async_session_factory)
+    uow = SqlAlchemyAuthUnitOfWork(async_session_factory) # TODO: create separate dependency for uow
     return AuthService(uow)
 
 def get_user_service(
-    db: AsyncSession = Depends(get_db),
-    user_cache: UserCache = Depends(get_user_cache)
+    user_cache: AbstractUserCache = Depends(get_user_cache)
 ) -> UserService:
-    return UserService(
-        user_repository=UserRepository(db),
+    uow = SqlAlchemyRedisUserUnitOfWork( # TODO: create separate dependency for uow
+        session_factory=async_session_factory,
         user_cache=user_cache
     )
+    return UserService(uow)
 
 
 async def get_current_user(
