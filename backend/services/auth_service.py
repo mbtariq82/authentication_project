@@ -99,24 +99,6 @@ class AuthService:
             await self.db.rollback()
             raise
 
-    # # change name to get_user_from_access_token
-    # async def authenticate(self, access_token: str) -> User:
-    #     try:
-    #         payload = decode_token(access_token)
-    #         token_type = payload.get("type")
-    #         subject = payload.get("sub")
-    #         user_id = int(subject)
-    #     except Exception:
-    #         raise
-
-    #     # cache-aside pattern
-    #     # user = await self.
-
-    #     user = await self.user_repository.get_by_id(user_id)
-    #     if user is None:
-    #         raise 
-    #     return user
-    
     async def google_login(self, command: GoogleLoginCommand) -> TokenResponse:
         google_identity = verify_google_id_token(command.id_token)
         if not google_identity.email_verified:
