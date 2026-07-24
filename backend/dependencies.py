@@ -9,10 +9,8 @@ from schemas import UserResponse
 from exceptions import InvalidAccessTokenError
 from services.auth_service import AuthService
 from services.user_service import UserService
-from repositories.user_repository import UserRepository
-from repositories.refresh_token_repository import RefreshTokenRepository
 from redis_client import redis_client
-from cache.user_cache import UserCache
+from cache.redis_user_cache import  RedisUserCache
 from cache.abstract_user_cache import AbstractUserCache
 from rate_limiting.login_rate_limiter import LoginRateLimiter
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
@@ -40,8 +38,8 @@ async def enforce_login_rate_limit(
 
 def get_user_cache(
     redis: Redis = Depends(get_redis)
-) -> UserCache:
-    return UserCache(redis)
+) ->  RedisUserCache:
+    return  RedisUserCache(redis)
 
 # Services
 def get_auth_service() -> AuthService:

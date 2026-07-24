@@ -1,5 +1,3 @@
-from cache.user_cache import UserCache
-from repositories.user_repository import UserRepository
 from schemas import UserResponse
 
 from unit_of_work.abstract_user_unit_of_work import AbstractUserUnitOfWork

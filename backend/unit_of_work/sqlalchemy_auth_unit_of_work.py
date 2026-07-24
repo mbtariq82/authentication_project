@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from typing import Self
 
-from repositories.user_repository import UserRepository
-from repositories.refresh_token_repository import RefreshTokenRepository
+from repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
+from repositories.sqlalchemy_refresh_token_repository import SqlAlchemyRefreshTokenRepository
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
 
 class SqlAlchemyAuthUnitOfWork(AbstractAuthUnitOfWork):
@@ -14,8 +14,8 @@ class SqlAlchemyAuthUnitOfWork(AbstractAuthUnitOfWork):
 
     async def __aenter__(self) -> Self:
         self.session = self.session_factory()
-        self.users = UserRepository(self.session)
-        self.refresh_tokens = RefreshTokenRepository(self.session)
+        self.users = SqlAlchemyUserRepository(self.session)
+        self.refresh_tokens = SqlAlchemyRefreshTokenRepository(self.session)
         return self
 
     async def __aexit__(

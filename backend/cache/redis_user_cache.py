@@ -2,7 +2,7 @@ from redis.asyncio import Redis
 from schemas import UserResponse
 
 
-class UserCache:
+class RedisUserCache:
     def __init__(
         self,
         redis: Redis,

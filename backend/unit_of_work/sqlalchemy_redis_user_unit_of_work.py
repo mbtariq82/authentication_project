@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from unit_of_work.abstract_user_unit_of_work import AbstractUserUnitOfWork
 from cache.abstract_user_cache import AbstractUserCache
-from repositories.user_repository import UserRepository
+from repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 
 class SqlAlchemyRedisUserUnitOfWork(AbstractUserUnitOfWork):
     def __init__(
@@ -16,7 +16,7 @@ class SqlAlchemyRedisUserUnitOfWork(AbstractUserUnitOfWork):
 
     async def __aenter__(self) -> Self:
         self.session = self.session_factory()
-        self.users = UserRepository(self.session)
+        self.users = SqlAlchemyUserRepository(self.session)
         return self
 
     async def __aexit__(
