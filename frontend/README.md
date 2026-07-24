@@ -1,3 +1,7 @@
+TO DO:
+- zod
+- interactive UI component
+
 components
     ¦
     V

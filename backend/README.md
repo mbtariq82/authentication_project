@@ -5,7 +5,6 @@
 - DELETE /users/me
 
 ## Issues
-- /users/me getting called twice from the frontend
 - store hash of refresh key instead of raw key
 - 204 No Content response
 - implement abstract repos

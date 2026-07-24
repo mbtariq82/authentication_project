@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
 from redis import Redis
 
-from database import async_session
+from database import async_session_factory
 from security import oauth2_scheme, decode_token
 from schemas import UserResponse
 from exceptions import InvalidAccessTokenError
@@ -14,10 +14,11 @@ from repositories.refresh_token_repository import RefreshTokenRepository
 from redis_client import redis_client
 from cache.user_cache import UserCache
 from rate_limiting.login_rate_limiter import LoginRateLimiter
+from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
 
 # Databases
 async def get_db():
-    async with async_session() as session:
+    async with async_session_factory() as session:
         yield session
 
 def get_redis() -> Redis:
@@ -46,14 +47,9 @@ def get_user_cache(
     return UserCache(redis)
 
 # Services
-def get_auth_service(
-    db: AsyncSession = Depends(get_db),
-) -> AuthService:
-    return AuthService(
-        db=db,
-        user_repository = UserRepository(db),
-        refresh_token_repository = RefreshTokenRepository(db),
-    )
+def get_auth_service() -> AuthService:
+    uow = SqlAlchemyAuthUnitOfWork(async_session_factory)
+    return AuthService(uow)
 
 def get_user_service(
     db: AsyncSession = Depends(get_db),
@@ -64,7 +60,7 @@ def get_user_service(
         user_cache=user_cache
     )
 
-# authentication
+
 async def get_current_user(
     access_token: str = Depends(oauth2_scheme),
     user_service: UserService = Depends(get_user_service),

@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
+// "react-router-dom" extends "react-router" with browser specific tools
 
 import { login } from "../api/authClient";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
