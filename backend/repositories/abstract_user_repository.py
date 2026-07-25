@@ -1,14 +1,7 @@
 from abc import ABC, abstractmethod
 from models import User
 
-class AbstractUserRepository(ABC):
-    @abstractmethod
-    async def get_by_username(
-        self,
-        username: str
-    ) -> User | None:
-        raise NotImplementedError
-    
+class AbstractUserRepository(ABC):    
     @abstractmethod
     async def add(self, user: User) -> User:
         raise NotImplementedError

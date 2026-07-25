@@ -3,12 +3,12 @@ import { getRefreshToken, saveTokens } from "../auth/tokenStorage";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export type LoginCommand = {
-  username: string;
+  email: string;
   password: string;
 };
 
 export type RegisterCommand = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -31,7 +31,8 @@ let refreshPromise: Promise<void> | null = null;
 export async function login(command: LoginCommand): Promise<TokenResponse> {
   const formData = new URLSearchParams();
 
-  formData.append("username", command.username);
+  // OAuth2PasswordRequestForm requires the field name "username"
+  formData.append("username", command.email);
   formData.append("password", command.password);
 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -80,16 +81,13 @@ export function refreshTokens(): Promise<void> {
       refreshPromise = null;
     });
   }
-
   return refreshPromise;
 }
 async function performTokenRefresh(): Promise<void> {
   const refreshToken = getRefreshToken();
-
   if (!refreshToken) {
     throw new Error("No refresh token available");
   }
-
   const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
     method: "POST",
     headers: {
@@ -99,17 +97,13 @@ async function performTokenRefresh(): Promise<void> {
       token: refreshToken,
     }),
   });
-
   if (!response.ok) {
     const errorData = (await response.json()) as ApiErrorResponse;
-
     throw new Error(
       errorData.detail ?? `Token refresh failed: ${response.status}`,
     );
   }
-
   const tokens = (await response.json()) as TokenResponse;
-
   saveTokens(tokens);
 }
 

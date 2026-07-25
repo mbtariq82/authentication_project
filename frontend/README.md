@@ -1,6 +1,6 @@
 TO DO:
+- Dashboard: page title, 4 summary cards, bar-chart, doughnut-chart, attention table
 - zod
-- interactive UI component
 
 components
     ¦

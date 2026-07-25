@@ -7,24 +7,25 @@ import { saveTokens } from "../auth/tokenStorage";
 export default function RegisterPage() {
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
+  const [error, setError] = useState(""); // for displaying the error message
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setError(null);
     setIsSubmitting(true);
+    setError("");
 
     try {
       const tokens = await register({
-        username,
+        email,
         password,
       });
 
-      saveTokens(tokens);
+      saveTokens(tokens); // could do this in the api?
 
       navigate("/dashboard", { replace: true }); // for the browser back button
     } catch (error) {
@@ -41,10 +42,10 @@ export default function RegisterPage() {
         <label htmlFor="username">Username</label>
 
         <input
-          id="username"
+          id="email"
           type="text"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           autoComplete="username"
           required
         />

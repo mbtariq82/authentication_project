@@ -1,4 +1,7 @@
 ## TO DO:
+- change login and user profile to use email instead of username
+- create roles with separate endpoints
+- do not need both unique and index for table columns
 - split dependencies into multiple files
 - split schemas into multiple files?
 - split models into multiple files?
@@ -9,9 +12,6 @@
 
 ## Issues
 - store hash of refresh key instead of raw key
-- 204 No Content response
-- implement abstract repos
-- implement a unit of work object
 - implement value objects
 
 ## SQLAlchemy

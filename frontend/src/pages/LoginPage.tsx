@@ -10,11 +10,11 @@ import { saveTokens } from "../auth/tokenStorage";
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
+  const [error, setError] = useState(""); // for displaying the error message
 
   async function handleSubmit(
     event: SubmitEvent<HTMLFormElement>,
@@ -26,11 +26,11 @@ export default function LoginPage() {
 
     try {
       const tokens = await login({
-        username,
+        email,
         password,
       });
 
-      saveTokens(tokens);
+      saveTokens(tokens); // could do this in api?
 
       navigate("/dashboard");
     } catch (error) {
@@ -53,7 +53,7 @@ export default function LoginPage() {
         id_token: idToken,
       });
 
-      saveTokens(tokens);
+      saveTokens(tokens); // could do this in api?
       navigate("/dashboard");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Google login failed.");
@@ -70,10 +70,10 @@ export default function LoginPage() {
         <label htmlFor="username">Username</label>
 
         <input
-          id="username"
+          id="email"
           type="text"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           autoComplete="username"
           required
         />

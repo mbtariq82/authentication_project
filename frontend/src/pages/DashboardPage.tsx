@@ -10,11 +10,48 @@ import { clearTokens } from "../auth/tokenStorage";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  const dashboardData = {
+    summary: {
+      total: 48,
+      placed: 33,
+      available: 8,
+      endingSoon: 7,
+    },
+    consultantByBatch: [
+      { batch: "Python", count: 20 },
+      { batch: "Andriod", count: 16 },
+      { batch: "Data", count: 12 },
+    ],
+    placementStatus: [
+      { status: "Placed", count: 33 },
+      { status: "Available", count: 8 },
+      { status: "Ending soon", count: 7 },
+    ],
+    consultantsRequiringAttention: [
+      {
+        id: 1,
+        name: "Bilal Tariq",
+        batch: "Python",
+        client: "Red Bull",
+        reason: "Blocked"
+      },
+      {
+        id: 2,
+        name: "Noah",
+        batch: "Andriod",
+        client: "Barclays",
+        reason: "Ending soon"
+      }
+    ]
+  }
+
+
+
+  
   useEffect(() => { //
     async function loadCurrentUser() {
       try {

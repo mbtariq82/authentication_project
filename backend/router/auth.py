@@ -24,7 +24,7 @@ async def login(
     service: AuthService = Depends(get_auth_service)      
 ):
     login_command = LoginCommand(
-        username=form_data.username,
+        email=form_data.username,
         password=form_data.password
     )
     return await service.login(login_command)

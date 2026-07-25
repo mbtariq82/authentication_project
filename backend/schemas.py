@@ -14,13 +14,12 @@ breaking the API, and vice versa.
 from pydantic import BaseModel, ConfigDict#, Field
 
 class RegisterCommand(BaseModel):
-    username: str
+    email: str
     password: str
-    #email
     #full_name
 
 class LoginCommand(BaseModel):
-    username: str
+    email: str
     password: str
     #captcha
     #mfa
@@ -45,7 +44,8 @@ class TokenResponse(BaseModel):
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    username: str | None
+    email: str
+    #full_name
 
 class GoogleLoginCommand(BaseModel):
     id_token: str

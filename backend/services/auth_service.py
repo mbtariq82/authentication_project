@@ -11,7 +11,7 @@ from security import (
     verify_google_id_token
 )
 from exceptions import (
-    UsernameAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
+    EmailAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
     GoogleEmailNotVerifiedError, GoogleAccountConflictError
 )
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
@@ -22,11 +22,11 @@ class AuthService:
  
     async def register(self, command: RegisterCommand) -> TokenResponse:
         async with self.uow:
-            existing_user = await self.uow.users.get_by_username(command.username)
+            existing_user = await self.uow.users.get_by_email(command.email)
             if existing_user:
-                raise UsernameAlreadyRegisteredError()
+                raise EmailAlreadyRegisteredError()
             new_user = User(
-                username=command.username,
+                email=command.email,
                 hashed_password=pwd_context.hash(command.password),
             )
             await self.uow.users.add(new_user)
@@ -36,7 +36,7 @@ class AuthService:
 
     async def login(self, command: LoginCommand) -> TokenResponse:
         async with self.uow:
-            user = await self.uow.users.get_by_username(command.username)
+            user = await self.uow.users.get_by_email(command.email)
             if not user or not pwd_context.verify(command.password, user.hashed_password): # verify should run in a seperate thread and not block the rest of the function
                 raise InvalidCredentialsError()
             token_response = await self._issue_tokens(user)
