@@ -5,7 +5,7 @@ interface GoogleLoginButtonProps {
   onError: () => void;
 };
 
-export function GoogleLoginButton({
+export default function GoogleLoginButton({
   onCredential,
   onError,
 }: GoogleLoginButtonProps) {

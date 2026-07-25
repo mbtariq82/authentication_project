@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
+import DashboardSummary from "../components/DashboardSummary";
+import DashboardCharts from "../components/DashboardCharts";
+import AttentionTable from "../components/AttentionTable";
 import { logout } from "../api/authClient";
 import {
   getAdminDashboard,
@@ -36,9 +39,30 @@ export default function DashboardPage() {
       },
       {
         id: 2,
-        name: "Noah",
+        name: "Tanushree Bante",
         batch: "Andriod",
         client: "Barclays",
+        reason: "Ending soon",
+      },
+      {
+        id: 3,
+        name: "Oluwapelumi Aregbesola",
+        batch: "Andriod",
+        client: "Uber",
+        reason: "Client feedback required",
+      },
+      {
+        id: 4,
+        name: "Noah Amoo",
+        batch: "Andriod",
+        client: "Spotify",
+        reason: "Placement delayed",
+      },
+      {
+        id: 5,
+        name: "Fahadur Rahman",
+        batch: "Python",
+        client: "HSBC",
         reason: "Ending soon",
       },
     ],
@@ -78,58 +102,29 @@ export default function DashboardPage() {
 
   return (
     <main className="dashboard-page">
-      <section className="dashboard-summary">
-        <article className="summary-card">
-          <h2>Total consultants</h2>
-          <p>{dashboardData.summary.total}</p>
-        </article>
-
-        <article className="summary-card">
-          <h2>Placed</h2>
-          <p>{dashboardData.summary.placed}</p>
-        </article>
-
-        <article className="summary-card">
-          <h2>Available</h2>
-          <p>{dashboardData.summary.available}</p>
-        </article>
-
-        <article className="summary-card">
-          <h2>Ending soon</h2>
-          <p>{dashboardData.summary.endingSoon}</p>
-        </article>
-      </section>
-      <section className="user-details-card">
-        <header className="user-details-header">
-          <p>Authenticated account</p>
-        </header>
-
-        <dl className="user-details">
-          <div>
-            <dt>User ID</dt>
-            <dd>{user.id}</dd>
-          </div>
-
-          <div>
-            <dt>Email</dt>
-            <dd>{user.email}</dd>
-          </div>
-
-          <div>
-            <dt>Role</dt>
-            <dd>{user.role}</dd>
-          </div>
-        </dl>
-
+      <header className="dashboard-header">
+        <h1>ITC Dashboard</h1>
         <button
           className="logout-button"
-          type="button"
           onClick={handleLogout}
           disabled={isLoggingOut}
         >
-          {isLoggingOut ? "Logging out..." : "Log out"}
+          Logout
         </button>
-      </section>
+      </header>
+      <DashboardSummary
+        total={dashboardData.summary.total}
+        placed={dashboardData.summary.placed}
+        available={dashboardData.summary.available}
+        endingSoon={dashboardData.summary.endingSoon}
+      />
+      <DashboardCharts
+        consultantsByBatch={dashboardData.consultantByBatch}
+        placementStatus={dashboardData.placementStatus}
+      />
+      <AttentionTable
+        consultants={dashboardData.consultantsRequiringAttention}
+      />
     </main>
   );
 }

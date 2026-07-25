@@ -43,26 +43,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="dashboard-page">
-      <section className="user-details-card">
+    <main className="profile-page">
+      <div className="user-details-card">
         <header className="user-details-header">
-          <p>Authenticated account</p>
+          <p>USER PROFILE</p>
         </header>
-
         <dl className="user-details">
           <div>
             <dt>User ID</dt>
             <dd>{user.id}</dd>
           </div>
-
           <div>
             <dt>Email</dt>
             <dd>{user.email}</dd>
-          </div>
-
-          <div>
-            <dt>Role</dt>
-            <dd>{user.role}</dd>
           </div>
         </dl>
 
@@ -74,7 +67,7 @@ export default function ProfilePage() {
         >
           {isLoggingOut ? "Logging out..." : "Log out"}
         </button>
-      </section>
+      </div>
     </main>
   );
 }

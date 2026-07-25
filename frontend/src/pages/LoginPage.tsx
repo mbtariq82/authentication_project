@@ -2,14 +2,14 @@ import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
 // "react-router-dom" extends "react-router" with browser specific tools
 
+import GoogleLoginButton from "../components/GoogleLoginButton";
+
 import { login } from "../api/authClient";
 import { googleLogin } from "../api/authClient";
 import { getUserProfile } from "../api/userClient";
 
 import { saveTokens } from "../auth/tokenStorage";
 import { isAllowedEmail } from "../auth/emailValidation";
-
-import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export default function LoginPage() {
   const navigate = useNavigate();

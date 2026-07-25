@@ -1,6 +1,8 @@
 TO DO:
-- Dashboard: page title, 4 summary cards, bar-chart, doughnut-chart, attention table
+- Dashboard: attention table
+- implement React-query
 - zod
+- extract components from LoginPage, RegisterPage and ProfilePage
 
 components
     ¦
