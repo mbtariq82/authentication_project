@@ -1,28 +1,40 @@
-"""
-Pydantic schemas define the data exchanged through the API.
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
-These models are intentionally separate from the SQLAlchemy ORM models.
-This allows us to:
-- expose only the fields intended for clients (e.g. never `hashed_password`)
-- validate incoming requests and outgoing responses
-- keep the public API contract independent of the database schema
+ALLOWED_EMAIL_DOMAIN = "@informationtechconsultants.co.uk"
 
-This separation means the database can evolve without unnecessarily
-breaking the API, and vice versa.
-"""
+class EmailCommand(BaseModel):
+    email: EmailStr
 
-from pydantic import BaseModel, ConfigDict#, Field
+    @field_validator("email")
+    @classmethod
+    def validate_email_domain(cls, email: str) -> str:
+        normalized_email = email.lower()
+        if not normalized_email.endswith(ALLOWED_EMAIL_DOMAIN):
+            raise ValueError(
+                "Email must end with @informationtechconsultants.co.uk"
+            )
+        return normalized_email
 
-class RegisterCommand(BaseModel):
-    email: str
+class RegisterCommand(EmailCommand):
     password: str
     #full_name
 
-class LoginCommand(BaseModel):
-    email: str
+class LoginCommand(EmailCommand):
     password: str
     #captcha
     #mfa
+
+class GoogleLoginCommand(BaseModel):
+    id_token: str
+    #device_id
+    #referrel_code
+    #remember_me
+
+# response type from Google
+class GoogleIdentity(BaseModel):    # email validation will not work here
+    subject: str
+    email: str
+    email_verified: bool
 
 class LogoutCommand(BaseModel):
     token: str
@@ -41,20 +53,9 @@ class TokenResponse(BaseModel):
 # Keeping this separate from the SQLAlchemy User model prevents exposing
 # internal fields (e.g. hashed_password) and decouples the API contract
 # from the database schema.
+# better name would be PublicUserDetails
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: str
     #full_name
-
-class GoogleLoginCommand(BaseModel):
-    id_token: str
-    #device_id
-    #referrel_code
-    #remember_me
-
-# response type from Google
-class GoogleIdentity(BaseModel):
-    subject: str
-    email: str
-    email_verified: bool

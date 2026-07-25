@@ -6,6 +6,7 @@ import { login } from "../api/authClient";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { googleLogin } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
+import { isAllowedEmail } from "../auth/emailValidation";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,18 +21,20 @@ export default function LoginPage() {
     event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-
-    setIsSubmitting(true);
     setError("");
-
+    if (!isAllowedEmail(email)) {
+      setError(
+        "Please use your @informationtechconsultants.co.uk email address.",
+      );
+      return;
+    }
+    setIsSubmitting(true);
     try {
       const tokens = await login({
         email,
         password,
       });
-
       saveTokens(tokens); // could do this in api?
-
       navigate("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
@@ -47,7 +50,6 @@ export default function LoginPage() {
   async function handleGoogleCredential(idToken: string) {
     setError("");
     setIsSubmitting(true);
-
     try {
       const tokens = await googleLogin({
         id_token: idToken,
@@ -67,14 +69,14 @@ export default function LoginPage() {
       <form className="auth-form" onSubmit={handleSubmit}>
         <h1>Sign in</h1>
 
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">ITC Email</label>
 
         <input
           id="email"
-          type="text"
+          type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          autoComplete="username"
+          autoComplete="email"
           required
         />
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 
 import { register } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
+import { isAllowedEmail } from "../auth/emailValidation";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -15,10 +16,14 @@ export default function RegisterPage() {
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    setIsSubmitting(true);
     setError("");
-
+    if (!isAllowedEmail(email)) {
+      setError(
+        "Please use your @informationtechconsultants.co.uk email address.",
+      );
+      return
+    }
+    setIsSubmitting(true);
     try {
       const tokens = await register({
         email,
@@ -39,14 +44,14 @@ export default function RegisterPage() {
       <form className="auth-form" onSubmit={handleSubmit}>
         <h1>Create account</h1>
 
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">ITC Email</label>
 
         <input
           id="email"
-          type="text"
+          type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          autoComplete="username"
+          autoComplete="email"
           required
         />
 
