@@ -1,12 +1,15 @@
 import { getAccessToken } from "../auth/tokenStorage";
 import { refreshTokens } from "./authClient";
 
+export type ApiErrorResponse = {
+  detail?: string;
+};
+
 function performRequest(
   input: RequestInfo,
   init: RequestInit = {},
 ): Promise<Response> {
   const accessToken = getAccessToken();
-
   return fetch(input, {
     ...init,
     headers: {
@@ -21,14 +24,10 @@ export async function fetchWithAuth(
   init: RequestInit = {},
 ): Promise<Response> {
   let response = await performRequest(input, init);
-
   if (response.status !== 401) {
     return response;
   }
-
   await refreshTokens();
-
   response = await performRequest(input, init);
-
   return response;
 }

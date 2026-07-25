@@ -1,17 +1,15 @@
-import { fetchWithAuth } from "./apiClient";
+import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+type UserRole = "USER" | "ADMIN";
 export type UserResponse = {
   id: number;
-  username: string;
+  email: string;
+  role: UserRole;
 };
 
-type ApiErrorResponse = {
-  detail?: string;
-};
-
-export async function getCurrentUser(): Promise<UserResponse> {
+export async function getUserProfile(): Promise<UserResponse> {
   const response = await fetchWithAuth(
     `${API_BASE_URL}/users/me`,
   );

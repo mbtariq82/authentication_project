@@ -32,7 +32,7 @@ export default function RegisterPage() {
 
       saveTokens(tokens); // could do this in the api?
 
-      navigate("/dashboard", { replace: true }); // for the browser back button
+      navigate("/profile", { replace: true }); // for the browser back button
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed.");
     } finally {

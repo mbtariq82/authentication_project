@@ -9,7 +9,8 @@ from exceptions import (
     InvalidGoogleTokenError,
     InvalidRefreshTokenError,
     EmailAlreadyRegisteredError,
-    InvalidCompanyEmailError
+    InvalidCompanyEmailError,
+    PermissionDeniedError
 )
 
 
@@ -99,4 +100,14 @@ def register_exception_handlers(app: FastAPI) -> None:
                     "@informationtechconsultants.co.uk email address."
                 )
             },
+        )
+    
+    @app.exception_handler(PermissionDeniedError)
+    async def permission_denied_handler(
+        request: Request,
+        error: PermissionDeniedError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": str(error)},
         )

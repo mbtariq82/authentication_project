@@ -5,8 +5,10 @@ from redis import Redis
 
 from database import async_session_factory
 from security import oauth2_scheme, decode_token
+from models import User
 from schemas import UserResponse
-from exceptions import InvalidAccessTokenError
+from enums import Role
+from exceptions import InvalidAccessTokenError, PermissionDeniedError
 from services.auth_service import AuthService
 from services.user_service import UserService
 from redis_client import redis_client
@@ -25,7 +27,7 @@ def get_login_rate_limiter(
 ) -> LoginRateLimiter:
     return LoginRateLimiter(
         redis=redis,
-        max_attempts=5,
+        max_attempts=3,
         window_seconds=60,
     )
 
@@ -59,7 +61,7 @@ def get_user_service(
 async def get_current_user(
     access_token: str = Depends(oauth2_scheme),
     user_service: UserService = Depends(get_user_service),
-) -> UserResponse:
+) -> User:
     try:
         payload = decode_token(access_token)
         user_id = int(payload.get("sub"))
@@ -70,4 +72,11 @@ async def get_current_user(
     user = await user_service.get_by_id(user_id)
     if not user:
         raise InvalidAccessTokenError()
+    return user
+
+async def require_admin(
+    user: User = Depends(get_current_user)
+) -> User:
+    if user.role != Role.ADMIN:
+        raise PermissionDeniedError()
     return user

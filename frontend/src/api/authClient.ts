@@ -1,3 +1,4 @@
+import { type ApiErrorResponse } from "./apiClient";
 import { getRefreshToken, saveTokens } from "../auth/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -20,10 +21,6 @@ export type TokenResponse = {
 
 export type GoogleLoginCommand = {
   id_token: string;
-};
-
-type ApiErrorResponse = {
-  detail?: string;
 };
 
 let refreshPromise: Promise<void> | null = null;

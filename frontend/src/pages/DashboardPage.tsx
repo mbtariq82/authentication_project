@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
-import { logout } from "../api/authClient"; //
+import { logout } from "../api/authClient";
 import {
-  getCurrentUser,
-  type UserResponse,
-} from "../api/userClient";
+  getAdminDashboard,
+  type AdminDashboardResponse,
+} from "../api/adminClient";
 import { clearTokens } from "../auth/tokenStorage";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
   const dashboardData = {
     summary: {
       total: 48,
@@ -37,40 +32,36 @@ export default function DashboardPage() {
         name: "Bilal Tariq",
         batch: "Python",
         client: "Red Bull",
-        reason: "Blocked"
+        reason: "Blocked",
       },
       {
         id: 2,
         name: "Noah",
         batch: "Andriod",
         client: "Barclays",
-        reason: "Ending soon"
-      }
-    ]
-  }
-
-
-
-  
-  useEffect(() => { //
+        reason: "Ending soon",
+      },
+    ],
+  };
+  const navigate = useNavigate();
+  const [user, setUser] = useState<AdminDashboardResponse | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // for disabling logout button
+  useEffect(() => {
+    //
     async function loadCurrentUser() {
       try {
-        const currentUser = await getCurrentUser();
+        const currentUser = await getAdminDashboard();
         setUser(currentUser);
       } catch {
         clearTokens();
-        navigate("/login", { replace: true });
-      } finally {
-        setIsLoading(false);
+        navigate("/admin/dashboard", { replace: true });
       }
     }
-
     void loadCurrentUser();
   }, [navigate]);
 
   async function handleLogout() {
     setIsLoggingOut(true);
-
     try {
       await logout();
     } catch (error) {
@@ -81,24 +72,36 @@ export default function DashboardPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <main className="dashboard-state">
-        <p>Loading your account...</p>
-      </main>
-    );
-  }
-
   if (!user) {
     return null;
   }
 
   return (
     <main className="dashboard-page">
+      <section className="dashboard-summary">
+        <article className="summary-card">
+          <h2>Total consultants</h2>
+          <p>{dashboardData.summary.total}</p>
+        </article>
+
+        <article className="summary-card">
+          <h2>Placed</h2>
+          <p>{dashboardData.summary.placed}</p>
+        </article>
+
+        <article className="summary-card">
+          <h2>Available</h2>
+          <p>{dashboardData.summary.available}</p>
+        </article>
+
+        <article className="summary-card">
+          <h2>Ending soon</h2>
+          <p>{dashboardData.summary.endingSoon}</p>
+        </article>
+      </section>
       <section className="user-details-card">
         <header className="user-details-header">
           <p>Authenticated account</p>
-          <h1>{user.username}</h1>
         </header>
 
         <dl className="user-details">
@@ -108,8 +111,13 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <dt>Username</dt>
-            <dd>{user.username}</dd>
+            <dt>Email</dt>
+            <dd>{user.email}</dd>
+          </div>
+
+          <div>
+            <dt>Role</dt>
+            <dd>{user.role}</dd>
           </div>
         </dl>
 

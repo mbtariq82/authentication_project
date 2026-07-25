@@ -27,3 +27,6 @@ class GoogleAccountConflictError(AuthenticationError):
 
 class InvalidCompanyEmailError(AuthenticationError):
     pass
+
+class PermissionDeniedError(ApplicationError):
+    pass

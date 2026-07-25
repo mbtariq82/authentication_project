@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router";
 // "react-router-dom" extends "react-router" with browser specific tools
 
 import { login } from "../api/authClient";
-import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { googleLogin } from "../api/authClient";
+import { getUserProfile } from "../api/userClient";
+
 import { saveTokens } from "../auth/tokenStorage";
 import { isAllowedEmail } from "../auth/emailValidation";
+
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -35,7 +38,16 @@ export default function LoginPage() {
         password,
       });
       saveTokens(tokens); // could do this in api?
-      navigate("/dashboard");
+      const user = await getUserProfile();
+
+      console.log("Current user:", user);
+      console.log("Current role:", user.role);
+
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard");
+        return;
+      }
+      navigate("/profile");
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -56,7 +68,12 @@ export default function LoginPage() {
       });
 
       saveTokens(tokens); // could do this in api?
-      navigate("/dashboard");
+      const user = await getUserProfile();
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard");
+        return;
+      }
+      navigate("/profile");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Google login failed.");
     } finally {
