@@ -40,16 +40,16 @@ export default function DashboardPage() {
       {
         id: 2,
         name: "Tanushree Bante",
-        batch: "Andriod",
-        client: "Barclays",
-        reason: "Ending soon",
+        batch: "Python",
+        client: "Unassigned",
+        reason: "Available",
       },
       {
         id: 3,
-        name: "Oluwapelumi Aregbesola",
-        batch: "Andriod",
-        client: "Uber",
-        reason: "Client feedback required",
+        name: "Fahadur Rahman",
+        batch: "Python",
+        client: "Unassigned",
+        reason: "Available",
       },
       {
         id: 4,
@@ -60,10 +60,10 @@ export default function DashboardPage() {
       },
       {
         id: 5,
-        name: "Fahadur Rahman",
-        batch: "Python",
-        client: "HSBC",
-        reason: "Ending soon",
+        name: "Oluwapelumi Aregbesola",
+        batch: "Andriod",
+        client: "Uber",
+        reason: "Client feedback required",
       },
     ],
   };
