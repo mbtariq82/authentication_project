@@ -1,16 +1,6 @@
 TO DO:
-- Dashboard: attention table
-- implement React-query
+- React query
 - zod
-- extract components from LoginPage, RegisterPage and ProfilePage
-
-components
-    ¦
-    V
-hooks
-    ¦
-    V
-api
 
 React concepts:
 - components: 
@@ -24,14 +14,13 @@ React concepts:
     - useState has an optional generic for the input type for functionToUpdateState
 - useEffect: run code after rendering (keep React functions based purely on props + state)
 - controlled forms (?)
-- useEffect (?)
-- context: shared application state (?)
+- context layer: shared application state (?)
 
-api: 
+API layer: 
 - match the backend and create 1 file per router
 - useful to have a low-level apiClient.ts for retries, auth etc.
 
-Other tech stacks:
+Tech stack notes:
 - react/svelte/vue: UI libraries
 - vite: client-side build tool
 - next.js/remix/tanstack start: full-stack frontend framework

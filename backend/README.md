@@ -1,37 +1,11 @@
 ## TO DO:
-- create roles with separate endpoints
-- do not need both unique and index for table columns?
-- split dependencies into multiple files
-- split schemas into multiple files?
-- split models into multiple files?
 - tests
-- PATCH /users/me
-- PATCH /users/me/password
-- DELETE /users/me
 
-## Issues
-- store hash of refresh key instead of raw key
-- implement value objects
-
-## SQLAlchemy
-- Session / AsyncSession
-    - track Python objects, changes, manages transactions and uses a database connection when needed
-    - Think of it as a workspace: Session, Current transaction, Objects being tracked, Changes waiting to be saved, Database connection
-- flush
-- the lifecycle of ORM objects:
-    - Transient – a new Python object that the session doesn't know about.
-    - Pending – added to the session, waiting to be inserted.
-    - Persistent – stored in the database and tracked by the session.
-    - Detached – no longer associated with a session
-
-## Clean architecture
-- bounded context
-- context mapping
+## Clean architecture notes
+- SOLID (x)
 - dependency injection (x)
     - An object does not construct its own dependencies; another part of the application constructs them and supplies them
     - in fastapi, Depends()
-- domain events (x)
-- aggegrate and aggregrate root (x)
 - unit of work (x)
 - value objects (x)
     - @dataclass(frozen=True)
@@ -45,22 +19,47 @@
     - Repositories exist for aggregate roots, not for every table.
     - abstract repos (interfaces)
     - only for postgres
-- cache (similar to repositories)
-    - only for redis
 - service layer (x)
-- SOLID (x)
+- bounded context
+- context mapping
+- domain events
+- aggegrate and aggregrate root
 
 example flow for login:
-React UI
-    ↓
-LoginForm
-    ↓
-authClient
-    ↓
-FastAPI /auth/login
-    ↓
-AuthService
-    ↓
-Repositories
-    ↓
-Postgres
+    React LoginPage
+        ↓
+    LoginForm
+        ↓
+    useLogin hook
+        ↓
+    authClient.login()
+        ↓
+    POST /auth/login
+        ↓
+    FastAPI auth router
+        ↓
+    LoginCommand
+        ↓
+    AuthService.login()
+        ↓
+    SqlAlchemyAuthUnitOfWork
+        ↓
+    SqlAlchemyUserRepository
+        ↓
+    PostgreSQL
+        ↓
+    Password verification
+        ↓
+    Create access and refresh tokens
+        ↓
+    SqlAlchemyRefreshTokenRepository
+        ↓
+    PostgreSQL
+        ↓
+    TokenResponse
+        ↓
+    authClient
+        ↓
+    tokenStorage
+        ↓
+    Navigate to DashboardPage
