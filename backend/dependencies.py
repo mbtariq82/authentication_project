@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
@@ -5,21 +6,31 @@ from redis import Redis
 
 from database import async_session_factory
 from security import oauth2_scheme, decode_token
-from models import User
+from domain.user import User
 from schemas import UserResponse
 from enums import Role
 from exceptions import InvalidAccessTokenError, PermissionDeniedError
 from services.auth_service import AuthService
 from services.user_service import UserService
+from repositories.abstract_user_repository import AbstractUserRepository
+from repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from redis_client import redis_client
 from cache.redis_user_cache import  RedisUserCache
 from cache.abstract_user_cache import AbstractUserCache
 from rate_limiting.login_rate_limiter import LoginRateLimiter
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
-from unit_of_work.sqlalchemy_redis_user_unit_of_work import SqlAlchemyRedisUserUnitOfWork
+
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with async_session_factory() as session:
+        yield session
 
 def get_redis() -> Redis:
     return redis_client
+
+def get_user_repository(
+    session: AsyncSession = Depends(get_db),
+) -> AbstractUserRepository:
+    return SqlAlchemyUserRepository(session)
 
 # Cache and Rate Limiting
 def get_login_rate_limiter(
@@ -49,13 +60,10 @@ def get_auth_service() -> AuthService:
     return AuthService(uow)
 
 def get_user_service(
-    user_cache: AbstractUserCache = Depends(get_user_cache)
+    user_cache: AbstractUserCache = Depends(get_user_cache),
+    user_repository: AbstractUserRepository = Depends(get_user_repository)
 ) -> UserService:
-    uow = SqlAlchemyRedisUserUnitOfWork( # TODO: create separate dependency for uow
-        session_factory=async_session_factory,
-        user_cache=user_cache
-    )
-    return UserService(uow)
+    return UserService(cache=user_cache, repository=user_repository)
 
 
 async def get_current_user(

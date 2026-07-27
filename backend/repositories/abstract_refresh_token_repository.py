@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from models import RefreshToken, User
+from domain.refresh_token import RefreshToken
 
 class AbstractRefreshTokenRepository(ABC):
     @abstractmethod

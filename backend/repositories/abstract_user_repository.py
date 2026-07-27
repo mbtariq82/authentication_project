@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from models import User
+
+from domain.user import User
 
 class AbstractUserRepository(ABC):    
     @abstractmethod
     async def add(self, user: User) -> User:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def save(self, user: User) -> User:
         raise NotImplementedError
 
     @abstractmethod

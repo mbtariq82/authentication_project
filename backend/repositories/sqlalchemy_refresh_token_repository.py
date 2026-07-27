@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import RefreshToken, User
+from models import RefreshToken, UserRow
 from repositories.abstract_refresh_token_repository import AbstractRefreshTokenRepository
 
 class SqlAlchemyRefreshTokenRepository(AbstractRefreshTokenRepository):

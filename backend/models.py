@@ -6,7 +6,7 @@ from enums import Role
 class Base(DeclarativeBase):
     pass
 
-class User(Base):
+class UserRow(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -31,4 +31,4 @@ class RefreshToken(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
 
-    user = relationship("User", back_populates="refresh_tokens")
+    user = relationship("UserRow", back_populates="refresh_tokens")

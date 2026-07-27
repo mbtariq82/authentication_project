@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from jose import JWTError
 
-from models import User
+from domain.user import User
+
 from schemas import (
     RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, 
     GoogleLoginCommand
@@ -29,7 +30,7 @@ class AuthService:
                 email=command.email,
                 hashed_password=pwd_context.hash(command.password),
             )
-            await self.uow.users.add(new_user)
+            new_user =await self.uow.users.add(new_user)
             token_response = await self._issue_tokens(new_user)
             await self.uow.commit()
             return token_response
@@ -97,10 +98,11 @@ class AuthService:
                     email=google_identity.email,
                     google_subject=google_identity.subject
                 )
-                await self.uow.users.add(user)
+                user = await self.uow.users.add(user)
             # user found but no google login details
             elif user.google_subject is None:
                 user.google_subject = google_identity.subject
+                self.uow.users.save(user)
             
             if (
                 user.google_subject is not None
@@ -112,9 +114,6 @@ class AuthService:
             return token_response
 
     async def _issue_tokens(self, user: User) -> TokenResponse:
-        """
-        Make sure to only call this method inside of 'async with self.uow'
-        """
         access_token = create_access_token(subject=str(user.id))
         refresh_token, expires_at = create_refresh_token(subject=str(user.id))
         await self.uow.refresh_tokens.add(

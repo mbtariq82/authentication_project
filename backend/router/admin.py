@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends#, HTTPException
 
-from models import User
+from domain.user import User
 from schemas import UserResponse
 from dependencies import require_admin
 
