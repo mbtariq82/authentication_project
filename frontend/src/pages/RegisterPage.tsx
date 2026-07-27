@@ -60,6 +60,7 @@ export default function RegisterPage() {
         <input
           id="password"
           type="password"
+          minLength={8}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
