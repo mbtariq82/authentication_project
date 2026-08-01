@@ -1,6 +1,16 @@
 TO DO:
-- React query
+- tanstack query     ()
+- react router: Route, Routes, BrowserRouter (x)
+- prop drilling/context
 - zod
+- vitest
+- RTL
+- playwright
+
+Tanstack query:
+- useQuery - returns { data, status }, parameters: queryKey, queryFn
+- QueryClient
+- QueryClientProvider - provided in component tree and child components can use it
 
 React concepts:
 - components: 

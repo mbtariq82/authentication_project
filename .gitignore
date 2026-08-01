@@ -230,7 +230,6 @@ ENV/
 
 # Environment files
 .env
-.env.*
 
 # Editor settings
 .vscode/
@@ -243,3 +242,10 @@ htmlcov/
 
 # Node modules
 node_modules/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log

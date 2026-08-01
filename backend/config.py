@@ -5,15 +5,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = ".env"
 
-load_dotenv(ENV_PATH)
+load_dotenv(BASE_DIR / ENV_PATH)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "redis://localhost:6379/0",
-)
+REDIS_URL = os.getenv("REDIS_URL")
 
 if DATABASE_URL is None:
     raise RuntimeError("DATABASE_URL environment variable is not set")
