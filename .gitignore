@@ -230,6 +230,8 @@ ENV/
 
 # Environment files
 .env
+.env.development
+.env.production
 
 # Editor settings
 .vscode/
