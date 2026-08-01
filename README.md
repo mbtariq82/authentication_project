@@ -1,14 +1,11 @@
 TO DO:
+- tanstack query
+- HTTPS
 - elastic IP
 - Lambda AWS service
 - modules
-- networking (x)
-- tanstack query ()
 - AWS: pre-signed URL, RDS, EC2 (x)
-
-- docker: EC2 ()
 - kubernetes: EKS ()
-- terraform (x)
 
 Cloud architecture:
 - react server: S3 + Cloudfront
