@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
-from enums import Role
+from enums import Role, Batch, PlacementStatus
 
 ALLOWED_EMAIL_DOMAIN = "@informationtechconsultants.co.uk"
 class EmailCommand(BaseModel):
@@ -62,3 +62,21 @@ class UserResponse(BaseModel):
     email: str
     role: Role
     #full_name
+
+class ConsultantResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    user_id: int
+    email: EmailStr
+    first_name: str
+    last_name: str
+    batch: Batch
+    placement_status: PlacementStatus
+    client: str | None = None
+
+class ConsultantPage(BaseModel):
+    items: list[ConsultantResponse]
+    page: int
+    page_size: int
+    total: int
+    total_pages: int

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, DeclarativeBase
 
-from enums import Role, PlacementStatus
+from enums import Role, PlacementStatus, Batch
 
 class Base(DeclarativeBase):
     pass
@@ -40,11 +40,14 @@ class ConsultantRow(Base):
         unique=True,
         nullable=False,
     )
-    batch = Column(String(100), nullable=False)
+    batch = Column(
+        Enum(Batch, name="batch"),
+        nullable=True,
+    )
     placement_status = Column(
         Enum(PlacementStatus, name="placement_status"),
         nullable=False,
-        default=PlacementStatus.AVAILABLE,
+        default=PlacementStatus.ONBOARDING,
     )
     client = Column(String(100), nullable=True)
     user = relationship(

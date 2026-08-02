@@ -20,6 +20,15 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             hashed_password=row.hashed_password,
             google_subject=row.google_subject,
         )
+    
+    @staticmethod
+    def _apply_domain(row: UserRow, user: User) -> None:
+        row.email = user.email
+        row.first_name = user.first_name
+        row.last_name = user.last_name
+        row.role = user.role
+        row.hashed_password = user.hashed_password
+        row.google_subject = user.google_subject
 
     async def add(self, user: User) -> User:
         row = UserRow(
@@ -40,20 +49,12 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         row = await self.session.get(UserRow, user.id)
         if not row:
             raise ValueError(f"User with id {user.id} not found")
-        row.email = user.email
-        row.first_name = user.first_name
-        row.last_name = user.last_name
-        row.role = user.role
-        row.hashed_password = user.hashed_password
-        row.google_subject = user.google_subject
+        self._apply_domain(row, user)
         await self.session.flush()
         return self._to_domain(row)
 
     async def get_by_id(self, user_id: int) -> User | None:
-        result = await self.session.execute(
-            select(UserRow).where(UserRow.id == user_id)
-        )
-        row = result.scalar_one_or_none()
+        row = await self.session.get(UserRow, user_id)
         return self._to_domain(row) if row else None
     
     async def get_by_google_subject(self, google_subject: str) -> User | None:

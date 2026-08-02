@@ -6,8 +6,8 @@ from enums import Role
 @dataclass(slots=True)
 class User:
     email: str
-    first_name: str | None = None
-    last_name: str | None = None
+    first_name: str
+    last_name: str
     id: int | None = None
     role: Role = Role.USER
     hashed_password: str | None = None

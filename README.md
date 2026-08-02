@@ -11,6 +11,7 @@ TO DO:
 - Lambda 
 - modules
 - Secrets Manager
+- Dashboard service (in backend)
 
 Cloud architecture:
 - react: S3
