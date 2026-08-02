@@ -15,7 +15,7 @@ class Batch(StrEnum):
     PYTHON = "PYTHON"
     JAVA = "JAVA"
     DATA = "DATA"
-    ANDRIOD = "ANDROID"    
+    ANDROID = "ANDROID"    
     #
     #
     #

@@ -1,4 +1,5 @@
 from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.consultant import Consultant
@@ -14,6 +15,9 @@ class SqlAlchemyConsultantRepository(AbstractConsultantRepository):
         return Consultant(
             id=row.id,
             user_id=row.user_id,
+            email=row.user.email,
+            first_name=row.user.first_name,
+            last_name=row.user.last_name,
             batch=row.batch,
             placement_status=row.placement_status,
             client=row.client,
@@ -29,6 +33,7 @@ class SqlAlchemyConsultantRepository(AbstractConsultantRepository):
         )
         result = await self.session.execute(
             select(ConsultantRow)
+            .options(joinedload(ConsultantRow.user))
             .order_by(ConsultantRow.id)
             .offset(offset)
             .limit(limit)

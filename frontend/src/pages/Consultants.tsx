@@ -5,7 +5,7 @@ import {
   type ConsultantPage,
 } from "../api/consultantClient";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 101;
 
 export default function ConsultantsPage() {
   const [page, setPage] = useState(1);
