@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends#, HTTPException
+from fastapi import APIRouter, Depends
 
 from domain.user import User
-from schemas import UserResponse, ConsultantPage
+from schemas import UserResponse, ConsultantPage, ListConsultantsQuery
 from services.consultant_service import ConsultantService
 from dependencies import require_admin, get_consultant_service
 
@@ -15,12 +15,8 @@ async def get_admin_dashboard(
 
 @router.get("/consultants", response_model=ConsultantPage)
 async def get_consultants(
-    page: int = 1,
-    page_size: int = 20,
+    query: ListConsultantsQuery = Depends(),
     admin: User = Depends(require_admin),
     service: ConsultantService = Depends(get_consultant_service),
 ):
-    return await service.list_consultants(
-        page=page,
-        page_size=page_size,
-    )
+    return await service.list_consultants(query)

@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<AdminDashboardResponse | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false); // for disabling logout button
+  
   useEffect(() => {
     //
     async function loadCurrentUser() {

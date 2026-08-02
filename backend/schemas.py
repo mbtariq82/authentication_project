@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, Field
 from enums import Role, Batch, PlacementStatus
 
 ALLOWED_EMAIL_DOMAIN = "@informationtechconsultants.co.uk"
@@ -80,3 +80,7 @@ class ConsultantPage(BaseModel):
     page_size: int
     total: int
     total_pages: int
+
+class ListConsultantsQuery(BaseModel):
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=20, ge=1, le=100)

@@ -16,15 +16,12 @@ export async function getAdminDashboard(): Promise<AdminDashboardResponse> {
   const response = await fetchWithAuth(
     `${API_BASE_URL}/admin/dashboard`,
   );
-
   if (!response.ok) {
     const errorData =
       (await response.json()) as ApiErrorResponse;
-
     throw new Error(
       errorData.detail ?? "Failed to load admin dashboard.",
     );
   }
-
   return response.json() as Promise<AdminDashboardResponse>;
 }

@@ -3,25 +3,25 @@ import { getRefreshToken, saveTokens } from "../auth/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export type LoginCommand = {
+type LoginCommand = {
   email: string;
   password: string;
 };
 
-export type RegisterCommand = {
+type RegisterCommand = {
   email: string;
   password: string;
   first_name: string;
   last_name: string;
 };
 
-export type TokenResponse = {
+type TokenResponse = {
   access_token: string;
   refresh_token: string;
   token_type: string;
 };
 
-export type GoogleLoginCommand = {
+type GoogleLoginCommand = {
   id_token: string;
 };
 

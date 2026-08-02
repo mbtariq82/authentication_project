@@ -321,3 +321,84 @@
   color: #6b7280;
   text-align: center;
 }
+
+
+/* Consultants Page */
+.consultants-page {
+  padding: 32px;
+}
+
+.consultants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.consultants-header h1 {
+  margin: 0;
+}
+
+.consultants-header p {
+  margin: 6px 0 0;
+  color: #667085;
+}
+
+.consultants-table-container {
+  overflow-x: auto;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: white;
+}
+
+.consultants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.consultants-table th,
+.consultants-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e4e7ec;
+  text-align: left;
+}
+
+.consultants-table th {
+  background: #f9fafb;
+  color: #475467;
+  font-size: 14px;
+}
+
+.consultants-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.consultants-empty {
+  color: #667085;
+  text-align: center;
+}
+
+.consultants-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.consultants-pagination button {
+  padding: 8px 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.consultants-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.consultants-error {
+  color: #b42318;
+}

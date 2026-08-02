@@ -3,6 +3,7 @@ import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type UserRole = "USER" | "ADMIN";
+
 export type UserResponse = {
   id: number;
   email: string;

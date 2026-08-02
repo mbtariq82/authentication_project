@@ -1,5 +1,5 @@
 from repositories.abstract_consultant_repository import AbstractConsultantRepository
-from schemas import ConsultantPage
+from schemas import ConsultantPage, ListConsultantsQuery
 
 class ConsultantService:
     def __init__(self, repository: AbstractConsultantRepository):
@@ -7,18 +7,17 @@ class ConsultantService:
 
     async def list_consultants(
         self,
-        page: int = 1,
-        page_size: int = 20,
+        query: ListConsultantsQuery,
     ) -> ConsultantPage:
-        offset = (page - 1) * page_size
+        offset = (query.page - 1) * query.page_size
         consultants, total = await self.repository.list_consultants(
             offset=offset,
-            limit=page_size,
+            limit=query.page_size,
         )
         return ConsultantPage(
             items=consultants,
-            page=page,
-            page_size=page_size,
+            page=query.page,
+            page_size=query.page_size,
             total=total,
-            total_pages=(total + page_size - 1) // page_size,
+            total_pages=(total + query.page_size - 1) // query.page_size,
         )
