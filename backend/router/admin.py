@@ -12,6 +12,7 @@ async def get_admin_dashboard(
     admin: User = Depends(require_admin),
 ) -> UserResponse:
     return UserResponse.model_validate(admin)
+    # TODO: Query the actual data for the admin dashboard and return it in the response
 
 @router.get("/consultants", response_model=ConsultantPage)
 async def get_consultants(
