@@ -4,7 +4,6 @@ from enums import Role
 ALLOWED_EMAIL_DOMAIN = "@informationtechconsultants.co.uk"
 class EmailCommand(BaseModel):
     email: EmailStr
-
     @field_validator("email")
     @classmethod
     def validate_email_domain(cls, email: str) -> str:
@@ -16,8 +15,11 @@ class EmailCommand(BaseModel):
         return normalized_email
 
 class RegisterCommand(EmailCommand):
+    first_name: str
+    last_name: str
     password: str
     #full_name
+    #mfa
 
 class LoginCommand(EmailCommand):
     password: str

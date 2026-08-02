@@ -9,6 +9,8 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
@@ -21,17 +23,17 @@ export default function RegisterPage() {
       setError(
         "Please use your @informationtechconsultants.co.uk email address.",
       );
-      return
+      return;
     }
     setIsSubmitting(true);
     try {
       const tokens = await register({
         email,
         password,
+        first_name: firstName,
+        last_name: lastName,
       });
-
-      saveTokens(tokens); // could do this in the api?
-
+      saveTokens(tokens);
       navigate("/profile", { replace: true }); // for the browser back button
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed.");
@@ -44,8 +46,7 @@ export default function RegisterPage() {
       <form className="auth-form" onSubmit={handleSubmit}>
         <h1>Create account</h1>
 
-        <label htmlFor="username">ITC Email</label>
-
+        <label htmlFor="email">ITC Email</label>
         <input
           id="email"
           type="email"
@@ -55,8 +56,25 @@ export default function RegisterPage() {
           required
         />
 
-        <label htmlFor="password">Password</label>
+        <label htmlFor="first_name">First Name</label>
+        <input
+          id="firstName"
+          type="text"
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
+          required
+        />
 
+        <label htmlFor="last_name">Last Name</label>
+        <input
+          id="lastName"
+          type="text"
+          value={lastName}
+          onChange={(event) => setLastName(event.target.value)}
+          required
+        />
+
+        <label htmlFor="password">Password</label>
         <input
           id="password"
           type="password"

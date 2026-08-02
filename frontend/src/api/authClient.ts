@@ -11,6 +11,8 @@ export type LoginCommand = {
 export type RegisterCommand = {
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
 };
 
 export type TokenResponse = {
@@ -24,6 +26,26 @@ export type GoogleLoginCommand = {
 };
 
 let refreshPromise: Promise<void> | null = null;
+
+export async function register(
+  command: RegisterCommand,
+): Promise<TokenResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+
+    throw new Error(errorData.detail ?? "Registration failed.");
+  }
+
+  return response.json() as Promise<TokenResponse>;
+}
 
 export async function login(command: LoginCommand): Promise<TokenResponse> {
   const formData = new URLSearchParams();
@@ -102,26 +124,6 @@ async function performTokenRefresh(): Promise<void> {
   }
   const tokens = (await response.json()) as TokenResponse;
   saveTokens(tokens);
-}
-
-export async function register(
-  command: RegisterCommand,
-): Promise<TokenResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(command),
-  });
-
-  if (!response.ok) {
-    const errorData = (await response.json()) as ApiErrorResponse;
-
-    throw new Error(errorData.detail ?? "Registration failed.");
-  }
-
-  return response.json() as Promise<TokenResponse>;
 }
 
 export async function googleLogin(

@@ -14,6 +14,8 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         return User(
             id=row.id,
             email=row.email,
+            first_name=row.first_name,
+            last_name=row.last_name,
             role=row.role,
             hashed_password=row.hashed_password,
             google_subject=row.google_subject,
@@ -22,6 +24,8 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
     async def add(self, user: User) -> User:
         row = UserRow(
             email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
             role=user.role,
             hashed_password=user.hashed_password,
             google_subject=user.google_subject,
@@ -37,6 +41,8 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         if not row:
             raise ValueError(f"User with id {user.id} not found")
         row.email = user.email
+        row.first_name = user.first_name
+        row.last_name = user.last_name
         row.role = user.role
         row.hashed_password = user.hashed_password
         row.google_subject = user.google_subject

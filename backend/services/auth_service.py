@@ -27,6 +27,8 @@ class AuthService:
             if existing_user:
                 raise EmailAlreadyRegisteredError()
             new_user = User(
+                first_name=command.first_name,
+                last_name=command.last_name,
                 email=command.email,
                 hashed_password=pwd_context.hash(command.password),
             )
