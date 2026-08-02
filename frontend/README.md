@@ -1,21 +1,23 @@
 TO DO:
-- tanstack query     ()
-- react router: Route, Routes, BrowserRouter (x)
+- consultants page
+- react router: Route, Routes, BrowserRouter ()
 - prop drilling/context
 - zod
+- zustand
 - vitest
 - RTL
 - playwright
 
 Tanstack query:
+- **server-state** management library that exposes React hooks
 - useQuery - returns { data, status }, parameters: queryKey, queryFn
-- QueryClient
-- QueryClientProvider - provided in component tree and child components can use it
+- useMutation
+- useQueryClient
+- QueryClientProvider - provided in component tree
+- QueryClient - provided as a prop to QueryClientProvider
 
 React concepts:
-- components: 
-    - function that returns JSX (HTML-like syntax written for React components)
-    - conceptually: reusable UI parts
+- components: reusable UI parts
 - props: read-only inputs that a parent component passes to a child component
 - event handler: functions triggered  (onClick, onChange, onSubmit are React event props)
 - state: data a component remembers between renders (useState)

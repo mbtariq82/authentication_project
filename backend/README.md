@@ -1,5 +1,8 @@
-## TO DO:
-- tests
+1. create consultants table
+2. consultants.tsx
+3. add link to /admin/dashboard
+4. fake dataset (split database in production/environment)
+5. Tanstack-query
 
 ## Clean architecture notes
 - SOLID (x)

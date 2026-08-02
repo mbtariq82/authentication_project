@@ -5,6 +5,8 @@ services:
       context: ./backend
     image: authentication-fastapi:latest
     container_name: fastapi
+    volumes:
+      - ./backend:/app
     ports:
       - "8000:8000"
     environment:
