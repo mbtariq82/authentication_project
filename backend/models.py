@@ -10,8 +10,8 @@ class UserRow(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    first_name = Column(String(100), nullable=True)
-    last_name = Column(String(100), nullable=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
     role = Column(
         Enum(Role, name="role"),
         nullable=False,
