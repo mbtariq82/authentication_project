@@ -1,12 +1,6 @@
 .logout-button {
-  padding: 12px 16px;
-  border: 0;
-  border-radius: 10px;
-  background: #18202a;
-  color: white;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+  justify-self: end;
+  width: auto;
 }
 .logout-button:hover:not(:disabled) {
   background: #2d3745;
@@ -14,6 +8,15 @@
 .logout-button:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.header h1 {
+  justify-self: start;
 }
 
 /* Authentication pages */
@@ -129,7 +132,7 @@
 }
 
 
-/* Admin Dashboard */
+/* Dashboard Page */
 .dashboard-page {
   min-height: 100vh;
   display: flex;
@@ -139,10 +142,15 @@
   background: #f4f6f8;
   color: #18202a;
 }
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+.consultants-link {
+  justify-self: center;
+  color: #18202a;
+  font-weight: 600;
+  text-decoration: none;
+}
+.consultants-link:hover {
+  text-decoration: underline;
 }
 
 
@@ -299,11 +307,6 @@
   background-color: #f9fafb;
 }
 
-.consultant-name {
-  color: #111827;
-  font-weight: 600;
-}
-
 .attention-reason {
   display: inline-flex;
   align-items: center;
@@ -325,30 +328,16 @@
 
 /* Consultants Page */
 .consultants-page {
-  padding: 32px;
-}
-
-.consultants-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: #f4f6f8;
+  color: #18202a;
 }
 
 .consultants-header h1 {
   margin: 0;
-}
-
-.consultants-header p {
-  margin: 6px 0 0;
-  color: #667085;
-}
-
-.consultants-table-container {
-  overflow-x: auto;
-  border: 1px solid #e4e7ec;
-  border-radius: 12px;
-  background: white;
 }
 
 .consultants-table {
@@ -362,20 +351,8 @@
   border-bottom: 1px solid #e4e7ec;
   text-align: left;
 }
-
-.consultants-table th {
-  background: #f9fafb;
-  color: #475467;
-  font-size: 14px;
-}
-
 .consultants-table tbody tr:last-child td {
   border-bottom: 0;
-}
-
-.consultants-empty {
-  color: #667085;
-  text-align: center;
 }
 
 .consultants-pagination {
@@ -385,7 +362,6 @@
   gap: 16px;
   margin-top: 20px;
 }
-
 .consultants-pagination button {
   padding: 8px 14px;
   border: 1px solid #d0d5dd;
@@ -393,12 +369,7 @@
   background: white;
   cursor: pointer;
 }
-
 .consultants-pagination button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.consultants-error {
-  color: #b42318;
 }

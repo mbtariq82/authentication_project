@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import DashboardSummary from "../components/DashboardSummary";
 import DashboardCharts from "../components/DashboardCharts";
@@ -20,8 +20,9 @@ export default function DashboardPage() {
       endingSoon: 7,
     },
     consultantByBatch: [
-      { batch: "Python", count: 20 },
-      { batch: "Andriod", count: 16 },
+      { batch: "Python", count: 12 },
+      { batch: "Java", count: 12 },
+      { batch: "Andriod", count: 12 },
       { batch: "Data", count: 12 },
     ],
     placementStatus: [
@@ -70,7 +71,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<AdminDashboardResponse | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false); // for disabling logout button
-  
+
   useEffect(() => {
     //
     async function loadCurrentUser() {
@@ -103,8 +104,11 @@ export default function DashboardPage() {
 
   return (
     <main className="dashboard-page">
-      <header className="dashboard-header">
+      <header className="header">
         <h1>ITC Dashboard</h1>
+        <Link className="consultants-link" to="/admin/consultants">
+          Consultants
+        </Link>
         <button
           className="logout-button"
           onClick={handleLogout}

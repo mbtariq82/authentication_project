@@ -1,160 +1,120 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  getConsultants,
-  type ConsultantPage,
-} from "../api/consultantClient";
+import { logout } from "../api/authClient";
+import { clearTokens } from "../auth/tokenStorage";
 
-const PAGE_SIZE = 101;
+import useConsultants from "../hooks/useConsultants";
 
 export default function ConsultantsPage() {
   const [page, setPage] = useState(1);
-  const [consultantPage, setConsultantPage] =
-    useState<ConsultantPage | null>(null);
+  const [pageSize, setPageSize] = useState(20);
+  const { data, error, isPending, isError, isFetching, isPlaceholderData } =
+    useConsultants(page, pageSize);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  if (isPending) {
+    return <p>Loading consultants...</p>;
+  }
+  if (isError) {
+    return <p>{error.message}</p>;
+  }
+  const totalPages = Math.ceil(data.total / pageSize);
 
-  useEffect(() => {
-    let ignoreResult = false;
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    async function loadConsultants() {
-      setIsLoading(true);
-      setError("");
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-      try {
-        const result = await getConsultants({
-          page,
-          page_size: PAGE_SIZE,
-        });
-
-        if (!ignoreResult) {
-          setConsultantPage(result);
-        }
-      } catch (error) {
-        if (!ignoreResult) {
-          setError(
-            error instanceof Error
-              ? error.message
-              : "Failed to load consultants.",
-          );
-        }
-      } finally {
-        if (!ignoreResult) {
-          setIsLoading(false);
-        }
-      }
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Backend logout failed", error);
+    } finally {
+      await queryClient.cancelQueries();
+      clearTokens();
+      navigate("/login", { replace: true });
     }
-
-    void loadConsultants();
-
-    return () => {
-      ignoreResult = true;
-    };
-  }, [page]);
-
-  if (isLoading && !consultantPage) {
-    return (
-      <main className="consultants-page">
-        <p>Loading consultants...</p>
-      </main>
-    );
   }
-
-  if (error) {
-    return (
-      <main className="consultants-page">
-        <p className="consultants-error">{error}</p>
-      </main>
-    );
-  }
-
-  if (!consultantPage) {
-    return null;
-  }
-
-  const totalPages = Math.max(consultantPage.total_pages, 1);
 
   return (
     <main className="consultants-page">
-      <header className="consultants-header">
-        <div>
-          <h1>Consultants</h1>
-
-          <p>
-            {consultantPage.total} consultant
-            {consultantPage.total === 1 ? "" : "s"}
-          </p>
-        </div>
-
-        {isLoading && <span>Updating...</span>}
+      <header className="header">
+        <h1>All Consultants</h1>
+        <Link className="consultants-link" to="/admin/consultants">
+          Consultants
+        </Link>
+        <button
+          className="logout-button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          Logout
+        </button>
+        {isFetching && <span>Refreshing...</span>}
       </header>
 
-      <section className="consultants-table-container">
-        <table className="consultants-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Batch</th>
-              <th>Placement status</th>
-              <th>Client</th>
+      <table className="consultants-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Batch</th>
+            <th>Status</th>
+            <th>Client</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {data.items.map((consultant) => (
+            <tr key={consultant.id}>
+              <td>
+                {consultant.first_name} {consultant.last_name}
+              </td>
+              <td>{consultant.email}</td>
+              <td>{consultant.batch}</td>
+              <td>{consultant.placement_status}</td>
+              <td>{consultant.client ?? "—"}</td>
             </tr>
-          </thead>
+          ))}
+        </tbody>
+      </table>
 
-          <tbody>
-            {consultantPage.items.map((consultant) => (
-              <tr key={consultant.id}>
-                <td>
-                  {consultant.first_name} {consultant.last_name}
-                </td>
-
-                <td>{consultant.email}</td>
-                <td>{consultant.batch}</td>
-
-                <td>
-                  {consultant.placement_status.replaceAll("_", " ")}
-                </td>
-
-                <td>{consultant.client ?? "—"}</td>
-              </tr>
-            ))}
-
-            {consultantPage.items.length === 0 && (
-              <tr>
-                <td colSpan={5} className="consultants-empty">
-                  No consultants found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </section>
-
-      <footer className="consultants-pagination">
+      <div className="consultants-pagination">
         <button
-          type="button"
-          disabled={page === 1 || isLoading}
           onClick={() => setPage((current) => current - 1)}
+          disabled={page === 1 || isPlaceholderData}
         >
           Previous
         </button>
 
         <span>
-          Page {consultantPage.page} of {totalPages}
+          Page {page} of {totalPages}
         </span>
 
         <button
-          type="button"
-          disabled={page >= totalPages || isLoading}
           onClick={() => setPage((current) => current + 1)}
+          disabled={page >= totalPages || isPlaceholderData}
         >
           Next
         </button>
-      </footer>
+
+        <select
+          value={pageSize}
+          onChange={(event) => {
+            setPageSize(Number(event.target.value));
+            setPage(1);
+          }}
+        >
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+          <option value={200}>200</option>
+          <option value={2000}>2000</option>
+        </select>
+      </div>
     </main>
   );
 }
-
-
-

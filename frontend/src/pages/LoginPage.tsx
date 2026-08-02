@@ -121,7 +121,7 @@ export default function LoginPage() {
         />
 
         <p>
-          Don&apos;t have an account? <Link to="/register">Create one</Link>
+          New to ITC? <Link to="/register">Register here</Link>
         </p>
       </form>
     </main>
