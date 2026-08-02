@@ -9,6 +9,7 @@ class PlacementStatus(StrEnum):
     TRAINING = "TRAINING"
     AVAILABLE = "AVAILABLE"
     PLACED = "PLACED"
+    ENDING_SOON = "ENDING_SOON"
 
 class Batch(StrEnum):
     PYTHON = "PYTHON"
