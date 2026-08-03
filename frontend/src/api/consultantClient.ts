@@ -55,7 +55,7 @@ export async function getUnassignedUsers(): Promise<UnassignedUser[]> {
 export async function createConsultant(
   request: CreateConsultantRequest,
 ): Promise<Consultant> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/consultants`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/consultants/new`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

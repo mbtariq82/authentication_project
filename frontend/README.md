@@ -27,6 +27,7 @@ React concepts:
 - useEffect: run code after rendering (keep React functions based purely on props + state)
 - controlled forms (?)
 - context layer: shared application state (?)
+- useContext vs prop drilling
 
 API layer: 
 - match the backend and create 1 file per router

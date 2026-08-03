@@ -24,6 +24,7 @@ class SqlAlchemyConsultantRepository(AbstractConsultantRepository):
             batch=row.batch,
             placement_status=row.placement_status,
             client=row.client,
+            created_at=row.created_at,
         )
 
     @staticmethod
@@ -49,7 +50,10 @@ class SqlAlchemyConsultantRepository(AbstractConsultantRepository):
         result = await self.session.execute(
             select(ConsultantRow)
             .options(joinedload(ConsultantRow.user))
-            .order_by(ConsultantRow.id)
+            .order_by(
+                ConsultantRow.created_at.desc(),
+                ConsultantRow.id.desc(),
+            )
             .offset(offset)
             .limit(limit)
         )

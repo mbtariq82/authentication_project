@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship, DeclarativeBase
 
 from enums import Role, PlacementStatus, Batch
@@ -53,6 +53,11 @@ class ConsultantRow(Base):
     user = relationship(
         "UserRow",
         back_populates="consultant",
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
 
 class RefreshToken(Base):

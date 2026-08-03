@@ -1,21 +1,44 @@
 TO DO:
-- tanstack query
+- ECS
+- EKS
+docker compose -f compose.production.yaml up --build
+- move postgres to RDS
 - IAM
 - HTTPS
 - elastic IP
-- RDS
-- elastic Cache
 - Application Load Balancer
 - pre-signed URL
-- EKS
 - Lambda 
 - modules
 - Secrets Manager
 - Dashboard service (in backend)
 
+ECS
+An ECS-compatible EC2 machine is called a container instance.
+
+
+
+Kubernetes:
+- Control plane
+- Worker nodes (EC2/Fargate)
+- 
+
+
+
+
+
+
+
+
+
+
+
+
+
 Cloud architecture:
 - react: S3
-- fastapi server + postgres + redis: EC2
+- fastapi server + postgres: EC2
+- redis: Elasti Cache
 
 Terraform notes
 - terraform, provider
@@ -51,7 +74,7 @@ VPC
 Subnets
   → divide that network by address range and availability zone
 Route tables
-  → decide where traffic goes
+  → decide **where** traffic goes
 Internet Gateway / NAT Gateway
   → provide different forms of internet connectivity
 Security groups
@@ -75,3 +98,4 @@ Docker notes:
 - Volume — persistent data mounted into a container.
 - Network — how containers in the same Compose app address each other by service name.
 - Environment variables/secrets — configuration injected at runtime, not baked into an image.
+- Compose - describes which containers should run together

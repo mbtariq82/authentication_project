@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from enums import Batch, PlacementStatus
 
@@ -9,6 +10,7 @@ class Consultant:
     email: str
     first_name: str
     last_name: str
+    created_at: datetime
     id: int | None = None
     batch: Batch | None = None
     placement_status: PlacementStatus = PlacementStatus.ONBOARDING

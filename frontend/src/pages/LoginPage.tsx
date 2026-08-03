@@ -21,6 +21,8 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
   const [error, setError] = useState(""); // for displaying the error message
 
+  //const { login, isLoading, error } = useLogin();
+
   async function handleSubmit(
     event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
