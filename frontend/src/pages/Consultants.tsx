@@ -13,14 +13,6 @@ export default function ConsultantsPage() {
   const { data, error, isPending, isError, isFetching, isPlaceholderData } =
     useConsultants(page, pageSize);
 
-  if (isPending) {
-    return <p>Loading consultants...</p>;
-  }
-  if (isError) {
-    return <p>{error.message}</p>;
-  }
-  const totalPages = Math.ceil(data.total / pageSize);
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const queryClient = useQueryClient();
@@ -39,12 +31,20 @@ export default function ConsultantsPage() {
     }
   }
 
+  if (isPending) {
+    return <p>Loading consultants...</p>;
+  }
+  if (isError) {
+    return <p>{error.message}</p>;
+  }
+  const totalPages = Math.ceil(data.total / pageSize);
+
   return (
     <main className="consultants-page">
       <header className="header">
         <h1>All Consultants</h1>
-        <Link className="consultants-link" to="/admin/consultants">
-          Consultants
+        <Link className="header-link" to="/admin/consultants/new">
+          Add a consultant
         </Link>
         <button
           className="logout-button"

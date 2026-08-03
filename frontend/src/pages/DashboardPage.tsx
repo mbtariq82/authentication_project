@@ -5,10 +5,7 @@ import DashboardSummary from "../components/DashboardSummary";
 import DashboardCharts from "../components/DashboardCharts";
 import AttentionTable from "../components/AttentionTable";
 import { logout } from "../api/authClient";
-import {
-  getAdminDashboard,
-  type AdminDashboardResponse,
-} from "../api/adminClient";
+import { getAdminDashboard } from "../api/adminClient";
 import { clearTokens } from "../auth/tokenStorage";
 
 export default function DashboardPage() {
@@ -69,15 +66,12 @@ export default function DashboardPage() {
     ],
   };
   const navigate = useNavigate();
-  const [user, setUser] = useState<AdminDashboardResponse | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false); // for disabling logout button
 
   useEffect(() => {
-    //
     async function loadCurrentUser() {
       try {
-        const currentUser = await getAdminDashboard();
-        setUser(currentUser);
+        await getAdminDashboard();
       } catch {
         clearTokens();
         navigate("/admin/dashboard", { replace: true });
@@ -98,15 +92,11 @@ export default function DashboardPage() {
     }
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <main className="dashboard-page">
       <header className="header">
         <h1>ITC Dashboard</h1>
-        <Link className="consultants-link" to="/admin/consultants">
+        <Link className="header-link" to="/admin/consultants">
           Consultants
         </Link>
         <button

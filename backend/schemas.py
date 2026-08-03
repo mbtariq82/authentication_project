@@ -46,6 +46,22 @@ class RefreshCommand(BaseModel):
     token: str
     #session_id
 
+class RegisterConsultantCommand(BaseModel):
+    user_id: int
+    batch: Batch
+    placement_status: PlacementStatus = PlacementStatus.ONBOARDING
+    client: str | None = None
+
+class ConsultantResponse(BaseModel):
+    id: int
+    user_id: int
+    email: str
+    first_name: str
+    last_name: str
+    batch: Batch
+    placement_status: PlacementStatus = PlacementStatus.ONBOARDING
+    client: str | None = None
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -60,6 +76,8 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: str
+    first_name: str
+    last_name: str
     role: Role
     #full_name
 

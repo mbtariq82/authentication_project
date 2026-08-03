@@ -18,6 +18,15 @@
 .header h1 {
   justify-self: start;
 }
+.header-link {
+  justify-self: center;
+  color: #18202a;
+  font-weight: 600;
+  text-decoration: none;
+}
+.header-link:hover {
+  text-decoration: underline;
+}
 
 /* Authentication pages */
 .auth-page {
@@ -142,17 +151,6 @@
   background: #f4f6f8;
   color: #18202a;
 }
-
-.consultants-link {
-  justify-self: center;
-  color: #18202a;
-  font-weight: 600;
-  text-decoration: none;
-}
-.consultants-link:hover {
-  text-decoration: underline;
-}
-
 
 /* Dashboard Summary */
 .dashboard-summary {
@@ -372,4 +370,137 @@
 .consultants-pagination button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+
+/* Add Consultant Page */
+.add-consultant-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: #f4f6f8;
+  color: #18202a;
+}
+
+.add-consultant-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.add-consultant-header h1 {
+  margin: 0 0 8px;
+  color: #18202a;
+  font-size: 2rem;
+}
+
+.add-consultant-header p {
+  margin: 0;
+  color: #667085;
+}
+
+.add-consultant-back-link {
+  flex-shrink: 0;
+  color: #344054;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.add-consultant-back-link:hover {
+  text-decoration: underline;
+}
+
+.add-consultant-form,
+.add-consultant-empty {
+  padding: 32px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgb(16 24 40 / 8%);
+}
+
+.add-consultant-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.add-consultant-field label {
+  color: #344054;
+  font-weight: 600;
+}
+
+.add-consultant-field input,
+.add-consultant-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #101828;
+  font: inherit;
+}
+
+.add-consultant-field input:focus,
+.add-consultant-field select:focus {
+  border-color: #667085;
+  outline: 3px solid rgb(102 112 133 / 15%);
+}
+
+.add-consultant-error {
+  margin: 0 0 20px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.add-consultant-submit {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #18202a;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-consultant-submit:hover:not(:disabled) {
+  background: #2d3745;
+}
+
+.add-consultant-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.add-consultant-empty h2 {
+  margin-top: 0;
+}
+
+.add-consultant-empty p {
+  margin-bottom: 0;
+  color: #667085;
+}
+
+@media (max-width: 600px) {
+  .add-consultant-page {
+    padding: 24px 0;
+  }
+
+  .add-consultant-header {
+    flex-direction: column;
+  }
+
+  .add-consultant-form,
+  .add-consultant-empty {
+    padding: 22px;
+  }
 }

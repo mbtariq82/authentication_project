@@ -74,9 +74,10 @@ def get_user_service(
     return UserService(cache=user_cache, repository=user_repository)
 
 def get_consultant_service(
-    consultant_repository: AbstractConsultantRepository = Depends(get_consultant_repository)
+    consultant_repository: AbstractConsultantRepository = Depends(get_consultant_repository),
+    session: AsyncSession = Depends(get_db)
 ) -> ConsultantService:
-    return ConsultantService(repository=consultant_repository)
+    return ConsultantService(repository=consultant_repository, session=session)
 
 
 async def get_current_user(

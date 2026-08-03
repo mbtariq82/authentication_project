@@ -1,22 +1,16 @@
 import { type ApiErrorResponse } from "./apiClient";
 import { fetchWithAuth } from "./apiClient";
+import type {
+  Consultant,
+  CreateConsultantRequest,
+  UnassignedUser,
+} from "../types/consultant";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type ListConsultantsQuery = {
   page: number;
   page_size: number;
-};
-
-type Consultant = {
-  id: number;
-  user_id: number;
-  email: string;
-  first_name: string;
-  last_name: string;
-  batch: string;
-  placement_status: string;
-  client: string | null;
 };
 
 export type ConsultantPage = {
@@ -45,4 +39,32 @@ export async function getConsultants(
     throw new Error(errorData.detail ?? "Failed to load consultants.");
   }
   return response.json() as Promise<ConsultantPage>;
+}
+
+export async function getUnassignedUsers(): Promise<UnassignedUser[]> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+    throw new Error(errorData.detail ?? "Failed to load unassigned users.");
+  }
+  return response.json() as Promise<UnassignedUser[]>;
+}
+
+export async function createConsultant(
+  request: CreateConsultantRequest,
+): Promise<Consultant> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/consultants`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+    throw new Error(errorData.detail ?? "Failed to create consultant.");
+  }
+  return response.json() as Promise<Consultant>;
 }

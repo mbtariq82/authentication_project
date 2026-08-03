@@ -1,5 +1,5 @@
 TO DO:
-- consultants page
+- move types into separate folder
 - react router: Route, Routes, BrowserRouter ()
 - prop drilling/context
 - zod
