@@ -11,3 +11,12 @@ output "frontend_website_url" {
 output "valkey_endpoint" {
   value = aws_elasticache_replication_group.valkey.primary_endpoint_address
 }
+
+output "postgres_endpoint" {
+  description = "PostgreSQL RDS endpoint including port"
+  value       = aws_db_instance.postgres.endpoint
+}
+output "postgres_database_name" {
+  description = "Initial PostgreSQL database name"
+  value       = aws_db_instance.postgres.db_name
+}
