@@ -1,12 +1,8 @@
 services:
   fastapi:
-    restart: unless-stopped
-    build:
-      context: ./backend
-    image: authentication-fastapi:latest
+    image: ${ECR_REPOSITORY_URL}:${IMAGE_TAG}
     container_name: fastapi
-    volumes:
-      - ./backend:/app
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:

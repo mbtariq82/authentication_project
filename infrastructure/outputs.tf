@@ -20,3 +20,7 @@ output "postgres_database_name" {
   description = "Initial PostgreSQL database name"
   value       = aws_db_instance.postgres.db_name
 }
+
+output "fastapi_ecr_repository_url" {
+  value = aws_ecr_repository.fastapi.repository_url
+}

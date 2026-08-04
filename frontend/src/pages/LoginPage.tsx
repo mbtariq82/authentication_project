@@ -69,8 +69,7 @@ export default function LoginPage() {
       const tokens = await googleLogin({
         id_token: idToken,
       });
-
-      saveTokens(tokens); // could do this in api?
+      saveTokens(tokens);
       const user = await getUserProfile();
       if (user.role === "ADMIN") {
         navigate("/admin/dashboard");

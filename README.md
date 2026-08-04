@@ -2,7 +2,6 @@ TO DO:
 - ECS
 - EKS
 docker compose -f compose.production.yaml up --build
-- move postgres to RDS
 - IAM
 - HTTPS
 - elastic IP
@@ -11,86 +10,84 @@ docker compose -f compose.production.yaml up --build
 - Lambda 
 - modules
 - Secrets Manager
-- Dashboard service (in backend)
 
-ECS
-An ECS-compatible EC2 machine is called a container instance.
+ECR notes:
+- Amazon ECR Registry: 123456789012.dkr.ecr.eu-west-2.amazonaws.com
+      - user id
+      - region
+- Repository: 
+- Image tag:
+- Repository policy: 
+- Authorization token: aws login
+- IAM permission
+- steps:
+  - 1. create repository
+  - 2. give EC2 IAM policy: /AmazonEC2ContainerRegistryPullOnly
+  - 3. create image and add tag
+  - 4. give user access to push to ECR
+  - 5. Authenticate Docker with ECR
+  - 6. push image
+  - 7. pull and restart container
+(no need for image build instructions in docker compose)
+$AwsRegion = "eu-west-2"
+$AwsAccountId = aws sts get-caller-identity `
+  --profile learning `
+  --query Account `
+  --output text
+
+$EcrRegistry = "$AwsAccountId.dkr.ecr.$AwsRegion.amazonaws.com"
+$EcrRepository = "$EcrRegistry/authentication-project-fastapi"
+- $ImageTag = git rev-parse --short HEAD
 
 
 
-Kubernetes:
+ECS notes:
+- An ECS-compatible EC2 machine is called a container instance
+
+
+Kubernetes notes:
 - Control plane
 - Worker nodes (EC2/Fargate)
 - 
 
 
 
-
-
-
-
-
-
-
-
-
-
-Cloud architecture:
-- react: S3
-- fastapi server + postgres: EC2
-- redis: Elasti Cache
-
 Terraform notes
 - terraform, provider
 - resource <Resource-Type> <local-name>
 - data
 - outputs
-(terraform fmt)
-terraform init
-(terraform validate)
-terraform plan
-**terraform apply**
+- (terraform fmt)
+- terraform init
+- (terraform validate)
+- terraform plan
+- **terraform apply**
 
 Amazon Virtual Private Cloud notes
-Example:
-    VPC: 10.0.0.0/16
-    ├── Subnet A: 10.0.1.0/24
-    │   |── EC2: 10.0.1.20
-    |   └── NAT Gateway
-    │
-    └── Subnet B: 10.0.2.0/24
-        └── RDS: 10.0.2.30
-    Route tables:
-        Subnet A: 
-            Destination      Target
-            10.0.1.0/24  ->  local
-            0.0.0.0/0    ->  Internet Gateway    
-        Subnet B:
-            Destination      Target
-            10.0.2.0/24      local
-            0.0.0.0/0        Nat Gateway
-VPC
+- VPC
   → defines the private network and address range
-Subnets
+- Subnets
   → divide that network by address range and availability zone
-Route tables
+- Route tables
   → decide **where** traffic goes
-Internet Gateway / NAT Gateway
+- Internet Gateway / NAT Gateway
   → provide different forms of internet connectivity
-Security groups
+- Security groups
   → stateful inbound/outbound allow-only rules attached to a resource
-NACL
+- NACL
   → stateless inbound/outbound rules attached to a subnet
 
 IAM notes
+- root user
 - IAM user
 - IAM role
-- root user
+  - trust policy
+  - permission policy
 - IAM policy
 - ARN
 
-
 Docker notes:
+- docker run --rm -it    for a temporary container
 - Image — immutable packaged blueprint for a runnable environment.
 - Container — one running instance of an image.
 - Dockerfile — recipe used to produce an image.
