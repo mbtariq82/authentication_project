@@ -1,5 +1,6 @@
 import asyncio
 import csv
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -47,6 +48,9 @@ async def seed_consultants() -> None:
                         row["placement_status"]
                     ),
                     client=row["client"] or None,
+                    created_at=datetime.fromisoformat(
+                        row["created_at"].replace("Z", "+00:00")
+                    ),
                 )
 
                 session.add(user)

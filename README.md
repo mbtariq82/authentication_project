@@ -23,8 +23,8 @@ ECR notes:
 - steps:
   - 1. create repository
   - 2. give EC2 IAM policy: /AmazonEC2ContainerRegistryPullOnly
-  - 3. create image and add tag
-  - 4. give user access to push to ECR
+  - 3. build image with tag (registry/repository)
+  - 4. (give user access to push to ECR)
   - 5. Authenticate Docker with ECR
   - 6. push image
   - 7. pull and restart container
@@ -34,10 +34,10 @@ $AwsAccountId = aws sts get-caller-identity `
   --profile learning `
   --query Account `
   --output text
-
 $EcrRegistry = "$AwsAccountId.dkr.ecr.$AwsRegion.amazonaws.com"
-$EcrRepository = "$EcrRegistry/authentication-project-fastapi"
-- $ImageTag = git rev-parse --short HEAD
+($EcrRepository = "$EcrRegistry/authentication-project-fastapi")
+
+$ImageTag = git rev-parse --short HEAD
 
 
 
