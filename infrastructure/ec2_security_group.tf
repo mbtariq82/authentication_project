@@ -18,7 +18,7 @@ resource "aws_vpc_security_group_ingress_rule" "fastapi_ssh" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "fastapi_api" {
+resource "aws_vpc_security_group_ingress_rule" "alb_to_fastapi" {
   security_group_id            = aws_security_group.fastapi.id
   referenced_security_group_id = aws_security_group.alb.id
   description                  = "Allow FastAPI traffic from the ALB"

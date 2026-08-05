@@ -11,6 +11,12 @@ docker compose -f compose.production.yaml up --build
 - modules
 - Secrets Manager
 
+Fargate:
+- CloudWatch for logs
+- task definition
+- Secrets Manager
+- 
+
 ECR notes:
 - Amazon ECR Registry: 123456789012.dkr.ecr.eu-west-2.amazonaws.com
       - user id
@@ -35,8 +41,25 @@ $AwsAccountId = aws sts get-caller-identity `
   --query Account `
   --output text
 $EcrRegistry = "$AwsAccountId.dkr.ecr.$AwsRegion.amazonaws.com"
-($EcrRepository = "$EcrRegistry/authentication-project-fastapi")
+$EcrRepository = "$EcrRegistry/auth-fastapi"
 $ImageTag = git rev-parse --short HEAD
+
+
+Log Docker into ECR locally
+aws ecr get-login-password `
+  --region $AwsRegion `
+  --profile learning |
+docker login `
+  --username AWS `
+  --password-stdin $EcrRegistry
+
+
+
+
+$env:AWS_PROFILE = "learning"
+$env:AWS_REGION = "eu-west-2"
+
+
 
 ECS notes:
 - cluster
