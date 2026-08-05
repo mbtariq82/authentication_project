@@ -24,3 +24,18 @@ output "postgres_database_name" {
 output "fastapi_ecr_repository_url" {
   value = aws_ecr_repository.fastapi.repository_url
 }
+
+output "alb_dns_name" {
+  description = "Public DNS name of the Application Load Balancer"
+  value       = aws_lb.fastapi.dns_name
+}
+
+output "fastapi_url" {
+  description = "FastAPI URL through the Application Load Balancer"
+  value       = "http://${aws_lb.fastapi.dns_name}"
+}
+
+output "fastapi_target_group_arn" {
+  description = "ARN of the FastAPI target group"
+  value       = aws_lb_target_group.fastapi.arn
+}

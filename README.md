@@ -36,13 +36,19 @@ $AwsAccountId = aws sts get-caller-identity `
   --output text
 $EcrRegistry = "$AwsAccountId.dkr.ecr.$AwsRegion.amazonaws.com"
 ($EcrRepository = "$EcrRegistry/authentication-project-fastapi")
-
 $ImageTag = git rev-parse --short HEAD
 
-
-
 ECS notes:
+- cluster
+- task definition
+- task
+- service
+
+
+
+
 - An ECS-compatible EC2 machine is called a container instance
+
 
 
 Kubernetes notes:
@@ -85,6 +91,9 @@ IAM notes
   - permission policy
 - IAM policy
 - ARN
+
+ALB notes:
+- 
 
 Docker notes:
 - docker run --rm -it    for a temporary container

@@ -15,6 +15,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/health", include_in_schema=False)
+async def health_check():
+    return {"status": "healthy"}
+
 register_exception_handlers(app)
 
 app.add_middleware(
