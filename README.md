@@ -1,15 +1,38 @@
 TO DO:
-- ECS
 - EKS
-docker compose -f compose.production.yaml up --build
-- IAM
 - HTTPS
 - elastic IP
-- Application Load Balancer
 - pre-signed URL
 - Lambda 
-- modules
 - Secrets Manager
+
+EKS:
+Kubernetes cluster
+├── Control plane
+│   ├── API server: entry point for Kubernetes commands
+│   ├── Scheduler: choose which node should run each new pod
+│   ├── Controller manager: continuously reconciles desired and actual state
+│   └── etcd: stores cluster configuration and state, i.e. it is the control plane’s persistent key-value database
+└── Worker nodes: a physical or virtual machine providing CPU, memory and networking
+    ├── kubelet: agent running on the worker node
+    ├── container runtime
+    └── Pods
+kubectl = Kubernetes API
+locally: worker nodes are specific Docker containers that are generated automatically with 'kind create cluster'
+Services: ClusterIP
+
+
+Deployment
+└── ReplicaSet
+    └── Pod
+        └── FastAPI container
+
+
+Helm
+
+The most common design is one application container per Pod.
+EKS:
+
 
 Fargate:
 - CloudWatch for logs
