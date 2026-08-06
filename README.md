@@ -1,10 +1,20 @@
 TO DO:
-- EKS
 - HTTPS
 - elastic IP
 - pre-signed URL
 - Lambda 
 - Secrets Manager
+- Fargate
+
+AWS architecture:
+ElastiCache
+RDS
+EKS: 2 EC2 nodes
+ALB
+S3
+
+
+
 
 EKS:
 Kubernetes cluster
@@ -20,7 +30,7 @@ Kubernetes cluster
 kubectl = Kubernetes API
 locally: worker nodes are specific Docker containers that are generated automatically with 'kind create cluster'
 Services: ClusterIP
-
+Load Balancer Controller: translates Kubernetes intent into AWS load-balancer configuration
 
 Deployment
 └── ReplicaSet

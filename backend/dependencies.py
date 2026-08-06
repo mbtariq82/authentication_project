@@ -12,11 +12,8 @@ from enums import Role
 from exceptions import InvalidAccessTokenError, PermissionDeniedError
 from services.auth_service import AuthService
 from services.user_service import UserService
-from services.consultant_service import ConsultantService
 from repositories.abstract_user_repository import AbstractUserRepository
-from repositories.abstract_consultant_repository import AbstractConsultantRepository
 from repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
-from repositories.sqlalchemy_consultant_repository import SqlAlchemyConsultantRepository
 from redis_client import redis_client
 from cache.redis_user_cache import  RedisUserCache
 from cache.abstract_user_cache import AbstractUserCache
@@ -34,11 +31,6 @@ def get_user_repository(
     session: AsyncSession = Depends(get_db),
 ) -> AbstractUserRepository:
     return SqlAlchemyUserRepository(session)
-
-def get_consultant_repository(
-    session: AsyncSession = Depends(get_db),
-) -> AbstractConsultantRepository:
-    return SqlAlchemyConsultantRepository(session)
 
 # Cache and Rate Limiting
 def get_login_rate_limiter(
@@ -72,12 +64,6 @@ def get_user_service(
     user_repository: AbstractUserRepository = Depends(get_user_repository)
 ) -> UserService:
     return UserService(cache=user_cache, repository=user_repository)
-
-def get_consultant_service(
-    consultant_repository: AbstractConsultantRepository = Depends(get_consultant_repository),
-    session: AsyncSession = Depends(get_db)
-) -> ConsultantService:
-    return ConsultantService(repository=consultant_repository, session=session)
 
 
 async def get_current_user(

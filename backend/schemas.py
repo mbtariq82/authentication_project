@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
-from enums import Role, Batch, PlacementStatus
+from enums import Role
 
 ALLOWED_EMAIL_DOMAIN = "@informationtechconsultants.co.uk"
 class EmailCommand(BaseModel):
@@ -46,22 +46,6 @@ class RefreshCommand(BaseModel):
     token: str
     #session_id
 
-class RegisterConsultantCommand(BaseModel):
-    user_id: int
-    batch: Batch
-    placement_status: PlacementStatus = PlacementStatus.ONBOARDING
-    client: str | None = None
-
-class ConsultantResponse(BaseModel):
-    id: int
-    user_id: int
-    email: str
-    first_name: str
-    last_name: str
-    batch: Batch
-    placement_status: PlacementStatus = PlacementStatus.ONBOARDING
-    client: str | None = None
-
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -80,25 +64,3 @@ class UserResponse(BaseModel):
     last_name: str
     role: Role
     #full_name
-
-class ConsultantResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    user_id: int
-    email: EmailStr
-    first_name: str
-    last_name: str
-    batch: Batch
-    placement_status: PlacementStatus
-    client: str | None = None
-
-class ConsultantPage(BaseModel):
-    items: list[ConsultantResponse]
-    page: int
-    page_size: int
-    total: int
-    total_pages: int
-
-class ListConsultantsQuery(BaseModel):
-    page: int
-    page_size: int

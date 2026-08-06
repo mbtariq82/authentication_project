@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship, DeclarativeBase
 
-from enums import Role, PlacementStatus, Batch
+from enums import Role
 
 class Base(DeclarativeBase):
     pass
@@ -29,35 +29,6 @@ class UserRow(Base):
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
-    )
-
-class ConsultantRow(Base):
-    __tablename__ = "consultants"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(
-        Integer,
-        ForeignKey("users.id"),
-        unique=True,
-        nullable=False,
-    )
-    batch = Column(
-        Enum(Batch, name="batch"),
-        nullable=True,
-    )
-    placement_status = Column(
-        Enum(PlacementStatus, name="placement_status"),
-        nullable=False,
-        default=PlacementStatus.ONBOARDING,
-    )
-    client = Column(String(100), nullable=True)
-    user = relationship(
-        "UserRow",
-        back_populates="consultant",
-    )
-    created_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
     )
 
 class RefreshToken(Base):

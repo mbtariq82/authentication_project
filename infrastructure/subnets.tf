@@ -11,6 +11,9 @@ resource "aws_subnet" "public_a" {
 
   tags = {
     Name = "auth-public-a"
+
+    "kubernetes.io/role/elb"                       = "1"
+    "kubernetes.io/cluster/authentication-project" = "shared"
   }
 }
 resource "aws_subnet" "public_b" {
@@ -21,6 +24,9 @@ resource "aws_subnet" "public_b" {
 
   tags = {
     Name = "auth-public-b"
+
+    "kubernetes.io/role/elb"                       = "1"
+    "kubernetes.io/cluster/authentication-project" = "shared"
   }
 }
 

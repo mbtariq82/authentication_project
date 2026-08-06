@@ -39,8 +39,8 @@ resource "aws_eks_node_group" "general" {
   disk_size      = 20
 
   scaling_config {
-    min_size     = 0
-    desired_size = 0
+    min_size     = 2
+    desired_size = 2
     max_size     = 4
   }
 
