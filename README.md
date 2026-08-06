@@ -13,10 +13,7 @@ EKS: 2 EC2 nodes
 ALB
 S3
 
-
-
-
-EKS:
+EKS notes:
 Kubernetes cluster
 ├── Control plane
 │   ├── API server: entry point for Kubernetes commands
@@ -38,36 +35,11 @@ Deployment
         └── FastAPI container
 
 
-Helm
-
-The most common design is one application container per Pod.
-EKS:
-
-
-Fargate:
-- CloudWatch for logs
-- task definition
-- Secrets Manager
-- 
+Helm: package manager for kubernetes
 
 ECR notes:
-- Amazon ECR Registry: 123456789012.dkr.ecr.eu-west-2.amazonaws.com
-      - user id
-      - region
-- Repository: 
-- Image tag:
-- Repository policy: 
-- Authorization token: aws login
-- IAM permission
-- steps:
-  - 1. create repository
-  - 2. give EC2 IAM policy: /AmazonEC2ContainerRegistryPullOnly
-  - 3. build image with tag (registry/repository)
-  - 4. (give user access to push to ECR)
-  - 5. Authenticate Docker with ECR
-  - 6. push image
-  - 7. pull and restart container
-(no need for image build instructions in docker compose)
+Amazon ECR Registry: user_id.dkr.ecr.aws_region.amazonaws.com
+
 $AwsRegion = "eu-west-2"
 $AwsAccountId = aws sts get-caller-identity `
   --profile learning `
@@ -76,9 +48,8 @@ $AwsAccountId = aws sts get-caller-identity `
 $EcrRegistry = "$AwsAccountId.dkr.ecr.$AwsRegion.amazonaws.com"
 $EcrRepository = "$EcrRegistry/auth-fastapi"
 $ImageTag = git rev-parse --short HEAD
+docker build -t "${EcrRepository}:${ImageTag}" .
 
-
-Log Docker into ECR locally
 aws ecr get-login-password `
   --region $AwsRegion `
   --profile learning |
@@ -86,33 +57,11 @@ docker login `
   --username AWS `
   --password-stdin $EcrRegistry
 
+docker push "${EcrRepository}:${ImageTag}"
 
-
-
+EC2:
 $env:AWS_PROFILE = "learning"
 $env:AWS_REGION = "eu-west-2"
-
-
-
-ECS notes:
-- cluster
-- task definition
-- task
-- service
-
-
-
-
-- An ECS-compatible EC2 machine is called a container instance
-
-
-
-Kubernetes notes:
-- Control plane
-- Worker nodes (EC2/Fargate)
-- 
-
-
 
 Terraform notes
 - terraform, provider
@@ -147,9 +96,6 @@ IAM notes
   - permission policy
 - IAM policy
 - ARN
-
-ALB notes:
-- 
 
 Docker notes:
 - docker run --rm -it    for a temporary container
