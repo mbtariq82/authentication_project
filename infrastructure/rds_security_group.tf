@@ -8,13 +8,3 @@ resource "aws_security_group" "postgres" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "postgres_from_fastapi" {
-  security_group_id = aws_security_group.postgres.id
-  description       = "Allow Postgres from FastAPI"
-
-  referenced_security_group_id = aws_security_group.fastapi.id
-
-  from_port   = 5432
-  to_port     = 5432
-  ip_protocol = "tcp"
-}
