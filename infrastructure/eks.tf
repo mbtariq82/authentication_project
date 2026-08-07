@@ -16,7 +16,7 @@ resource "aws_eks_cluster" "main" {
 
     endpoint_private_access = true
     endpoint_public_access  = true
-    public_access_cidrs     = [var.admin_cidr]
+    public_access_cidrs     = ["0.0.0.0/0"]
   }
 
   depends_on = [
@@ -39,8 +39,8 @@ resource "aws_eks_node_group" "general" {
   disk_size      = 20
 
   scaling_config {
-    min_size     = 2
-    desired_size = 2
+    min_size     = 0
+    desired_size = 1
     max_size     = 4
   }
 

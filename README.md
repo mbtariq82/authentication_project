@@ -92,7 +92,7 @@ IAM notes
 - root user
 - IAM user
 - IAM role
-  - trust policy
+  - trust policy - every role has 1
   - permission policy
 - IAM policy
 - ARN

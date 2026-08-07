@@ -20,3 +20,8 @@ output "fastapi_ecr_repository_url" {
   value = aws_ecr_repository.fastapi.repository_url
 }
 
+output "github_actions_deploy_role_arn" {
+  description = "IAM role ARN used by GitHub Actions through OIDC"
+  value       = aws_iam_role.github_actions_deploy.arn
+}
+
