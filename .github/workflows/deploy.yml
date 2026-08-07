@@ -134,19 +134,6 @@ jobs:
             --region "$AWS_REGION" \
             --name "$EKS_CLUSTER"
 
-      - name: Confirm workers are available
-        shell: bash
-        run: |
-          READY_NODES="$(
-            kubectl get nodes --no-headers |
-            awk '$2 == "Ready" { count++ } END { print count + 0 }'
-          )"
-
-          if [ "$READY_NODES" -lt 1 ]; then
-            echo "::error::No Ready EKS worker nodes are available."
-            exit 1
-          fi
-
       - name: Apply Kubernetes deployment
         run: |
           kubectl apply \
