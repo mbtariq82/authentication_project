@@ -1,12 +1,14 @@
+name: authentication_project
+
 services:
   fastapi:
     restart: unless-stopped
     build:
-      context: ./backend
+      context: .
     image: authentication-fastapi:latest
     container_name: fastapi
     volumes:
-      - ./backend:/app
+      - .:/app
     ports:
       - "8000:8000"
     environment:
