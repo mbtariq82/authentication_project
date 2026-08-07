@@ -24,12 +24,6 @@ class UserRow(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
-    consultant = relationship(
-        "ConsultantRow",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
