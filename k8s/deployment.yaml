@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: fastapi
-          image: 651980295854.dkr.ecr.eu-west-2.amazonaws.com/auth-fastapi:66dc0cd
+          image: IMAGE_URI
           ports:
             - containerPort: 8000
           envFrom:
