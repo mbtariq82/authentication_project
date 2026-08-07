@@ -26,7 +26,7 @@ env:
   EKS_CLUSTER: authentication-project
   K8S_NAMESPACE: auth-development
   DEPLOYMENT_FILE: k8s/deployment.yaml
-  DATABASE_URL: sqlite+aiosqlite:///:memory:
+  DATABASE_URL: "sqlite+aiosqlite:///:memory:"
   SECRET_KEY: github-actions-test-secret
   GOOGLE_CLIENT_ID: github-actions-test-client
   REDIS_URL: redis://localhost:6379/0
