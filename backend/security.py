@@ -7,7 +7,7 @@ from uuid import uuid4
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
-from schemas import GoogleIdentity
+from schemas.auth import GoogleIdentity
 from config import (
     SECRET_KEY,
     ALGORITHM,

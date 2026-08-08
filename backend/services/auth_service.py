@@ -3,7 +3,7 @@ from jose import JWTError
 
 from domain.user import User
 
-from schemas import (
+from schemas.auth import (
     RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, 
     GoogleLoginCommand
 )

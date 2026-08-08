@@ -1,6 +1,6 @@
 from redis.asyncio import Redis
 
-from schemas import UserResponse
+from schemas.user import UserResponse
 from cache.abstract_user_cache import AbstractUserCache
 
 class RedisUserCache(AbstractUserCache):

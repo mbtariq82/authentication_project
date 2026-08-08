@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends#, HTTPException
 
 from domain.user import User
-from schemas import UserResponse
-from dependencies import get_current_user
+from schemas.user import UserResponse
+from dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 

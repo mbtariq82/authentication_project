@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from domain.user import User
-from schemas import UserResponse
-from dependencies import require_admin
+from schemas.user import UserResponse
+from dependencies.auth import require_admin
 
 router = APIRouter(
     prefix="/admin",

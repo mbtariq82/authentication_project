@@ -1,8 +1,16 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from dependencies import get_auth_service, enforce_login_rate_limit
-from schemas import RegisterCommand, LoginCommand, LogoutCommand, RefreshCommand, TokenResponse, GoogleLoginCommand
+from dependencies.auth import get_auth_service
+from dependencies.rate_limiting import enforce_login_rate_limit
+from schemas.auth import (
+    GoogleLoginCommand,
+    LoginCommand,
+    LogoutCommand,
+    RefreshCommand,
+    RegisterCommand,
+    TokenResponse,
+)
 from services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])

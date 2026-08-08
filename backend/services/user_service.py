@@ -1,4 +1,4 @@
-from schemas import UserResponse
+from schemas.user import UserResponse
 
 from cache.abstract_user_cache import AbstractUserCache
 from repositories.abstract_user_repository import AbstractUserRepository

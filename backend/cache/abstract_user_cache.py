@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from schemas import UserResponse
+from schemas.user import UserResponse
 
 class AbstractUserCache(ABC):
     @abstractmethod
