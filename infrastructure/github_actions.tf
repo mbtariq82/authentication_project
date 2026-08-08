@@ -94,6 +94,31 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       aws_eks_cluster.main.arn,
     ]
   }
+
+  statement {
+    sid    = "DeployFastapiThroughSsm"
+    effect = "Allow"
+
+    actions = [
+      "ssm:SendCommand",
+    ]
+
+    resources = [
+      aws_instance.fastapi.arn,
+      "arn:aws:ssm:eu-west-2::document/AWS-RunShellScript",
+    ]
+  }
+
+  statement {
+    sid    = "ReadFastapiDeploymentResult"
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetCommandInvocation",
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "github_actions_deploy" {

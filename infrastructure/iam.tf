@@ -1,3 +1,40 @@
+resource "aws_iam_role" "fastapi_ec2" {
+  name = "authentication-project-fastapi-ec2"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [{
+      Effect = "Allow"
+
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name = "authentication-project-fastapi-ec2"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "fastapi_ecr_pull" {
+  role       = aws_iam_role.fastapi_ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+}
+
+resource "aws_iam_role_policy_attachment" "fastapi_ssm" {
+  role       = aws_iam_role.fastapi_ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "fastapi" {
+  name = "authentication-project-fastapi"
+  role = aws_iam_role.fastapi_ec2.name
+}
+
 resource "aws_iam_role" "eks_cluster" {
   name = "authentication-project-eks-cluster"
 

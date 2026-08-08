@@ -20,6 +20,21 @@ output "fastapi_ecr_repository_url" {
   value = aws_ecr_repository.fastapi.repository_url
 }
 
+output "fastapi_ec2_instance_id" {
+  description = "EC2 instance ID targeted by GitHub Actions through Systems Manager"
+  value       = aws_instance.fastapi.id
+}
+
+output "fastapi_elastic_ip" {
+  description = "Stable public IPv4 address for the FastAPI EC2 instance"
+  value       = aws_eip.fastapi.public_ip
+}
+
+output "fastapi_url" {
+  description = "Public FastAPI URL"
+  value       = "http://${aws_eip.fastapi.public_ip}:8000"
+}
+
 output "github_actions_deploy_role_arn" {
   description = "IAM role ARN used by GitHub Actions through OIDC"
   value       = aws_iam_role.github_actions_deploy.arn
