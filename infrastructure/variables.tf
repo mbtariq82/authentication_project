@@ -18,14 +18,3 @@ variable "fastapi_ami_id" {
   type        = string
   default     = "ami-054818ecdf7d5ec33"
 }
-
-variable "eks_admin_principal_arn" {
-  description = "Permanent IAM or SSO role granted EKS administrator access"
-  type        = string
-}
-
-variable "eks_version" {
-  description = "Kubernetes version used by the EKS cluster"
-  type        = string
-  default     = "1.35"
-}

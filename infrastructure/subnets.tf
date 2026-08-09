@@ -11,44 +11,6 @@ resource "aws_subnet" "public_a" {
 
   tags = {
     Name = "auth-public-a"
-
-    "kubernetes.io/role/elb"                       = "1"
-    "kubernetes.io/cluster/authentication-project" = "shared"
-  }
-}
-resource "aws_subnet" "public_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.5.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "auth-public-b"
-
-    "kubernetes.io/role/elb"                       = "1"
-    "kubernetes.io/cluster/authentication-project" = "shared"
-  }
-}
-
-
-resource "aws_subnet" "app_private_a" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.6.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "auth-private-a"
-  }
-}
-resource "aws_subnet" "app_private_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.7.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "auth-private-b"
   }
 }
 
