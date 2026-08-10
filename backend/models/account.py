@@ -1,17 +1,14 @@
 from sqlalchemy import (
+    CheckConstraint,
     Column,
     DateTime,
-    Enum,
     ForeignKey,
     Integer,
-    String,
-    Text,
+    Numeric,
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import relationship
 
-from enums import AccountStatus, ApprovalStatus
 from models.base import Base
 
 
@@ -23,44 +20,13 @@ class AccountRow(Base):
         Integer,
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
-        index=True,
+        unique=True,
     )
-    account_type_id = Column(
-        Integer,
-        ForeignKey("account_types.id", ondelete="RESTRICT"),
+    balance = Column(
+        Numeric(18, 2),
         nullable=False,
+        server_default="0.00",
     )
-    account_number = Column(String(20), unique=True, index=True, nullable=True)
-    admin_approved = Column(
-        Enum(ApprovalStatus, name="approval_status"),
-        nullable=False,
-        default=ApprovalStatus.PENDING,
-    )
-    status = Column(
-        Enum(AccountStatus, name="account_status"),
-        nullable=False,
-        default=AccountStatus.ACTIVE,
-    )
-    approved_by = Column(
-        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
-    approved_at = Column(DateTime(timezone=True), nullable=True)
-    rejection_reason = Column(Text, nullable=True)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    closed_at = Column(DateTime(timezone=True), nullable=True)
-
-    account_type = relationship("AccountTypeRow", back_populates="accounts")
-    balance = relationship(
-        "BalanceRow",
-        back_populates="account",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-
-    __table_args__ = (
-        UniqueConstraint(
-            "user_id", "account_type_id", name="uq_accounts_user_type"
-        ),
     )
