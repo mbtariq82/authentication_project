@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 
 from models.base import Base
 
-
 class AccountTypeRow(Base):
     __tablename__ = "account_types"
 
