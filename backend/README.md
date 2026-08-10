@@ -1,5 +1,31 @@
-## TO DO:
-- consultant unit of work
+## Apache Kafka vs SQS
+- Kafka behaves like a durable event log
+
+## MSK
+
+
+## SNS/SQS
+- SNS: notifications
+- SQS: queue
+- transaction outbox pattern
+
+
+## Apache Kafka: distributed logs
+- decoupling system dependencies
+- APIs: producer, consumer, streams (transforming data), connector (build reusable producers/consumers)
+- topic: ordered list of events, analogous to a named stream
+- broker: kafka server
+- cluster: collection of brokers
+- partitions ( )
+- leader partition ( )
+- replica partition ( )
+- key ( )
+- consumer groups: consumers grouped together, kafka distributes the partitions among them
+    - within 1 consumer group, a partition is processed by at most one consumer at a time
+- offsets: inside each partition, kafka numbers the events
+- To publish (write) and subscribe to (read) streams of events, including continuous import/export of your data from other systems.
+- To store streams of events durably and reliably for as long as you want.
+- To process streams of events as they occur or retrospectively.
 
 ## Clean architecture notes
 - SOLID (x)
