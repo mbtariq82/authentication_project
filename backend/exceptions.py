@@ -30,3 +30,11 @@ class InvalidCompanyEmailError(AuthenticationError):
 
 class PermissionDeniedError(ApplicationError):
     pass
+
+
+class AccountNotFoundError(ApplicationError):
+    pass
+
+
+class AccountAlreadyExistsError(ApplicationError):
+    pass
