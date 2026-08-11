@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 
+from fastapi import FastAPI
 from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
     OTLPMetricExporter,
@@ -15,6 +16,11 @@ from opentelemetry.sdk.metrics.export import (
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.redis import RedisInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 
 @dataclass(frozen=True)
@@ -58,7 +64,7 @@ def configure_telemetry() -> TelemetryProviders:
     tracer_provider = TracerProvider(resource=resource)
     tracer_provider.add_span_processor(
         BatchSpanProcessor(OTLPSpanExporter())
-    ) # converts traces to OpenTel protocol
+    )
     trace.set_tracer_provider(tracer_provider)
 
     metric_reader = PeriodicExportingMetricReader(
@@ -75,3 +81,28 @@ def configure_telemetry() -> TelemetryProviders:
         meter_provider=meter_provider,
     )
     return _providers
+
+
+def instrument_application(
+    app: FastAPI,
+    engine: AsyncEngine,
+    redis_client: Redis,
+    providers: TelemetryProviders,
+) -> None:
+    """Instrument inbound HTTP, PostgreSQL, and Redis operations."""
+    FastAPIInstrumentor.instrument_app(
+        app,
+        tracer_provider=providers.tracer_provider,
+        meter_provider=providers.meter_provider,
+        excluded_urls=r".*/health",
+        exclude_spans=["receive", "send"],
+    )
+    SQLAlchemyInstrumentor().instrument(
+        engine=engine.sync_engine,
+        tracer_provider=providers.tracer_provider,
+        meter_provider=providers.meter_provider,
+    )
+    RedisInstrumentor.instrument_client(
+        client=redis_client,
+        tracer_provider=providers.tracer_provider,
+    )
