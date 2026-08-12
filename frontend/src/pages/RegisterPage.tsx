@@ -3,7 +3,17 @@ import { Link, useNavigate } from "react-router";
 
 import { register } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
-import { isAllowedEmail } from "../auth/emailValidation";
+import AuthShell from "../components/AuthShell";
+
+function isStrongPassword(password: string): boolean {
+  return (
+    password.length >= 12 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9\s]/.test(password)
+  );
+}
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -12,17 +22,24 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
-  const [error, setError] = useState(""); // for displaying the error message
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (!isAllowedEmail(email)) {
-      setError(
-        "Please use your @informationtechconsultants.co.uk email address.",
-      );
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Enter your first and last name.");
+      return;
+    }
+    if (!isStrongPassword(password)) {
+      setError("Choose a password that meets all the requirements below.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("The passwords do not match.");
       return;
     }
     setIsSubmitting(true);
@@ -34,7 +51,7 @@ export default function RegisterPage() {
         last_name: lastName,
       });
       saveTokens(tokens);
-      navigate("/profile", { replace: true }); // for the browser back button
+      navigate("/profile", { replace: true });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed.");
     } finally {
@@ -42,48 +59,87 @@ export default function RegisterPage() {
     }
   }
   return (
-    <main className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1>Create account</h1>
+    <AuthShell>
+      <form className="auth-form" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+        <header className="auth-form-heading">
+          <p className="auth-eyebrow">New customer</p>
+          <h1>Open your account</h1>
+          <p>Enter your details to get started with Demo Bank.</p>
+        </header>
 
-        <label htmlFor="email">ITC Email</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          autoComplete="email"
-          required
-        />
+        <div className="auth-name-row">
+          <div className="auth-field">
+            <label htmlFor="firstName">First name</label>
+            <input
+              id="firstName"
+              type="text"
+              maxLength={100}
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              autoComplete="given-name"
+              required
+            />
+          </div>
 
-        <label htmlFor="first_name">First Name</label>
-        <input
-          id="firstName"
-          type="text"
-          value={firstName}
-          onChange={(event) => setFirstName(event.target.value)}
-          required
-        />
+          <div className="auth-field">
+            <label htmlFor="lastName">Last name</label>
+            <input
+              id="lastName"
+              type="text"
+              maxLength={100}
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              autoComplete="family-name"
+              required
+            />
+          </div>
+        </div>
 
-        <label htmlFor="last_name">Last Name</label>
-        <input
-          id="lastName"
-          type="text"
-          value={lastName}
-          onChange={(event) => setLastName(event.target.value)}
-          required
-        />
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            autoCapitalize="none"
+            required
+          />
+        </div>
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          minLength={8}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="new-password"
-          required
-        />
+        <div className="auth-field">
+          <label htmlFor="password">Create a password</label>
+          <input
+            id="password"
+            type="password"
+            minLength={12}
+            maxLength={72}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="new-password"
+            aria-describedby="password-hint"
+            required
+          />
+          <p className="auth-hint" id="password-hint">
+            At least 12 characters with upper and lowercase letters, a number,
+            and a special character.
+          </p>
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="confirmPassword">Confirm password</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            minLength={12}
+            maxLength={72}
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </div>
 
         {error && (
           <p className="error-message" role="alert">
@@ -91,14 +147,14 @@ export default function RegisterPage() {
           </p>
         )}
 
-        <button type="submit" disabled={isSubmitting}>
+        <button className="auth-primary-action" type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>
 
-        <p>
-          Already have an account? <Link to="/login">Sign in</Link>
+        <p className="auth-form-footer">
+          Already bank with us? <Link to="/login">Sign in</Link>
         </p>
       </form>
-    </main>
+    </AuthShell>
   );
 }

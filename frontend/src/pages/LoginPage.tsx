@@ -1,16 +1,13 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
-// "react-router-dom" extends "react-router" with browser specific tools
 
 import GoogleLoginButton from "../components/GoogleLoginButton";
-
-//import useLogin from "../hooks/useLogin";
+import AuthShell from "../components/AuthShell";
 import { login } from "../api/authClient";
 import { googleLogin } from "../api/authClient";
 import { getUserProfile } from "../api/userClient";
 
 import { saveTokens } from "../auth/tokenStorage";
-import { isAllowedEmail } from "../auth/emailValidation";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,33 +15,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false); // for disabling the submit button
-  const [error, setError] = useState(""); // for displaying the error message
-
-  //const { login, isLoading, error } = useLogin();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(
     event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
     setError("");
-    if (!isAllowedEmail(email)) {
-      setError(
-        "Please use your @informationtechconsultants.co.uk email address.",
-      );
-      return;
-    }
     setIsSubmitting(true);
     try {
       const tokens = await login({
         email,
         password,
       });
-      saveTokens(tokens); // could do this in api?
+      saveTokens(tokens);
       const user = await getUserProfile();
-
-      console.log("Current user:", user);
-      console.log("Current role:", user.role);
 
       if (user.role === "ADMIN") {
         navigate("/admin/dashboard");
@@ -84,47 +70,64 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1>Sign in</h1>
+    <AuthShell>
+      <form className="auth-form" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+        <header className="auth-form-heading">
+          <p className="auth-eyebrow">Secure customer access</p>
+          <h1>Welcome back</h1>
+          <p>Sign in to view and manage your Demo Bank account.</p>
+        </header>
 
-        <label htmlFor="username">ITC Email</label>
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            autoCapitalize="none"
+            required
+          />
+        </div>
 
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          autoComplete="email"
-          required
-        />
+        <div className="auth-field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </div>
 
-        <label htmlFor="password">Password</label>
+        {error && (
+          <p className="error-message" role="alert">
+            {error}
+          </p>
+        )}
 
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="current-password"
-          required
-        />
-
-        {error && <p className="error-message">{error}</p>}
-
-        <button type="submit" disabled={isSubmitting}>
+        <button className="auth-primary-action" type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
 
-        <GoogleLoginButton
-          onCredential={handleGoogleCredential}
-          onError={() => setError("Google login failed.")}
-        />
+        <div className="auth-divider">
+          <span>or continue with</span>
+        </div>
 
-        <p>
-          New to ITC? <Link to="/register">Register here</Link>
+        <div className="google-login-wrapper">
+          <GoogleLoginButton
+            onCredential={handleGoogleCredential}
+            onError={() => setError("Google login failed.")}
+          />
+        </div>
+
+        <p className="auth-form-footer">
+          New to Demo Bank? <Link to="/register">Open an account</Link>
         </p>
       </form>
-    </main>
+    </AuthShell>
   );
 }

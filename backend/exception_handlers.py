@@ -10,7 +10,6 @@ from exceptions import (
     InvalidGoogleTokenError,
     InvalidRefreshTokenError,
     EmailAlreadyRegisteredError,
-    InvalidCompanyEmailError,
     PermissionDeniedError
 )
 
@@ -78,21 +77,6 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": "Google email is not verified"},
         )
 
-    @app.exception_handler(InvalidCompanyEmailError)
-    async def invalid_company_email_handler(
-        request: Request,
-        error: InvalidCompanyEmailError,
-    ) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
-            content={
-                "detail": (
-                    "Please sign in with your "
-                    "@informationtechconsultants.co.uk email address."
-                )
-            },
-        )
-    
     @app.exception_handler(PermissionDeniedError)
     async def permission_denied_handler(
         request: Request,

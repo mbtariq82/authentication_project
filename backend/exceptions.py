@@ -22,9 +22,6 @@ class InvalidGoogleTokenError(AuthenticationError): # TODO
 class GoogleEmailNotVerifiedError(AuthenticationError):
     pass
 
-class InvalidCompanyEmailError(AuthenticationError):
-    pass
-
 class PermissionDeniedError(ApplicationError):
     pass
 
