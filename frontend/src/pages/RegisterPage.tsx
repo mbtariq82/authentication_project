@@ -51,7 +51,7 @@ export default function RegisterPage() {
         last_name: lastName,
       });
       saveTokens(tokens);
-      navigate("/profile", { replace: true });
+      navigate("/account", { replace: true });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed.");
     } finally {

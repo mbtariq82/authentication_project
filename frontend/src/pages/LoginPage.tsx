@@ -11,6 +11,9 @@ import { saveTokens } from "../auth/tokenStorage";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const isGoogleLoginConfigured = Boolean(
+    import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +39,7 @@ export default function LoginPage() {
         navigate("/admin/dashboard");
         return;
       }
-      navigate("/profile");
+      navigate("/account", { replace: true });
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -61,7 +64,7 @@ export default function LoginPage() {
         navigate("/admin/dashboard");
         return;
       }
-      navigate("/profile");
+      navigate("/account", { replace: true });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Google login failed.");
     } finally {
@@ -113,16 +116,20 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
 
-        <div className="auth-divider">
-          <span>or continue with</span>
-        </div>
+        {isGoogleLoginConfigured && (
+          <>
+            <div className="auth-divider">
+              <span>or continue with</span>
+            </div>
 
-        <div className="google-login-wrapper">
-          <GoogleLoginButton
-            onCredential={handleGoogleCredential}
-            onError={() => setError("Google login failed.")}
-          />
-        </div>
+            <div className="google-login-wrapper">
+              <GoogleLoginButton
+                onCredential={handleGoogleCredential}
+                onError={() => setError("Google login failed.")}
+              />
+            </div>
+          </>
+        )}
 
         <p className="auth-form-footer">
           New to Demo Bank? <Link to="/register">Open an account</Link>
