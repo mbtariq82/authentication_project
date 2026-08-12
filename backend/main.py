@@ -1,17 +1,28 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+
+from database import engine
 from redis_client import redis_client
 from exception_handlers import register_exception_handlers
+from telemetry import configure_telemetry, instrument_application
 
 from router import accounts, admin, auth, users
 
+telemetry_providers = configure_telemetry()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await redis_client.ping()
-    print("Connected to Redis")
-    yield
-    await redis_client.aclose()
+    try:
+        await redis_client.ping()
+        print("Connected to Redis")
+        yield
+    finally:
+        try:
+            await redis_client.aclose()
+        finally:
+            telemetry_providers.shutdown()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -36,3 +47,10 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(accounts.router)
+
+instrument_application(
+    app=app,
+    engine=engine,
+    redis_client=redis_client,
+    providers=telemetry_providers,
+)
