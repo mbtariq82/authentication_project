@@ -8,4 +8,10 @@ class Account:
     user_id: int
     balance: Decimal = Decimal("0.00")
     id: int | None = None
-    created_at: datetime | None = None
+    loan_id: int | None = None
+    document_id: int | None = None
+    sort_code: str | None = None
+    account_number: str | None = None
+    account_status: str | None = None
+    opened_at: datetime | None = None
+    closed_at: datetime | None = None

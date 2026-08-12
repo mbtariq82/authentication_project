@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from exceptions import (
     AccountAlreadyExistsError,
     AccountNotFoundError,
-    GoogleAccountConflictError,
     GoogleEmailNotVerifiedError,
     InvalidAccessTokenError,
     InvalidCredentialsError,
@@ -79,16 +78,6 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": "Google email is not verified"},
         )
 
-    @app.exception_handler(GoogleAccountConflictError)
-    async def google_account_conflict_handler(
-        request: Request,
-        exc: GoogleAccountConflictError,
-    ) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_409_CONFLICT,
-            content={"detail": "Account is linked to another Google identity"},
-        )
-    
     @app.exception_handler(InvalidCompanyEmailError)
     async def invalid_company_email_handler(
         request: Request,

@@ -21,6 +21,8 @@ class GoogleIdentity(BaseModel):
     subject: str
     email: str
     email_verified: bool
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class LogoutCommand(BaseModel):

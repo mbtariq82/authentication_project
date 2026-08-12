@@ -18,7 +18,6 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             last_name=row.last_name,
             role=row.role,
             hashed_password=row.hashed_password,
-            google_subject=row.google_subject,
         )
     
     @staticmethod
@@ -28,7 +27,6 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         row.last_name = user.last_name
         row.role = user.role
         row.hashed_password = user.hashed_password
-        row.google_subject = user.google_subject
 
     async def add(self, user: User) -> User:
         row = UserRow(
@@ -37,7 +35,6 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             last_name=user.last_name,
             role=user.role,
             hashed_password=user.hashed_password,
-            google_subject=user.google_subject,
         )
         self.session.add(row)
         await self.session.flush() # we need User.id
@@ -57,13 +54,6 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         row = await self.session.get(UserRow, user_id)
         return self._to_domain(row) if row else None
     
-    async def get_by_google_subject(self, google_subject: str) -> User | None:
-        result = await self.session.execute(
-            select(UserRow).where(UserRow.google_subject == google_subject)
-        )
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
-
     async def get_by_email(self, email: str) -> User | None:
         result = await self.session.execute(
             select(UserRow).where(UserRow.email == email)

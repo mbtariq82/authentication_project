@@ -13,7 +13,7 @@ from security import (
 )
 from exceptions import (
     EmailAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
-    GoogleEmailNotVerifiedError, GoogleAccountConflictError, InvalidCompanyEmailError
+    GoogleEmailNotVerifiedError, InvalidCompanyEmailError
 )
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
 
@@ -40,7 +40,11 @@ class AuthService:
     async def login(self, command: LoginCommand) -> TokenResponse:
         async with self.uow:
             user = await self.uow.users.get_by_email(command.email)
-            if not user or not pwd_context.verify(command.password, user.hashed_password): # verify should run in a seperate thread and not block the rest of the function
+            if (
+                not user
+                or not user.hashed_password
+                or not pwd_context.verify(command.password, user.hashed_password)
+            ): # verify should run in a separate thread and not block the rest of the function
                 raise InvalidCredentialsError()
             token_response = await self._issue_tokens(user)
             await self.uow.commit()
@@ -90,27 +94,15 @@ class AuthService:
         if not google_identity.email_verified:
             raise GoogleEmailNotVerifiedError()
         async with self.uow:
-            # find an existing user
-            user = await self.uow.users.get_by_google_subject(google_identity.subject)
+            user = await self.uow.users.get_by_email(email)
             if not user:
-                user = await self.uow.users.get_by_email(google_identity.email)
-            # create user if not found
-            if not user:
+                email_name = email.partition("@")[0]
                 user = User(
-                    email=google_identity.email,
-                    google_subject=google_identity.subject
+                    email=email,
+                    first_name=google_identity.first_name or email_name,
+                    last_name=google_identity.last_name or "",
                 )
                 user = await self.uow.users.add(user)
-            # user found but no google login details
-            elif user.google_subject is None:
-                user.google_subject = google_identity.subject
-                self.uow.users.save(user)
-            
-            if (
-                user.google_subject is not None
-                and user.google_subject != google_identity.subject
-            ):
-                raise GoogleAccountConflictError()
             token_response = await self._issue_tokens(user)
             await self.uow.commit()
             return token_response
