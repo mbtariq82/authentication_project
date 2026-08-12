@@ -1,0 +1,38 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch: {}
+
+exporters:
+  awsxray:
+    region: ${env:AWS_REGION}
+
+  awsemf:
+    region: ${env:AWS_REGION}
+    namespace: AuthenticationProject
+    log_group_name: /authentication-project/metrics
+    log_stream_name: authentication-api
+    dimension_rollup_option: NoDimensionRollup
+    retain_initial_value_of_delta_metric: true
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsemf]
