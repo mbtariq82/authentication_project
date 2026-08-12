@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from exceptions import (
+    AccountAlreadyExistsError,
+    AccountNotFoundError,
     GoogleAccountConflictError,
     GoogleEmailNotVerifiedError,
     InvalidAccessTokenError,
@@ -110,4 +112,24 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=403,
             content={"detail": str(error)},
+        )
+
+    @app.exception_handler(AccountNotFoundError)
+    async def account_not_found_handler(
+        request: Request,
+        error: AccountNotFoundError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Account not found"},
+        )
+
+    @app.exception_handler(AccountAlreadyExistsError)
+    async def account_already_exists_handler(
+        request: Request,
+        error: AccountAlreadyExistsError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account already exists"},
         )

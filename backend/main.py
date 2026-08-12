@@ -7,7 +7,7 @@ from redis_client import redis_client
 from exception_handlers import register_exception_handlers
 from telemetry import configure_telemetry, instrument_application
 
-from router import auth, users, admin
+from router import accounts, admin, auth, users
 
 telemetry_providers = configure_telemetry()
 
@@ -46,6 +46,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
+app.include_router(accounts.router)
 
 instrument_application(
     app=app,
