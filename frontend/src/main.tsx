@@ -6,16 +6,21 @@ import App from "./App";
 import "./index.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-if (!googleClientId) {
-  throw new Error("VITE_GOOGLE_CLIENT_ID is not configured.");
-}
+
+const application = (
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
+    {googleClientId ? (
       <GoogleOAuthProvider clientId={googleClientId}>
-        <App />
+        {application}
       </GoogleOAuthProvider>
-    </BrowserRouter>
+    ) : (
+      application
+    )}
   </StrictMode>,
 );

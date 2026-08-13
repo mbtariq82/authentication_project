@@ -25,9 +25,6 @@ class GoogleEmailNotVerifiedError(AuthenticationError):
 class GoogleAccountConflictError(AuthenticationError):
     pass
 
-class InvalidCompanyEmailError(AuthenticationError):
-    pass
-
 class PermissionDeniedError(ApplicationError):
     pass
 
