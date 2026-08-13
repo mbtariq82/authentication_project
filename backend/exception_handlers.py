@@ -88,7 +88,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "Account is linked to another Google identity"},
         )
-    
+
     @app.exception_handler(InvalidCompanyEmailError)
     async def invalid_company_email_handler(
         request: Request,

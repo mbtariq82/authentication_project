@@ -56,14 +56,14 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
     async def get_by_id(self, user_id: int) -> User | None:
         row = await self.session.get(UserRow, user_id)
         return self._to_domain(row) if row else None
-    
+
     async def get_by_google_subject(self, google_subject: str) -> User | None:
         result = await self.session.execute(
             select(UserRow).where(UserRow.google_subject == google_subject)
         )
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
-
+    
     async def get_by_email(self, email: str) -> User | None:
         result = await self.session.execute(
             select(UserRow).where(UserRow.email == email)

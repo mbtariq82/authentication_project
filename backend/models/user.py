@@ -17,7 +17,7 @@ class UserRow(Base):
         nullable=False,
         default=Role.USER,
     )
-    hashed_password = Column(String(255), nullable=True)
+    hashed_password = Column("password_hash", String(255), nullable=True)
     google_subject = Column(String, unique=True, index=True, nullable=True)
     refresh_tokens = relationship(
         "RefreshToken",

@@ -77,4 +77,6 @@ def verify_google_id_token(token: str) -> GoogleIdentity:
         subject=payload["sub"],
         email=payload["email"],
         email_verified=payload["email_verified"],
+        first_name=payload.get("given_name"),
+        last_name=payload.get("family_name"),
     )
