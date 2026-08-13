@@ -26,6 +26,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         )
         self.session.add(row)
         await self.session.flush()
+        await self.session.commit()
         return self._to_domain(row)
 
     async def get_by_user(self, user_id: int) -> Account | None:
