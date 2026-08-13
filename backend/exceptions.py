@@ -35,3 +35,6 @@ class AccountNotFoundError(ApplicationError):
 
 class AccountAlreadyExistsError(ApplicationError):
     pass
+
+class CardNotFoundError(ApplicationError):
+    pass
