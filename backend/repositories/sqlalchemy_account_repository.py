@@ -37,7 +37,6 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             closed_at=account.closed_at,
         )
         self.session.add(row)
-        await self.session.flush()
         await self.session.commit()
         return self._to_domain(row)
 
