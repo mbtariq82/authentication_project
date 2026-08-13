@@ -13,7 +13,8 @@ from security import (
 )
 from exceptions import (
     EmailAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
-    GoogleEmailNotVerifiedError, InvalidCompanyEmailError
+    GoogleAccountConflictError, GoogleEmailNotVerifiedError,
+    InvalidCompanyEmailError
 )
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
 
@@ -94,15 +95,25 @@ class AuthService:
         if not google_identity.email_verified:
             raise GoogleEmailNotVerifiedError()
         async with self.uow:
-            user = await self.uow.users.get_by_email(email)
+            user = await self.uow.users.get_by_google_subject(
+                google_identity.subject
+            )
+            if not user:
+                user = await self.uow.users.get_by_email(email)
             if not user:
                 email_name = email.partition("@")[0]
                 user = User(
                     email=email,
                     first_name=google_identity.first_name or email_name,
                     last_name=google_identity.last_name or "",
+                    google_subject=google_identity.subject,
                 )
                 user = await self.uow.users.add(user)
+            elif user.google_subject is None:
+                user.link_google_identity(google_identity.subject)
+                user = await self.uow.users.save(user)
+            elif user.google_subject != google_identity.subject:
+                raise GoogleAccountConflictError()
             token_response = await self._issue_tokens(user)
             await self.uow.commit()
             return token_response

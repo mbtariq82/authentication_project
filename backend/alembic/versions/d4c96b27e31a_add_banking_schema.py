@@ -19,8 +19,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.drop_index("ix_users_google_subject", table_name="users")
-    op.drop_column("users", "google_subject")
     op.alter_column(
         "users",
         "hashed_password",
@@ -61,28 +59,6 @@ def upgrade() -> None:
     )
     op.create_index("ix_documents_id", "documents", ["id"])
 
-    op.create_table(
-        "loans",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("account_number", sa.String(length=50), nullable=True),
-        sa.Column("document_id", sa.Integer(), nullable=True),
-        sa.Column("loan_amount", sa.Integer(), nullable=True),
-        sa.Column("duration", sa.Integer(), nullable=True),
-        sa.Column("current_loan_status", sa.String(length=50), nullable=True),
-        sa.Column("loan_type", sa.String(length=50), nullable=True),
-        sa.Column("interest", sa.Integer(), nullable=True),
-        sa.Column("emi", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["document_id"], ["documents.id"]),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("account_number"),
-    )
-    op.create_index("ix_loans_id", "loans", ["id"])
-
-    op.drop_constraint("accounts_user_id_key", "accounts", type_="unique")
-    op.add_column(
-        "accounts",
-        sa.Column("loan_id", sa.Integer(), nullable=True),
-    )
     op.add_column(
         "accounts",
         sa.Column("document_id", sa.Integer(), nullable=True),
@@ -111,13 +87,6 @@ def upgrade() -> None:
         sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_foreign_key(
-        "accounts_loan_id_fkey",
-        "accounts",
-        "loans",
-        ["loan_id"],
-        ["id"],
-    )
-    op.create_foreign_key(
         "accounts_document_id_fkey",
         "accounts",
         "documents",
@@ -129,6 +98,23 @@ def upgrade() -> None:
         "accounts",
         ["account_number"],
     )
+
+    op.create_table(
+        "loans",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("account_id", sa.Integer(), nullable=True),
+        sa.Column("document_id", sa.Integer(), nullable=True),
+        sa.Column("loan_amount", sa.Integer(), nullable=True),
+        sa.Column("duration", sa.Integer(), nullable=True),
+        sa.Column("current_loan_status", sa.String(length=50), nullable=True),
+        sa.Column("loan_type", sa.String(length=50), nullable=True),
+        sa.Column("interest", sa.Integer(), nullable=True),
+        sa.Column("emi", sa.Integer(), nullable=True),
+        sa.ForeignKeyConstraint(["account_id"], ["accounts.id"]),
+        sa.ForeignKeyConstraint(["document_id"], ["documents.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_loans_id", "loans", ["id"])
 
     op.create_table(
         "cards",
@@ -164,6 +150,9 @@ def downgrade() -> None:
     op.drop_index("ix_cards_id", table_name="cards")
     op.drop_table("cards")
 
+    op.drop_index("ix_loans_id", table_name="loans")
+    op.drop_table("loans")
+
     op.drop_constraint(
         "accounts_account_number_key",
         "accounts",
@@ -171,11 +160,6 @@ def downgrade() -> None:
     )
     op.drop_constraint(
         "accounts_document_id_fkey",
-        "accounts",
-        type_="foreignkey",
-    )
-    op.drop_constraint(
-        "accounts_loan_id_fkey",
         "accounts",
         type_="foreignkey",
     )
@@ -191,15 +175,7 @@ def downgrade() -> None:
     op.drop_column("accounts", "account_number")
     op.drop_column("accounts", "sort_code")
     op.drop_column("accounts", "document_id")
-    op.drop_column("accounts", "loan_id")
-    op.create_unique_constraint(
-        "accounts_user_id_key",
-        "accounts",
-        ["user_id"],
-    )
 
-    op.drop_index("ix_loans_id", table_name="loans")
-    op.drop_table("loans")
     op.drop_index("ix_documents_id", table_name="documents")
     op.drop_table("documents")
 
@@ -241,14 +217,4 @@ def downgrade() -> None:
         new_column_name="hashed_password",
         existing_type=sa.String(length=255),
         existing_nullable=True,
-    )
-    op.add_column(
-        "users",
-        sa.Column("google_subject", sa.String(), nullable=True),
-    )
-    op.create_index(
-        "ix_users_google_subject",
-        "users",
-        ["google_subject"],
-        unique=True,
     )

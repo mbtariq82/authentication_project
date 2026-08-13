@@ -1,5 +1,25 @@
 from enum import StrEnum
 
+
 class Role(StrEnum):
     USER = "USER"
     ADMIN = "ADMIN"
+
+
+class TransactionType(StrEnum):
+    TRANSFER = "TRANSFER"
+    PAYMENT = "PAYMENT"
+    DEPOSIT = "DEPOSIT"
+    WITHDRAWAL = "WITHDRAWAL"
+
+
+class TransactionDirection(StrEnum):
+    DEBIT = "DEBIT"
+    CREDIT = "CREDIT"
+
+
+class TransactionStatus(StrEnum):
+    PENDING = "PENDING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
