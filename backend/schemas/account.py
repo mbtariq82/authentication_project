@@ -9,7 +9,6 @@ class AccountResponse(BaseModel):
 
     id: int
     user_id: int
-    loan_id: int | None = None
     document_id: int | None = None
     sort_code: str | None = None
     account_number: str | None = None

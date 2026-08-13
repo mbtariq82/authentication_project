@@ -16,5 +16,9 @@ class AbstractUserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_by_google_subject(self, google_subject: str) -> User | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_by_email(self, email: str) -> User | None:
         raise NotImplementedError

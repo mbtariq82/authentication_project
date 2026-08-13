@@ -7,7 +7,7 @@ class LoanRow(Base):
     __tablename__ = "loans"
 
     id = Column(Integer, primary_key=True, index=True)
-    account_number = Column(String(50), unique=True, nullable=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
     loan_amount = Column(Integer, nullable=True)
     duration = Column(Integer, nullable=True)

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Enum, Integer, String, false
+from sqlalchemy import Column, Enum, Integer, String
 from sqlalchemy.orm import relationship
 
 from enums import Role
@@ -18,12 +18,7 @@ class UserRow(Base):
         default=Role.USER,
     )
     hashed_password = Column("password_hash", String(255), nullable=True)
-    refresh_token = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default=false(),
-    )
+    google_subject = Column(String, unique=True, index=True, nullable=True)
     refresh_tokens = relationship(
         "RefreshToken",
         back_populates="user",

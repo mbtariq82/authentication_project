@@ -19,8 +19,8 @@ class AccountRow(Base):
         Integer,
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
+        unique=True,
     )
-    loan_id = Column(Integer, ForeignKey("loans.id"), nullable=True)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
     sort_code = Column(String(20), nullable=True)
     account_number = Column(String(50), unique=True, nullable=True)
