@@ -30,24 +30,20 @@ class UserRow(Base):
         default=Role.USER,
     )
     hashed_password = Column("password_hash", String(255), nullable=True)
+    google_subject = Column(String, unique=True, index=True, nullable=True)
 
-    dob = Column(Date, nullable=True)
-    address = Column(String(255), nullable=True)
-    photo_document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
-    country = Column(String(100), nullable=True)
+    dob = Column(Date, nullable=False)
+    address_line = Column(String(255), nullable=False)
+
+    city = Column(String(100), nullable=False)
+    county = Column(String(100), nullable=False)
+    postcode = Column(String(20), nullable=False)
     mobile = Column(String(20), nullable=True)
 
-    status = Column(String(20), nullable=False, server_default="pending")  # pending, approved, rejected
     rejection_reason = Column(String(255), nullable=True)
     is_deleted = Column(Boolean, nullable=False, server_default="false")
 
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+  
 
     refresh_tokens = relationship(
         "RefreshToken",
@@ -57,8 +53,4 @@ class UserRow(Base):
     accounts = relationship(
         "AccountRow",
         back_populates="user",
-    )
-    photo_document = relationship(
-        "DocumentRow",
-        foreign_keys=[photo_document_id],
     )

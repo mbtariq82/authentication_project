@@ -7,8 +7,10 @@ from sqlalchemy import (
     Numeric,
     String,
     func,
+    Enum,
 )
 from sqlalchemy.orm import relationship
+from enums import AccountStatus, AccountType
 
 from models.base import Base
 
@@ -27,7 +29,12 @@ class AccountRow(Base):
 
     sort_code = Column(String(20), nullable=True)
     branch = Column(String(100), nullable=True)
-    account_type = Column(String(20), nullable=False, server_default="savings")  # savings, current
+    account_type = Column(String(20), nullable=False, server_default="SAVINGS")
+    # account_type = Column(
+    #         Enum(AccountType, name="account_type"),
+    #         nullable=False,
+    #         default=AccountType.SAVINGS,)
+
     account_number = Column(String(50), unique=True, nullable=True)
 
     balance = Column(
@@ -36,14 +43,25 @@ class AccountRow(Base):
         server_default="0.00",
     )
     account_status = Column(
-        String(20), nullable=False, server_default="pending"
-    )  # approved, reject, closed, frozen, pending
+            String(20),
+            nullable=False,
+            server_default=AccountStatus.PENDING.value,
+        )
+    # account_status = Column(
+    #         Enum(AccountStatus, name="account_status"),
+    #         nullable=False,
+    #         default=AccountStatus.PENDING,
+    #     )
+  # approved, reject, closed, frozen, pending
+
+
+
 
     is_deleted = Column(Boolean, nullable=False, server_default="false")
     close_reason = Column(String(255), nullable=True)
 
-    opened_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     closed_at = Column(DateTime(timezone=True), nullable=True)
+    
 
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
