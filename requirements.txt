@@ -1,0 +1,10 @@
+fastapi
+redis
+types-redis
+uvicorn
+SQLAlchemy
+psycopg2-binary
+python-jose[cryptography]
+
+
+"Use this command to generate secret key": python -c "import secrets; print(secrets.token_urlsafe(32))"
