@@ -18,12 +18,6 @@ class UserRow(Base):
         default=Role.USER,
     )
     hashed_password = Column("password_hash", String(255), nullable=True)
-    refresh_token = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default=false(),
-    )
     refresh_tokens = relationship(
         "RefreshToken",
         back_populates="user",
