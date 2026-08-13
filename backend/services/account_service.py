@@ -15,11 +15,11 @@ class AccountService:
         user_id: int,
     ) -> AccountResponse:
         async with self.unit_of_work as uow:
-            existing_account = await self.repository.get_by_user(user_id)
+            existing_account = await uow.accounts.get_by_user(user_id)
             if existing_account is not None:
                 raise AccountAlreadyExistsError()
 
-            account = await self.repository.add(Account(user_id=user_id))
+            account = await uow.accounts.add(Account(user_id=user_id))
             await uow.commit()
             return AccountResponse.model_validate(account)
 
