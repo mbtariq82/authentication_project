@@ -1,20 +1,14 @@
 from fastapi import Depends
 from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from cache.abstract_user_cache import AbstractUserCache
 from cache.redis_user_cache import RedisUserCache
-from dependencies.database import get_db
+from database import async_session_factory
+from dependencies.profile_images import get_profile_image_storage
 from dependencies.redis import get_redis
-from repositories.abstract_user_repository import AbstractUserRepository
-from repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from services.user_service import UserService
-
-
-def get_user_repository(
-    session: AsyncSession = Depends(get_db),
-) -> AbstractUserRepository:
-    return SqlAlchemyUserRepository(session)
+from storage.abstract_profile_image_storage import AbstractProfileImageStorage
+from unit_of_work.sqlalchemy_user_unit_of_work import SqlAlchemyUserUnitOfWork
 
 
 def get_user_cache(
@@ -25,6 +19,12 @@ def get_user_cache(
 
 def get_user_service(
     user_cache: AbstractUserCache = Depends(get_user_cache),
-    user_repository: AbstractUserRepository = Depends(get_user_repository),
+    image_storage: AbstractProfileImageStorage = Depends(
+        get_profile_image_storage
+    ),
 ) -> UserService:
-    return UserService(cache=user_cache, repository=user_repository)
+    return UserService(
+        cache=user_cache,
+        uow=SqlAlchemyUserUnitOfWork(async_session_factory),
+        image_storage=image_storage,
+    )

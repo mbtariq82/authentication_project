@@ -11,3 +11,10 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     role: Role
+    profile_image_url: str | None = None
+
+
+class UpdateUserProfileCommand(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    profile_image: bytes | None = None

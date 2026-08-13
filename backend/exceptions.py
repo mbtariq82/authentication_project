@@ -36,8 +36,26 @@ class AccountNotFoundError(ApplicationError):
 class AccountAlreadyExistsError(ApplicationError):
     pass
 
+
 class CardNotFoundError(ApplicationError):
     pass
 
+
 class InvalidCardStatusError(ApplicationError):
+    pass
+
+
+class InvalidProfileImageError(ApplicationError):
+    pass
+
+
+class ProfileImageTooLargeError(ApplicationError):
+    pass
+
+
+class InvalidProfileUpdateError(ApplicationError):
+    pass
+
+
+class ProfileImageStorageError(ApplicationError):
     pass

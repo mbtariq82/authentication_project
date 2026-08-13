@@ -1,13 +1,19 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from database import engine
-from redis_client import redis_client
-from exception_handlers import register_exception_handlers
-from telemetry import configure_telemetry, instrument_application
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from router import accounts, admin, auth, users, card
+from config import (
+    PROFILE_IMAGE_LOCAL_DIR,
+    PROFILE_IMAGE_STORAGE_BACKEND,
+    PROFILE_IMAGE_URL_PREFIX,
+)
+from database import engine
+from exception_handlers import register_exception_handlers
+from redis_client import redis_client
+from router import accounts, admin, auth, card, users
+from telemetry import configure_telemetry, instrument_application
 
 telemetry_providers = configure_telemetry()
 
@@ -23,17 +29,18 @@ async def lifespan(app: FastAPI):
             await redis_client.aclose()
         finally:
             telemetry_providers.shutdown()
-    try:
-        await redis_client.ping()
-        print("Connected to Redis")
-        yield
-    finally:
-        try:
-            await redis_client.aclose()
-        finally:
-            telemetry_providers.shutdown()
 
 app = FastAPI(lifespan=lifespan)
+
+if PROFILE_IMAGE_STORAGE_BACKEND == "local":
+    app.mount(
+        PROFILE_IMAGE_URL_PREFIX,
+        StaticFiles(
+            directory=PROFILE_IMAGE_LOCAL_DIR / "profile-images",
+            check_dir=False,
+        ),
+        name="profile-images",
+    )
 
 @app.get("/health", include_in_schema=False)
 async def health_check():
@@ -45,7 +52,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://authentication-project-frontend-651980295854.s3-website.eu-west-2.amazonaws.com"
+        "http://authentication-project-frontend-651980295854.s3-website.eu-west-2.amazonaws.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
