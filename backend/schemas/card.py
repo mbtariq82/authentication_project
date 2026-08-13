@@ -26,3 +26,6 @@ class CardDetailsResponse(BaseModel):
     @field_serializer("expiry_date")
     def serialize_expiry_date(self, value: datetime) -> str:
         return value.strftime("%m/%y")
+
+class CardStatusResponse(BaseModel):
+    status: str

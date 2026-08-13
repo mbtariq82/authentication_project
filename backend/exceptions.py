@@ -38,3 +38,6 @@ class AccountAlreadyExistsError(ApplicationError):
 
 class CardNotFoundError(ApplicationError):
     pass
+
+class InvalidCardStatusError(ApplicationError):
+    pass

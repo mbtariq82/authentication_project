@@ -3,9 +3,9 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from repositories.abstract_card_repository import AbstractCardRepository
 from repositories.abstract_user_repository import AbstractUserRepository
-from schemas.card import CardResponse, CardDetailsResponse
+from schemas.card import CardResponse, CardDetailsResponse, CardStatusResponse
 from domain.card import Card
-from exceptions import AccountNotFoundError, CardNotFoundError, InvalidCredentialsError
+from exceptions import AccountNotFoundError, CardNotFoundError, InvalidCredentialsError, InvalidCardStatusError
 from security import pwd_context
 
 class CardService:
@@ -90,7 +90,7 @@ class CardService:
 
     async def _get_user_card(self, account_id: int, user_id: int) -> Card:
 
-        card = await self.card_repository.get_user_cards(
+        card = await self.card_repository.get_active_or_frozen_card(
             account_id,
             user_id,
         )
@@ -137,4 +137,24 @@ class CardService:
             expiry_date=card.expiry_date,
             cvc=card.cvc,
         )
+
+    async def toggle_card_status(self, account_id: int, user_id: int) -> CardResponse:
+        card = await self._get_user_card(account_id, user_id)
+
+        if card.status == "FROZEN":
+            card.status = "ACTIVE"
+            status = "Activated." 
+        
+
+        elif card.status == "ACTIVE":
+            card.status = "FROZEN"
+            status = "Frozen."
+
+        else:
+            raise InvalidCardStatusError()
+
+        card = await self.card_repository.update_card(card)
+
+        return CardStatusResponse(status=status)
+
         

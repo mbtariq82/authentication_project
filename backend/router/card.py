@@ -4,7 +4,7 @@ from dependencies.card import get_card_service
 from dependencies.auth import get_current_user, get_user_account
 from domain.user import User
 from domain.card import AuthenticatedUserContext
-from schemas.card import CardResponse, CardDetailsResponse, CardDetailsRequest
+from schemas.card import CardResponse, CardDetailsResponse, CardDetailsRequest, CardStatusResponse
 from services.card_service import CardService
 
 router = APIRouter(prefix="/cards", tags=["cards"])
@@ -34,5 +34,14 @@ async def create_card(context: AuthenticatedUserContext = Depends(get_user_accou
         user_id = context.user.id
     )
 
+@router.patch("/freeze", response_model=CardStatusResponse)
+async def freeze_card(
+    context: AuthenticatedUserContext = Depends(get_user_account),
+    service: CardService = Depends(get_card_service)
+):
+    return await service.toggle_card_status(
+        account_id = context.account.id,
+        user_id = context.user.id
+    )
 
 
