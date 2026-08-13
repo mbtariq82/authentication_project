@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    CheckConstraint,
     Column,
     DateTime,
     Enum,
@@ -17,8 +18,14 @@ from models.base import Base
 
 class TransactionRow(Base):
     __tablename__ = "transactions"
+    __table_args__ = (
+        CheckConstraint(
+            "amount > 0",
+            name="ck_transactions_amount_positive",
+        ),
+    )
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     account_id = Column(
         Integer,
         ForeignKey("accounts.id", ondelete="RESTRICT"),
@@ -44,6 +51,7 @@ class TransactionRow(Base):
         Enum(TransactionStatus, name="transaction_status"),
         nullable=False,
         server_default=TransactionStatus.PENDING.value,
+        index=True,
     )
     reference = Column(String(100), nullable=False, unique=True)
     transfer_reference = Column(String(100), nullable=True, index=True)
@@ -59,7 +67,7 @@ class TransactionRow(Base):
 class TransactionLogRow(Base):
     __tablename__ = "transaction_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     transaction_id = Column(
         Integer,
         ForeignKey("transactions.id", ondelete="CASCADE"),

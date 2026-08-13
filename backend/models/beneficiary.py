@@ -6,7 +6,7 @@ from models.base import Base
 class BeneficiaryRow(Base):
     __tablename__ = "beneficiaries"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
