@@ -15,7 +15,6 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         return Account(
             id=row.id,
             user_id=row.user_id,
-            loan_id=row.loan_id,
             document_id=row.document_id,
             sort_code=row.sort_code,
             account_number=row.account_number,
@@ -28,7 +27,6 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
     async def add(self, account: Account) -> Account:
         row = AccountRow(
             user_id=account.user_id,
-            loan_id=account.loan_id,
             document_id=account.document_id,
             sort_code=account.sort_code,
             account_number=account.account_number,
@@ -37,7 +35,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             closed_at=account.closed_at,
         )
         self.session.add(row)
-        await self.session.flush()
+        await self.session.commit()
         return self._to_domain(row)
 
     async def get_by_user(self, user_id: int) -> Account | None:
