@@ -25,7 +25,6 @@ class AccountRow(Base):
         nullable=False,
         unique=True,
     )
-    document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
 
     sort_code = Column(String(20), nullable=True)
     branch = Column(String(100), nullable=True)

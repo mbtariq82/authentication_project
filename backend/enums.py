@@ -33,6 +33,12 @@ class AccountStatus(StrEnum):
 
 class AccountType(StrEnum):
     SAVINGS = "SAVINGS"
+
+class UserStatus(StrEnum):
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PENDING = "PENDING"
+    CLOSED ="CLOSED"
     
 
 

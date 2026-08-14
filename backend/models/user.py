@@ -32,6 +32,12 @@ class UserRow(Base):
     hashed_password = Column("password_hash", String(255), nullable=True)
     google_subject = Column(String, unique=True, index=True, nullable=True)
 
+    user_status = Column(
+        String(20),
+        nullable=False,
+        server_default="PENDING",
+    )
+
     dob = Column(Date, nullable=False)
     address_line = Column(String(255), nullable=False)
 
