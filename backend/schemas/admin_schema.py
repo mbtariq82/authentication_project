@@ -12,11 +12,11 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     role: Role
-    dob: date
-    address_line: str
-    city: str
-    county: str
-    postcode: str
+    dob: date | None = None
+    address_line: str | None = None
+    city: str | None = None
+    county: str | None = None
+    postcode: str | None = None
     mobile: str | None = None
     rejection_reason: str | None = None
     is_deleted: bool

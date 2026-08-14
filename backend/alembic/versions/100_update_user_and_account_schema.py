@@ -27,15 +27,20 @@ def upgrade() -> None:
     op.add_column('accounts', sa.Column('close_reason', sa.String(length=255), nullable=True))
     op.add_column('accounts', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False))
     op.add_column('accounts', sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False))
+    op.execute(
+        "UPDATE accounts SET account_status = 'PENDING' "
+        "WHERE account_status IS NULL"
+    )
     op.alter_column('accounts', 'account_status',
                existing_type=sa.VARCHAR(length=20),
-               nullable=False)
+               nullable=False,
+               server_default='PENDING')
     op.drop_column('accounts', 'opened_at')
-    op.add_column('users', sa.Column('dob', sa.Date(), nullable=False))
-    op.add_column('users', sa.Column('address_line', sa.String(length=255), nullable=False))
-    op.add_column('users', sa.Column('city', sa.String(length=100), nullable=False))
-    op.add_column('users', sa.Column('county', sa.String(length=100), nullable=False))
-    op.add_column('users', sa.Column('postcode', sa.String(length=20), nullable=False))
+    op.add_column('users', sa.Column('dob', sa.Date(), nullable=True))
+    op.add_column('users', sa.Column('address_line', sa.String(length=255), nullable=True))
+    op.add_column('users', sa.Column('city', sa.String(length=100), nullable=True))
+    op.add_column('users', sa.Column('county', sa.String(length=100), nullable=True))
+    op.add_column('users', sa.Column('postcode', sa.String(length=20), nullable=True))
     op.add_column('users', sa.Column('mobile', sa.String(length=20), nullable=True))
     op.add_column('users', sa.Column('rejection_reason', sa.String(length=255), nullable=True))
     op.add_column('users', sa.Column('is_deleted', sa.Boolean(), server_default='false', nullable=False))
@@ -56,7 +61,8 @@ def downgrade() -> None:
     op.add_column('accounts', sa.Column('opened_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('now()'), autoincrement=False, nullable=False))
     op.alter_column('accounts', 'account_status',
                existing_type=sa.VARCHAR(length=20),
-               nullable=True)
+               nullable=True,
+               server_default=None)
     op.drop_column('accounts', 'updated_at')
     op.drop_column('accounts', 'created_at')
     op.drop_column('accounts', 'close_reason')

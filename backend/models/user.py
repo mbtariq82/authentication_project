@@ -38,12 +38,12 @@ class UserRow(Base):
         server_default="PENDING",
     )
 
-    dob = Column(Date, nullable=False)
-    address_line = Column(String(255), nullable=False)
+    dob = Column(Date, nullable=True)
+    address_line = Column(String(255), nullable=True)
 
-    city = Column(String(100), nullable=False)
-    county = Column(String(100), nullable=False)
-    postcode = Column(String(20), nullable=False)
+    city = Column(String(100), nullable=True)
+    county = Column(String(100), nullable=True)
+    postcode = Column(String(20), nullable=True)
     mobile = Column(String(20), nullable=True)
 
     rejection_reason = Column(String(255), nullable=True)
