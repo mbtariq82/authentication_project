@@ -4,7 +4,7 @@ from enums import UserStatus, Role
 
 
 class UserStatusUpdate(BaseModel):
-    status: UserStatus
+    user_status: UserStatus
 
 class UserResponse(BaseModel):
     id: int

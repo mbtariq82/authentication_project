@@ -76,6 +76,7 @@ class AdminUserService:
     ):
         user = await self.get_user(user_id)
 
+        # REJECT USER
         if new_status == UserStatus.REJECTED:
             if not rejection_reason:
                 raise HTTPException(
@@ -84,22 +85,20 @@ class AdminUserService:
                 )
 
             user.rejection_reason = rejection_reason
+            user.user_status = UserStatus.REJECTED.value
 
-        else:
+        # APPROVE USER
+        elif new_status == UserStatus.APPROVED:
             user.rejection_reason = None
+            user.user_status = UserStatus.APPROVED.value
 
-        user.status = new_status.value
-
-        # Create account when user is approved
-        if new_status == UserStatus.APPROVED:
-
-            existing_account = await self.account_repo.get_by_user_id(
-                user_id
-            )
+            # Check whether user already has an account
+            existing_account = await self.account_repo.get_by_user_id(user_id)
 
             if not existing_account:
-                account_number = (
-                    await self.generate_unique_account_number()
+
+                account_number = await self.generate_unique_account_number(
+                    user.id
                 )
 
                 account = AccountRow(
@@ -107,16 +106,23 @@ class AdminUserService:
                     account_number=account_number,
                     sort_code=generate_sort_code(),
                     branch="London",
-                    account_type="savings",
+                    account_type="SAVINGS",
                     balance=0,
                     account_status=AccountStatus.APPROVED.value,
                 )
 
                 await self.account_repo.create(account)
 
+        # OTHER STATUS, e.g. PENDING
+        else:
+            user.rejection_reason = None
+            user.user_status = new_status.value
+
         await self.user_repo.save(user)
 
         return user
+
+  
 
     async def list_users(
         self,
