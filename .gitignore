@@ -254,6 +254,3 @@ node_modules/
 crash.log
 secrets.tfvars
 *.tfvars
-
-# file tree ignores
-docs/file_tree.md
