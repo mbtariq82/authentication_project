@@ -13,8 +13,7 @@ from security import (
 )
 from exceptions import (
     EmailAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
-    GoogleAccountConflictError, GoogleEmailNotVerifiedError,
-    InvalidCompanyEmailError
+    GoogleAccountConflictError, GoogleEmailNotVerifiedError
 )
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
 
@@ -90,8 +89,6 @@ class AuthService:
     async def google_login(self, command: GoogleLoginCommand) -> TokenResponse:
         google_identity = verify_google_id_token(command.id_token)
         email = google_identity.email.strip().lower()
-        if not email.endswith("@informationtechconsultants.co.uk"):
-            raise InvalidCompanyEmailError()
         if not google_identity.email_verified:
             raise GoogleEmailNotVerifiedError()
         async with self.uow:

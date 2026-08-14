@@ -7,6 +7,8 @@ type UserRole = "USER" | "ADMIN";
 export type UserResponse = {
   id: number;
   email: string;
+  first_name: string;
+  last_name: string;
   role: UserRole;
 };
 
