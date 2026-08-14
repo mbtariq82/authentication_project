@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 from exceptions import (
     AccountAlreadyExistsError,
     AccountNotFoundError,
+    BeneficiaryNotFoundError,
+    InvalidBeneficiaryUpdateError,
     GoogleAccountConflictError,
     GoogleEmailNotVerifiedError,
     InvalidAccessTokenError,
@@ -116,4 +118,24 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "Account already exists"},
+        )
+
+    @app.exception_handler(BeneficiaryNotFoundError)
+    async def beneficiary_not_found_handler(
+        request: Request,
+        error: BeneficiaryNotFoundError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Beneficiary not found"},
+        )
+
+    @app.exception_handler(InvalidBeneficiaryUpdateError)
+    async def invalid_beneficiary_update_handler(
+        request: Request,
+        error: InvalidBeneficiaryUpdateError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "At least one beneficiary field is required"},
         )
