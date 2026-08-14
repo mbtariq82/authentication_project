@@ -37,6 +37,14 @@ class AccountAlreadyExistsError(ApplicationError):
     pass
 
 
+class InsufficientFundsError(ApplicationError):
+    pass
+
+
+class InvalidBalanceAmountError(ApplicationError):
+    pass
+
+
 class BeneficiaryNotFoundError(ApplicationError):
     pass
 

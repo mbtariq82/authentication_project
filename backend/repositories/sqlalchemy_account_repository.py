@@ -1,7 +1,14 @@
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.account import Account
+from exceptions import (
+    AccountNotFoundError,
+    InsufficientFundsError,
+    InvalidBalanceAmountError,
+)
 from models.account import AccountRow
 from repositories.abstract_account_repository import AbstractAccountRepository
 
@@ -44,3 +51,48 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         )
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
+
+    async def get_by_id_for_update(self, account_id: int) -> Account | None:
+        result = await self.session.execute(
+            select(AccountRow)
+            .where(AccountRow.id == account_id)
+            .with_for_update()
+        )
+        row = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
+
+    async def credit(self, account_id: int, amount: Decimal) -> Account:
+        if amount <= 0:
+            raise InvalidBalanceAmountError()
+
+        result = await self.session.execute(
+            select(AccountRow)
+            .where(AccountRow.id == account_id)
+            .with_for_update()
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            raise AccountNotFoundError()
+
+        row.balance += amount
+        await self.session.flush()
+        return self._to_domain(row)
+
+    async def debit(self, account_id: int, amount: Decimal) -> Account:
+        if amount <= 0:
+            raise InvalidBalanceAmountError()
+
+        result = await self.session.execute(
+            select(AccountRow)
+            .where(AccountRow.id == account_id)
+            .with_for_update()
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            raise AccountNotFoundError()
+        if row.balance < amount:
+            raise InsufficientFundsError()
+
+        row.balance -= amount
+        await self.session.flush()
+        return self._to_domain(row)
