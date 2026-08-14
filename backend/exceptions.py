@@ -35,3 +35,11 @@ class AccountNotFoundError(ApplicationError):
 
 class AccountAlreadyExistsError(ApplicationError):
     pass
+
+
+class BeneficiaryNotFoundError(ApplicationError):
+    pass
+
+
+class InvalidBeneficiaryUpdateError(ApplicationError):
+    pass
