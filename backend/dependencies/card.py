@@ -7,10 +7,16 @@ from repositories.abstract_user_repository import AbstractUserRepository
 from repositories.abstract_card_repository import AbstractCardRepository
 from repositories.sqlalchemy_card_repository import SqlAlchemyCardRepository
 from services.card_service import CardService
+from unit_of_work.abstract_card_unit_of_work import AbstractCardUnitOfWork
+from unit_of_work.sqlalchemy_card_unit_of_work import SqlAlchemyCardUnitOfWork
+
+def get_card_uow(
+        session: AsyncSession = Depends(get_db)
+) -> AbstractCardUnitOfWork:
+    return SqlAlchemyCardUnitOfWork(session)
 
 def get_card_repository(session: AsyncSession = Depends(get_db)) -> AbstractCardRepository:
     return SqlAlchemyCardRepository(session)
 
-def get_card_service(card_repository: AbstractCardRepository = Depends(get_card_repository),
-                     user_repository: AbstractUserRepository = Depends(get_user_repository)) -> CardService:
-    return CardService(card_repository, user_repository)
+def get_card_service(uow: AbstractCardUnitOfWork = Depends(get_card_uow)) -> CardService:
+    return CardService(uow)

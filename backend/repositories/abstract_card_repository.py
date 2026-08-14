@@ -26,3 +26,7 @@ class AbstractCardRepository(ABC):
     @abstractmethod
     async def get_user_cards(self, account_id: int, user_id: int):
         raise NotImplementedError
+
+    @abstractmethod
+    async def get_card_by_id(self, card_id: int):
+        raise NotImplementedError

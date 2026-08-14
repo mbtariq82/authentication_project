@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from dependencies.card import get_card_service
-from dependencies.auth import get_current_user, get_user_account
+from dependencies.auth import get_user_account, require_admin
 from domain.user import User
 from domain.card import AuthenticatedUserContext
 from schemas.card import CardResponse, CardDetailsResponse, CardDetailsRequest, CardStatusResponse
@@ -43,5 +43,13 @@ async def freeze_card(
         account_id = context.account.id,
         user_id = context.user.id
     )
+
+@router.patch("/block/{card_id}", response_model=CardStatusResponse)
+async def block_card(
+    card_id: int,
+    current_user: User = Depends(require_admin),
+    service: CardService = Depends(get_card_service)
+):
+    return await service.block_card(card_id)
 
 

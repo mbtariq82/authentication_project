@@ -1,8 +1,7 @@
 import secrets
 import asyncio
 from datetime import datetime, timedelta, timezone
-from repositories.abstract_card_repository import AbstractCardRepository
-from repositories.abstract_user_repository import AbstractUserRepository
+from unit_of_work.abstract_card_unit_of_work import AbstractCardUnitOfWork
 from schemas.card import CardResponse, CardDetailsResponse, CardStatusResponse
 from domain.card import Card
 from exceptions import AccountNotFoundError, CardNotFoundError, InvalidCredentialsError, InvalidCardStatusError
@@ -10,9 +9,8 @@ from security import pwd_context
 
 class CardService:
 
-    def __init__(self, card_repository: AbstractCardRepository, user_repository: AbstractUserRepository):
-        self.card_repository = card_repository
-        self.user_repository = user_repository
+    def __init__(self, uow: AbstractCardUnitOfWork):
+        self.uow = uow
 
     def _generate_cvc(self) -> str:
         return "".join(str(secrets.randbelow(10)) for _ in range(3))
@@ -49,38 +47,40 @@ class CardService:
         while True:
             card_number = self._generate_card_number()
 
-            if not await self.card_repository.card_number_exists(card_number):
+            if not await self.uow.card_repository.card_number_exists(card_number):
                 return card_number
 
     async def create_card(self, account_id, user_id):
-        account = await self.card_repository.get_account_by_user(
-            account_id,
-            user_id,
-        )
+        async with self.uow:
+            account = await self.uow.card_repository.get_account_by_user(
+                account_id,
+                user_id,
+            )
 
-        if account is None:
-            raise AccountNotFoundError()
+            if account is None:
+                raise AccountNotFoundError()
 
-        existing_card = await self.card_repository.get_active_or_frozen_card(account.id, user_id)
+            existing_card = await self.uow.card_repository.get_active_or_frozen_card(account.id, user_id)
 
-        if existing_card is not None:
-            existing_card.status = "CANCELLED"
+            if existing_card is not None:
+                existing_card.status = "CANCELLED"
 
-            await self.card_repository.update_card(existing_card)
+                await self.uow.card_repository.update_card(existing_card)
+                await self.uow.commit()
 
-        card_number = await self._generate_unique_card_number()
-        expiry_date = datetime.now(timezone.utc) + timedelta(days=365 * 3)
+            card_number = await self._generate_unique_card_number()
+            expiry_date = datetime.now(timezone.utc) + timedelta(days=365 * 3)
 
-        card = await self.card_repository.create_card(Card(
-            account_id=account.id,
-            card_number=card_number,
-            expiry_date=expiry_date,
-            cvc = self._generate_cvc(),
-            status="ACTIVE"
-        ))
+            card = await self.uow.card_repository.create_card(Card(
+                account_id=account.id,
+                card_number=card_number,
+                expiry_date=expiry_date,
+                cvc = self._generate_cvc(),
+                status="ACTIVE"
+            ))
 
-        return CardResponse.model_validate(card)
-
+            await self.uow.commit()
+            return CardResponse.model_validate(card)
 
     def _mask_card_number(self, card_number: str) -> str:
         return "*" * (len(card_number) - 4) + card_number[-4:]
@@ -89,16 +89,17 @@ class CardService:
         return "***"
 
     async def _get_user_card(self, account_id: int, user_id: int) -> Card:
+        async with self.uow:
 
-        card = await self.card_repository.get_active_or_frozen_card(
-            account_id,
-            user_id,
-        )
+            card = await self.uow.card_repository.get_active_or_frozen_card(
+                account_id,
+                user_id,
+            )
 
-        if card is None:
-            raise CardNotFoundError()
+            if card is None:
+                raise CardNotFoundError()
 
-        return card
+            return card
 
     async def get_user_card(self, account_id: int, user_id: int) -> CardResponse:
 
@@ -114,47 +115,64 @@ class CardService:
         )
 
     async def get_unmasked_card(self, account_id: int, email: str, password: str) -> CardDetailsResponse:
+        async with self.uow:
+            user = await self.uow.user_repository.get_by_email(email)
 
-        user = await self.user_repository.get_by_email(email)
+            if user is None:
+                raise InvalidCredentialsError()
+            card = await self._get_user_card(
+                account_id,
+                user.id,
+            )
 
-        if user is None:
-            raise InvalidCredentialsError()
-        card = await self._get_user_card(
-            account_id,
-            user.id,
-        )
-
-        if not await asyncio.to_thread(
-            pwd_context.verify, 
-            password, 
-            user.hashed_password
-        ):
-            raise InvalidCredentialsError
+            if not await asyncio.to_thread(
+                pwd_context.verify, 
+                password, 
+                user.hashed_password
+            ):
+                raise InvalidCredentialsError
 
 
-        return CardDetailsResponse(
-            card_number=card.card_number,
-            expiry_date=card.expiry_date,
-            cvc=card.cvc,
-        )
+            return CardDetailsResponse(
+                card_number=card.card_number,
+                expiry_date=card.expiry_date,
+                cvc=card.cvc,
+            )
 
     async def toggle_card_status(self, account_id: int, user_id: int) -> CardResponse:
-        card = await self._get_user_card(account_id, user_id)
+        async with self.uow:
+            card = await self._get_user_card(account_id, user_id)
 
-        if card.status == "FROZEN":
-            card.status = "ACTIVE"
-            status = "Activated." 
-        
+            if card.status == "FROZEN":
+                card.status = "ACTIVE"
+                status = "Activated." 
+            
 
-        elif card.status == "ACTIVE":
-            card.status = "FROZEN"
-            status = "Frozen."
+            elif card.status == "ACTIVE":
+                card.status = "FROZEN"
+                status = "Frozen."
 
-        else:
-            raise InvalidCardStatusError()
+            else:
+                raise InvalidCardStatusError()
 
-        card = await self.card_repository.update_card(card)
+            card = await self.uow.card_repository.update_card(card)
+            await self.uow.commit()
 
-        return CardStatusResponse(status=status)
+            return CardStatusResponse(status=status)
 
-        
+    async def block_card(self, card_id: int) -> CardStatusResponse:
+        async with self.uow:
+            card = await self.uow.card_repository.get_card_by_id(card_id)
+
+            if card is None:
+                raise CardNotFoundError()
+
+            card.status = "CANCELLED"
+
+            card = await self.uow.card_repository.update_card(card)
+
+            await self.uow.commit()
+
+            return CardStatusResponse(
+                status=card.status
+            )

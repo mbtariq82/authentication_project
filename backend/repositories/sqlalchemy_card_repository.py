@@ -67,7 +67,7 @@ class SqlAlchemyCardRepository(AbstractCardRepository):
 
         row.status = card.status
 
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(row)
 
         return self._to_domain(row)
@@ -83,7 +83,7 @@ class SqlAlchemyCardRepository(AbstractCardRepository):
 
         self.session.add(row)
 
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(row)
 
         return self._to_domain(row)
@@ -102,5 +102,16 @@ class SqlAlchemyCardRepository(AbstractCardRepository):
 
         if row is None: 
             return None
+
+        return self._to_domain(row)
+
+    async def get_card_by_id(self, card_id) -> Optional[Card]:
+        result = await self.session.execute(
+            select(CardRow).where(CardRow.id == card_id)
+        )
+
+        row = result.scalar_one_or_none()
+
+        if row is None: return None
 
         return self._to_domain(row)
