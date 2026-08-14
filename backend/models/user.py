@@ -1,4 +1,16 @@
-from sqlalchemy import Column, Enum, Integer, String
+from datetime import date, datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    func,
+)
 from sqlalchemy.orm import relationship
 
 from enums import Role
@@ -19,8 +31,26 @@ class UserRow(Base):
     )
     hashed_password = Column("password_hash", String(255), nullable=True)
     google_subject = Column(String, unique=True, index=True, nullable=True)
+
+    dob = Column(Date, nullable=False)
+    address_line = Column(String(255), nullable=False)
+
+    city = Column(String(100), nullable=False)
+    county = Column(String(100), nullable=False)
+    postcode = Column(String(20), nullable=False)
+    mobile = Column(String(20), nullable=True)
+
+    rejection_reason = Column(String(255), nullable=True)
+    is_deleted = Column(Boolean, nullable=False, server_default="false")
+
+  
+
     refresh_tokens = relationship(
         "RefreshToken",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    accounts = relationship(
+        "AccountRow",
+        back_populates="user",
     )
