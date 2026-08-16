@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { AdminAccount, AccountStatus } from "../types/admin";
-import { fetchAccounts, updateAccountStatus } from "../api/adminApi";
+import type { AdminAccount, AccountStatus } from "../../types/admin";
+import { fetchAccounts, updateAccountStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
 
 const FILTERS: { key: AccountStatus | "all"; label: string }[] = [
@@ -38,7 +38,9 @@ export default function AccountsPanel() {
     setActingOn(accountId);
     try {
       const updated = await updateAccountStatus(accountId, status);
-      setAccounts((prev) => prev.map((a) => (a.id === accountId ? updated : a)));
+      setAccounts((prev) =>
+        prev.map((a) => (a.id === accountId ? updated : a)),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
     } finally {
@@ -46,7 +48,8 @@ export default function AccountsPanel() {
     }
   }
 
-  const visible = filter === "all" ? accounts : accounts.filter((a) => a.status === filter);
+  const visible =
+    filter === "all" ? accounts : accounts.filter((a) => a.status === filter);
 
   return (
     <div className="panel">
@@ -98,13 +101,21 @@ export default function AccountsPanel() {
                             .slice(0, 2)}
                         </div>
                         <div>
-                          <div className="customer-name">{account.customerName}</div>
-                          <div className="customer-email">{account.customerEmail}</div>
+                          <div className="customer-name">
+                            {account.customerName}
+                          </div>
+                          <div className="customer-email">
+                            {account.customerEmail}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="mono-value">{account.accountNumber ?? "— pending —"}</td>
-                    <td style={{ textTransform: "capitalize" }}>{account.accountType}</td>
+                    <td className="mono-value">
+                      {account.accountNumber ?? "— pending —"}
+                    </td>
+                    <td style={{ textTransform: "capitalize" }}>
+                      {account.accountType}
+                    </td>
                     <td>
                       <StatusBadge status={account.status} />
                     </td>
@@ -116,7 +127,9 @@ export default function AccountsPanel() {
                             <button
                               className="btn approve"
                               disabled={actingOn === account.id}
-                              onClick={() => handleAction(account.id, "approved")}
+                              onClick={() =>
+                                handleAction(account.id, "approved")
+                              }
                             >
                               Approve
                             </button>
@@ -152,7 +165,9 @@ export default function AccountsPanel() {
                             <button
                               className="btn approve"
                               disabled={actingOn === account.id}
-                              onClick={() => handleAction(account.id, "approved")}
+                              onClick={() =>
+                                handleAction(account.id, "approved")
+                              }
                             >
                               Unfreeze
                             </button>
@@ -172,7 +187,9 @@ export default function AccountsPanel() {
               </tbody>
             </table>
           )}
-          <div className="panel-footer">Showing {visible.length} of {accounts.length} accounts</div>
+          <div className="panel-footer">
+            Showing {visible.length} of {accounts.length} accounts
+          </div>
         </>
       )}
     </div>

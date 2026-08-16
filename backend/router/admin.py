@@ -10,17 +10,17 @@ from services.admin_service import AdminUserService
 router = APIRouter(prefix="/admin", tags=["Admin"])
 # , dependencies=[Depends(require_admin)]
 
-@router.patch("/users/{user_id}/status")
+@router.patch("/users/status")
 async def update_user_status(
-    user_id: int,
     data: UserStatusUpdate,
     db: AsyncSession = Depends(get_db),
 ):
     service = AdminUserService(db)
 
     return await service.update_status(
-        user_id=user_id,
+        user_id=data.user_id,
         new_status=data.status,
+        rejection_reason=data.rejection_reason,
     )
 
 @router.get("/all_users", response_model=list[UserResponse])
@@ -31,7 +31,7 @@ async def get_all_users(
 ):
     service = AdminUserService(db)
 
-    return await service.get_all_users(
+    return await service.list_users(
         skip=skip,
         limit=limit,
     )

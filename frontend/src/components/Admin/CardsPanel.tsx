@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { AdminCard, CardStatus } from "../types/admin";
-import { fetchCards, updateCardStatus } from "../api/adminApi";
+import type { AdminCard, CardStatus } from "../../types/admin";
+import { fetchCards, updateCardStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
 
 const FILTERS: { key: CardStatus | "all"; label: string }[] = [
@@ -46,7 +46,8 @@ export default function CardsPanel() {
     }
   }
 
-  const visible = filter === "all" ? cards : cards.filter((c) => c.status === filter);
+  const visible =
+    filter === "all" ? cards : cards.filter((c) => c.status === filter);
 
   return (
     <div className="panel">
@@ -97,13 +98,19 @@ export default function CardsPanel() {
                             .slice(0, 2)}
                         </div>
                         <div>
-                          <div className="customer-name">{card.customerName}</div>
-                          <div className="customer-email">{card.customerEmail}</div>
+                          <div className="customer-name">
+                            {card.customerName}
+                          </div>
+                          <div className="customer-email">
+                            {card.customerEmail}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="mono-value">{card.cardNumberMasked}</td>
-                    <td style={{ textTransform: "capitalize" }}>{card.cardType}</td>
+                    <td style={{ textTransform: "capitalize" }}>
+                      {card.cardType}
+                    </td>
                     <td>
                       <StatusBadge status={card.status} />
                     </td>
@@ -143,7 +150,9 @@ export default function CardsPanel() {
               </tbody>
             </table>
           )}
-          <div className="panel-footer">Showing {visible.length} of {cards.length} cards</div>
+          <div className="panel-footer">
+            Showing {visible.length} of {cards.length} cards
+          </div>
         </>
       )}
     </div>

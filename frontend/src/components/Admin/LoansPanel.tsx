@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { AdminLoan, LoanStatus } from "../types/admin";
-import { fetchLoans, updateLoanStatus } from "../api/adminApi";
+import type { AdminLoan, LoanStatus } from "../../types/admin";
+import { fetchLoans, updateLoanStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
 
 const FILTERS: { key: LoanStatus | "all"; label: string }[] = [
@@ -46,7 +46,8 @@ export default function LoansPanel() {
     }
   }
 
-  const visible = filter === "all" ? loans : loans.filter((l) => l.status === filter);
+  const visible =
+    filter === "all" ? loans : loans.filter((l) => l.status === filter);
 
   return (
     <div className="panel">
@@ -98,13 +99,21 @@ export default function LoansPanel() {
                             .slice(0, 2)}
                         </div>
                         <div>
-                          <div className="customer-name">{loan.customerName}</div>
-                          <div className="customer-email">{loan.customerEmail}</div>
+                          <div className="customer-name">
+                            {loan.customerName}
+                          </div>
+                          <div className="customer-email">
+                            {loan.customerEmail}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ textTransform: "capitalize" }}>{loan.loanType}</td>
-                    <td className="mono-value">${loan.amount.toLocaleString()}</td>
+                    <td style={{ textTransform: "capitalize" }}>
+                      {loan.loanType}
+                    </td>
+                    <td className="mono-value">
+                      ${loan.amount.toLocaleString()}
+                    </td>
                     <td>{loan.durationMonths} mo</td>
                     <td>
                       <StatusBadge status={loan.status} />
@@ -145,7 +154,9 @@ export default function LoansPanel() {
               </tbody>
             </table>
           )}
-          <div className="panel-footer">Showing {visible.length} of {loans.length} loans</div>
+          <div className="panel-footer">
+            Showing {visible.length} of {loans.length} loans
+          </div>
         </>
       )}
     </div>
