@@ -3,7 +3,7 @@ from datetime import date
 from enums import UserStatus, Role
 
 
-class UserStatusUpdate(BaseModel):
+class UpdateUserStatusCommand(BaseModel):
     user_id: int
     status: UserStatus
     rejection_reason: str | None = None

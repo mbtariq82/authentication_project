@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies.auth import require_admin
 from dependencies.database import get_db
-from schemas.admin_schema import UserStatusUpdate, UserResponse
+from schemas.admin_schema import UpdateUserStatusCommand, UserResponse
 from services.admin_service import AdminUserService
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 @router.patch("/users/status")
 async def update_user_status(
-    data: UserStatusUpdate,
+    data: UpdateUserStatusCommand,
     db: AsyncSession = Depends(get_db),
 ):
     service = AdminUserService(db)
