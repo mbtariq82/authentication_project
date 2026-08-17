@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 import boto3
+from botocore.config import Config
 
 from config import (
     AWS_REGION,
@@ -23,7 +24,14 @@ def get_profile_image_storage() -> AbstractProfileImageStorage:
             url_prefix=PROFILE_IMAGE_URL_PREFIX,
         )
 
-    client = boto3.client("s3", region_name=AWS_REGION)
+    client = boto3.client(
+        "s3",
+        region_name=AWS_REGION,
+        config=Config(
+            signature_version="s3v4",
+            s3={"addressing_style": "virtual"},
+        ),
+    )
     return S3ProfileImageStorage(
         client=client,
         bucket=PROFILE_IMAGES_BUCKET,
