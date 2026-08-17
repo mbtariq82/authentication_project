@@ -8,6 +8,7 @@ import ConsultantsPage from "./pages/Consultants";
 import AddConsultantPage from "./pages/AddConsultantPage";
 import BeneficiariesPage from "./pages/BeneficiariesPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,10 @@ function App() {
         <Route path="/account" element={<CustomerHomePage />} />
         <Route path="/beneficiaries" element={<BeneficiariesPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
+        <Route
+          path="/transactions/history"
+          element={<TransactionHistoryPage />}
+        />
         <Route path="/profile" element={<Navigate to="/account" replace />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/admin/dashboard" element={<DashboardPage />} />

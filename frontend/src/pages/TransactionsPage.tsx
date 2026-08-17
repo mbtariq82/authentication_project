@@ -86,6 +86,7 @@ export default function TransactionsPage() {
           <Link className="customer-nav-active" to="/transactions">
             Transactions
           </Link>
+          <Link to="/transactions/history">History</Link>
           <button
             className="customer-logout"
             type="button"
