@@ -1,8 +1,11 @@
+from unittest import result
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import UserRow
 from models.account import AccountRow
+from models.card import CardRow
 
 
 class UserRepository:
@@ -87,3 +90,37 @@ class AccountRepository:
         await self.db.refresh(account)
 
         return account
+    
+    async def list_accounts(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[AccountRow]:
+
+        result = await self.db.execute(
+            select(AccountRow)
+            .where(AccountRow.is_deleted == False)
+            .offset(skip)
+            .limit(limit)
+        )
+
+        return list(result.scalars().all())
+
+
+class CardRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def list_cards(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[CardRow]:
+
+        result = await self.db.execute(
+            select(CardRow)
+            .offset(skip)
+            .limit(limit)
+        )
+
+        return list(result.scalars().all())

@@ -8,11 +8,12 @@ from enums import UserStatus, AccountStatus
 from models.account import AccountRow
 from repositories.admin_repository import (
     UserRepository,
-    AccountRepository,
+    AccountRepository, CardRepository
 )
 
 import secrets
 from services.card_service import CardService
+
 
 def generate_account_number(user_id: int) -> str:
     user_part = str(user_id).zfill(3)
@@ -30,6 +31,29 @@ def generate_sort_code() -> str:
         "".join(random.choices(string.digits, k=2))
         for _ in range(3)
     )
+
+
+class AdminCardService:
+    def __init__(self, db: AsyncSession):
+        self.repo = CardRepository(db)
+
+    async def list_cards(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_cards(skip, limit)
+
+class AdminAccountService:
+    def __init__(self, db: AsyncSession):
+        self.repo = AccountRepository(db)
+
+    async def list_accounts(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_accounts(skip, limit)
 
 
 class AdminUserService:
