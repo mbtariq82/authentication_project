@@ -34,3 +34,26 @@ resource "aws_iam_instance_profile" "fastapi" {
   name = "authentication-project-fastapi"
   role = aws_iam_role.fastapi_ec2.name
 }
+
+data "aws_iam_policy_document" "fastapi_profile_images" {
+  statement {
+    sid    = "ManageProfileImages"
+    effect = "Allow"
+
+    actions = [
+      "s3:DeleteObject",
+      "s3:GetObject",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.profile_images.arn}/profile-images/*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "fastapi_profile_images" {
+  name   = "authentication-project-profile-images"
+  role   = aws_iam_role.fastapi_ec2.id
+  policy = data.aws_iam_policy_document.fastapi_profile_images.json
+}

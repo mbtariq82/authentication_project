@@ -5,6 +5,7 @@ from domain.user import User
 from models.user import UserRow
 from repositories.abstract_user_repository import AbstractUserRepository
 
+
 class SqlAlchemyUserRepository(AbstractUserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -19,6 +20,7 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             role=row.role,
             hashed_password=row.hashed_password,
             google_subject=row.google_subject,
+            profile_image_key=row.profile_image_key,
         )
     
     @staticmethod
@@ -29,6 +31,7 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         row.role = user.role
         row.hashed_password = user.hashed_password
         row.google_subject = user.google_subject
+        row.profile_image_key = user.profile_image_key
 
     async def add(self, user: User) -> User:
         row = UserRow(
@@ -38,6 +41,7 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             role=user.role,
             hashed_password=user.hashed_password,
             google_subject=user.google_subject,
+            profile_image_key=user.profile_image_key,
         )
         self.session.add(row)
         await self.session.flush() # we need User.id

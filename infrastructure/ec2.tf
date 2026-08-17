@@ -7,20 +7,22 @@ resource "aws_instance" "fastapi" {
   key_name               = aws_key_pair.admin.key_name
   iam_instance_profile   = aws_iam_instance_profile.fastapi.name
 
-  user_data = <<-EOF
-    #!/bin/bash
-    set -euxo pipefail
-
-    dnf install -y docker
-    systemctl enable --now docker
-    systemctl enable --now amazon-ssm-agent
-    usermod -aG docker ec2-user
-    install -d -m 700 /opt/authentication-project
-  EOF
+  user_data = join("\n", [
+    "#!/bin/bash",
+    "set -euxo pipefail",
+    "",
+    "dnf install -y docker",
+    "systemctl enable --now docker",
+    "systemctl enable --now amazon-ssm-agent",
+    "usermod -aG docker ec2-user",
+    "install -d -m 700 /opt/authentication-project",
+    "",
+  ])
 
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
   }
 
   root_block_device {

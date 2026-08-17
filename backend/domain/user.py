@@ -12,6 +12,7 @@ class User:
     role: Role = Role.USER
     hashed_password: str | None = None
     google_subject: str | None = None
+    profile_image_key: str | None = None
 
     @classmethod
     def register_with_password(

@@ -31,6 +31,7 @@ class UserRow(Base):
     )
     hashed_password = Column("password_hash", String(255), nullable=True)
     google_subject = Column(String, unique=True, index=True, nullable=True)
+    profile_image_key = Column(String(512), nullable=True)
 
     user_status = Column(
         String(20),
@@ -48,8 +49,6 @@ class UserRow(Base):
 
     rejection_reason = Column(String(255), nullable=True)
     is_deleted = Column(Boolean, nullable=False, server_default="false")
-
-  
 
     refresh_tokens = relationship(
         "RefreshToken",

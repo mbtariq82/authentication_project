@@ -21,6 +21,8 @@ google-auth
 alembic
 requests
 redis
+boto3
+Pillow
 
 # OpenTelemetry
 opentelemetry-api==1.44.0

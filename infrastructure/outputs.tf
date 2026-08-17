@@ -20,6 +20,11 @@ output "fastapi_ecr_repository_url" {
   value = aws_ecr_repository.fastapi.repository_url
 }
 
+output "profile_images_bucket_name" {
+  description = "Private S3 bucket used for user profile images"
+  value       = aws_s3_bucket.profile_images.id
+}
+
 output "fastapi_ec2_instance_id" {
   description = "EC2 instance ID targeted by GitHub Actions through Systems Manager"
   value       = aws_instance.fastapi.id
