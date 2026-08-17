@@ -30,6 +30,52 @@ resource "aws_iam_role_policy_attachment" "fastapi_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+data "aws_iam_policy_document" "fastapi_telemetry" {
+  statement {
+    sid    = "ExportTracesToXRay"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTelemetryRecords",
+      "xray:PutTraceSegments",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "DiscoverCloudWatchMetricLogs"
+    effect = "Allow"
+
+    actions = [
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "WriteCloudWatchMetricLogs"
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "${aws_cloudwatch_log_group.telemetry_metrics.arn}:*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "fastapi_telemetry" {
+  name   = "authentication-project-telemetry"
+  role   = aws_iam_role.fastapi_ec2.id
+  policy = data.aws_iam_policy_document.fastapi_telemetry.json
+}
+
 resource "aws_iam_instance_profile" "fastapi" {
   name = "authentication-project-fastapi"
   role = aws_iam_role.fastapi_ec2.name
