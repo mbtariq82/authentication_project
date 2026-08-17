@@ -29,6 +29,11 @@ export default function AuthShell({ children }: AuthShellProps) {
               <li>Protected account access</li>
               <li>Clear balances and activity</li>
               <li>Available whenever you need it</li>
+              <li>Instant transaction alerts</li>
+              <li>Easy card and payment controls</li>
+              <li>Personalised spending insights</li>
+              <li>Secure digital transfers</li>
+              <li>24/7 online support</li>
             </ul>
           </div>
 
