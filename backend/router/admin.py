@@ -7,8 +7,11 @@ from dependencies.database import get_db
 from schemas.admin_schema import UpdateUserStatusCommand, UserResponse
 from services.admin_service import AdminUserService
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
-# , dependencies=[Depends(require_admin)]
+router = APIRouter(
+    prefix="/admin", 
+    tags=["Admin"],
+    dependencies=[Depends(require_admin)]
+)
 
 @router.patch("/users/status")
 async def update_user_status(
