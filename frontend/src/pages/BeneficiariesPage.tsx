@@ -118,6 +118,7 @@ export default function BeneficiariesPage() {
           <Link className="customer-nav-active" to="/beneficiaries">
             Beneficiaries
           </Link>
+          <Link to="/transactions">Transactions</Link>
           <button
             className="customer-logout"
             type="button"
