@@ -45,6 +45,14 @@ class InvalidBalanceAmountError(ApplicationError):
     pass
 
 
+class InvalidTransactionRuleError(ApplicationError):
+    pass
+
+
+class InvalidTransactionStatusTransitionError(ApplicationError):
+    pass
+
+
 class BeneficiaryNotFoundError(ApplicationError):
     pass
 
