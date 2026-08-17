@@ -17,6 +17,14 @@ function isStrongPassword(password: string): boolean {
   );
 }
 
+const passwordChecks = [
+  { label: "12+ characters", test: (value: string) => value.length >= 12 },
+  { label: "One lowercase letter", test: (value: string) => /[a-z]/.test(value) },
+  { label: "One uppercase letter", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "One number", test: (value: string) => /\d/.test(value) },
+  { label: "One special character", test: (value: string) => /[^A-Za-z0-9\s]/.test(value) },
+];
+
 export default function RegisterPage() {
   const navigate = useNavigate();
 
@@ -25,6 +33,8 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,35 +144,68 @@ export default function RegisterPage() {
 
         <div className="auth-field">
           <label htmlFor="password">Create a password</label>
-          <input
-            id="password"
-            type="password"
-            minLength={12}
-            maxLength={72}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password"
-            aria-describedby="password-hint"
-            required
-          />
-          <p className="auth-hint" id="password-hint">
-            At least 12 characters with upper and lowercase letters, a number,
-            and a special character.
-          </p>
+          <div className="auth-password-input-wrapper">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              minLength={12}
+              maxLength={72}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              aria-describedby="password-hint"
+              required
+            />
+            <button
+              type="button"
+              className="auth-password-toggle"
+              onClick={() => setShowPassword((previous) => !previous)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+          <ul className="auth-password-checklist" id="password-hint" aria-live="polite">
+            {passwordChecks.map((check) => {
+              const isMet = check.test(password);
+
+              return (
+                <li
+                  key={check.label}
+                  className={isMet ? "password-check is-met" : "password-check"}
+                >
+                  <span className="password-check-indicator" aria-hidden="true">
+                    ✓
+                  </span>
+                  <span>{check.label}</span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
         <div className="auth-field">
           <label htmlFor="confirmPassword">Confirm password</label>
-          <input
-            id="confirmPassword"
-            type="password"
-            minLength={12}
-            maxLength={72}
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            autoComplete="new-password"
-            required
-          />
+          <div className="auth-password-input-wrapper">
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              minLength={12}
+              maxLength={72}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <button
+              type="button"
+              className="auth-password-toggle"
+              onClick={() => setShowConfirmPassword((previous) => !previous)}
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+            >
+              {showConfirmPassword ? "Hide" : "Show"}
+            </button>
+          </div>
         </div>
 
         {error && (
