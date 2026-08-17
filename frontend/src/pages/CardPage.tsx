@@ -96,13 +96,10 @@ export default function CardPage() {
       setOrdering(true);
       setError(null);
 
-      const newCard = await createCard();
+      await createCard();
+      const formattedCard = await getUserCard();
 
-      setCard({
-        card_number: newCard.card_number,
-        expiry_date: newCard.expiry_date,
-        cvc: newCard.cvc,
-      });
+      setCard(formattedCard);
 
       setCardStatus("ACTIVE");
       setShowOrderConfirmation(false);
