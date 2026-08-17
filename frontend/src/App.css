@@ -53,8 +53,8 @@
 }
 .auth-brand-panel {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   padding: clamp(2rem, 4vw, 3.5rem);
   overflow: hidden;
   background:
@@ -95,10 +95,14 @@
   color: #082f49;
   font-weight: 900;
 }
-.auth-brand-copy {
+.auth-brand-content {
   position: relative;
   z-index: 1;
-  margin: auto 0 2.5rem;
+  align-self: center;
+  padding: 2rem 0;
+}
+.auth-brand-copy {
+  margin: 0 0 2.5rem;
 }
 .auth-brand-copy h2 {
   max-width: 12ch;
@@ -126,11 +130,9 @@
   color: #7dd3fc;
 }
 .auth-benefits {
-  position: relative;
-  z-index: 1;
   display: grid;
   gap: 0.85rem;
-  margin: 0 0 2.5rem;
+  margin: 0;
   padding: 0;
   color: #e0f2fe;
   list-style: none;
@@ -223,6 +225,64 @@
   outline: 0;
   box-shadow: 0 0 0 3px rgb(14 165 233 / 16%);
 }
+.auth-password-input-wrapper {
+  position: relative;
+}
+.auth-password-input-wrapper input {
+  padding-right: 4.4rem;
+}
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  transform: translateY(-50%);
+  padding: 0.38rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #0369a1;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-password-checklist {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.8rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+}
+.password-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #627d98;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.password-check-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #d9e2ec;
+  color: #f8fafc;
+  font-size: 0.7rem;
+  font-weight: 900;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+.password-check.is-met {
+  color: #0f766e;
+}
+.password-check.is-met .password-check-indicator {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgb(34 197 94 / 18%);
+  color: #ffffff;
+}
 .auth-hint {
   margin: 0;
   color: #829ab1;
@@ -304,7 +364,7 @@
     min-height: auto;
     padding: 1.5rem;
   }
-  .auth-brand-copy,
+  .auth-brand-content,
   .auth-benefits {
     display: none;
   }
