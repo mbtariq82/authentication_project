@@ -9,6 +9,7 @@ import AddConsultantPage from "./pages/AddConsultantPage";
 import BeneficiariesPage from "./pages/BeneficiariesPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
+import { routes } from "./routes";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -17,12 +18,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/account" element={<CustomerHomePage />} />
-        <Route path="/beneficiaries" element={<BeneficiariesPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path={routes.login} element={<LoginPage />} />
+        <Route path={routes.account} element={<CustomerHomePage />} />
+        <Route path={routes.beneficiaries} element={<BeneficiariesPage />} />
+        <Route path={routes.transactions} element={<TransactionsPage />} />
         <Route
-          path="/transactions/history"
+          path={routes.transactionHistory}
           element={<TransactionHistoryPage />}
         />
         <Route path="/profile" element={<Navigate to="/account" replace />} />
