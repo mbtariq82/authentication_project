@@ -10,6 +10,7 @@ export type UserResponse = {
   first_name: string;
   last_name: string;
   role: UserRole;
+  profile_image_url: string | null;
 };
 
 export async function getUserProfile(): Promise<UserResponse> {
