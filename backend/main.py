@@ -7,13 +7,22 @@ from redis_client import redis_client
 from exception_handlers import register_exception_handlers
 from telemetry import configure_telemetry, instrument_application
 
-from router import accounts, admin, auth, users
+from router import accounts, admin, auth, users, card
 
 telemetry_providers = configure_telemetry()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    try:
+        await redis_client.ping()
+        print("Connected to Redis")
+        yield
+    finally:
+        try:
+            await redis_client.aclose()
+        finally:
+            telemetry_providers.shutdown()
     try:
         await redis_client.ping()
         print("Connected to Redis")
@@ -47,6 +56,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(accounts.router)
+app.include_router(card.router)
 
 instrument_application(
     app=app,

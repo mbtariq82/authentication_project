@@ -15,19 +15,16 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         return Account(
             id=row.id,
             user_id=row.user_id,
-            document_id=row.document_id,
             sort_code=row.sort_code,
             account_number=row.account_number,
             balance=row.balance,
             account_status=row.account_status,
-            opened_at=row.opened_at,
             closed_at=row.closed_at,
         )
 
     async def add(self, account: Account) -> Account:
         row = AccountRow(
             user_id=account.user_id,
-            document_id=account.document_id,
             sort_code=account.sort_code,
             account_number=account.account_number,
             balance=account.balance,

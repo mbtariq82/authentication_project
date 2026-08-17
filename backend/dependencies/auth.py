@@ -3,12 +3,15 @@ from jose import JWTError
 
 from database import async_session_factory
 from dependencies.users import get_user_service
+from dependencies.accounts import get_account_service
+from domain.card import AuthenticatedUserContext
 from domain.user import User
 from enums import Role
-from exceptions import InvalidAccessTokenError, PermissionDeniedError
+from exceptions import InvalidAccessTokenError, PermissionDeniedError, AccountNotFoundError
 from security import decode_token, oauth2_scheme
 from services.auth_service import AuthService
 from services.user_service import UserService
+from services.account_service import AccountService
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
 
 
@@ -40,3 +43,13 @@ async def require_admin(
     if user.role != Role.ADMIN:
         raise PermissionDeniedError()
     return user
+
+async def get_user_account(user: User = Depends(get_current_user), account_service: AccountService = Depends(get_account_service)):
+    account = await account_service.get_account(user.id)
+    if not account:
+        raise AccountNotFoundError
+    return AuthenticatedUserContext(
+        user=user,
+        account=account,
+    )
+
