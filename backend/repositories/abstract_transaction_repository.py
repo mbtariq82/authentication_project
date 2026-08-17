@@ -19,6 +19,13 @@ class AbstractTransactionRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_by_id_for_admin(
+        self,
+        transaction_id: int,
+    ) -> Transaction | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def list_by_user(
         self,
         user_id: int,
@@ -44,5 +51,12 @@ class AbstractTransactionRepository(ABC):
         self,
         transaction_id: int,
         user_id: int,
+    ) -> list[TransactionLog]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def list_logs_for_admin(
+        self,
+        transaction_id: int,
     ) -> list[TransactionLog]:
         raise NotImplementedError

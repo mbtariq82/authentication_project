@@ -82,6 +82,16 @@ class SqlAlchemyTransactionRepository(AbstractTransactionRepository):
         row = result.scalar_one_or_none()
         return self._to_transaction(row) if row else None
 
+    async def get_by_id_for_admin(
+        self,
+        transaction_id: int,
+    ) -> Transaction | None:
+        result = await self.session.execute(
+            select(TransactionRow).where(TransactionRow.id == transaction_id)
+        )
+        row = result.scalar_one_or_none()
+        return self._to_transaction(row) if row else None
+
     async def list_by_user(
         self,
         user_id: int,
@@ -170,6 +180,17 @@ class SqlAlchemyTransactionRepository(AbstractTransactionRepository):
                 TransactionLogRow.transaction_id == transaction_id,
                 AccountRow.user_id == user_id,
             )
+            .order_by(TransactionLogRow.created_at.asc(), TransactionLogRow.id.asc())
+        )
+        return [self._to_log(row) for row in result.scalars().all()]
+
+    async def list_logs_for_admin(
+        self,
+        transaction_id: int,
+    ) -> list[TransactionLog]:
+        result = await self.session.execute(
+            select(TransactionLogRow)
+            .where(TransactionLogRow.transaction_id == transaction_id)
             .order_by(TransactionLogRow.created_at.asc(), TransactionLogRow.id.asc())
         )
         return [self._to_log(row) for row in result.scalars().all()]

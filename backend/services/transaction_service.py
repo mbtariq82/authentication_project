@@ -168,14 +168,20 @@ class TransactionService:
         self,
         user_id: int,
         transaction_id: int,
+        *,
+        is_admin: bool = False,
     ) -> list[TransactionLogResponse]:
-        transaction = await self.transactions.get_by_id_for_user(
-            transaction_id,
-            user_id,
+        transaction = await (
+            self.transactions.get_by_id_for_admin(transaction_id)
+            if is_admin
+            else self.transactions.get_by_id_for_user(transaction_id, user_id)
         )
+        if is_admin:
+            entries = await self.transactions.list_logs_for_admin(transaction_id)
+        else:
+            entries = await self.transactions.list_logs(transaction_id, user_id)
         if transaction is None:
             raise TransactionNotFoundError()
-        entries = await self.transactions.list_logs(transaction_id, user_id)
         return [
             TransactionLogResponse(
                 id=entry.id,

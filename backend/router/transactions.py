@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from dependencies.auth import get_current_user
 from dependencies.transactions import get_transaction_service
 from domain.user import User
+from enums import Role
 from exceptions import InvalidAccessTokenError
 from schemas.transaction import (
     PaginatedResponse,
@@ -68,4 +69,8 @@ async def list_transaction_logs(
     user: User = Depends(get_current_user),
     service: TransactionService = Depends(get_transaction_service),
 ) -> list[TransactionLogResponse]:
-    return await service.logs(current_user_id(user), transaction_id)
+    return await service.logs(
+        current_user_id(user),
+        transaction_id,
+        is_admin=user.role is Role.ADMIN,
+    )
