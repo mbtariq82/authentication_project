@@ -53,6 +53,10 @@ class InvalidTransactionStatusTransitionError(ApplicationError):
     pass
 
 
+class TransactionNotFoundError(ApplicationError):
+    pass
+
+
 class BeneficiaryNotFoundError(ApplicationError):
     pass
 
