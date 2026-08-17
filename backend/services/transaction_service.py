@@ -47,8 +47,11 @@ class TransactionService:
         user_id: int,
         command: TransactionCreate,
     ) -> TransactionResponse:
-        account = await self.accounts.get_by_user(user_id)
-        if account is None or account.id != command.account_id:
+        account = await self.accounts.get_by_id_for_user(
+            command.account_id,
+            user_id,
+        )
+        if account is None:
             raise TransactionNotFoundError()
 
         if command.transaction_type is TransactionType.TRANSFER:
@@ -104,7 +107,7 @@ class TransactionService:
         await self.session.commit()
         return transaction_response(transaction)
 
-    async def list(
+    async def list_transactions(
         self,
         user_id: int,
         filters: TransactionFilter,

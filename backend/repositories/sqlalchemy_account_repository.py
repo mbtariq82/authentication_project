@@ -52,6 +52,20 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
+    async def get_by_id_for_user(
+        self,
+        account_id: int,
+        user_id: int,
+    ) -> Account | None:
+        result = await self.session.execute(
+            select(AccountRow).where(
+                AccountRow.id == account_id,
+                AccountRow.user_id == user_id,
+            )
+        )
+        row = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
+
     async def get_by_id_for_update(self, account_id: int) -> Account | None:
         result = await self.session.execute(
             select(AccountRow)

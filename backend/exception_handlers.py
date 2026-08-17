@@ -12,6 +12,10 @@ from exceptions import (
     InvalidCredentialsError,
     InvalidGoogleTokenError,
     InvalidRefreshTokenError,
+    InsufficientFundsError,
+    InvalidTransactionRuleError,
+    InvalidTransactionStatusTransitionError,
+    TransactionNotFoundError,
     EmailAlreadyRegisteredError,
     PermissionDeniedError
 )
@@ -138,4 +142,44 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": "At least one beneficiary field is required"},
+        )
+
+    @app.exception_handler(TransactionNotFoundError)
+    async def transaction_not_found_handler(
+        request: Request,
+        error: TransactionNotFoundError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Transaction not found"},
+        )
+
+    @app.exception_handler(InsufficientFundsError)
+    async def insufficient_funds_handler(
+        request: Request,
+        error: InsufficientFundsError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Insufficient funds"},
+        )
+
+    @app.exception_handler(InvalidTransactionRuleError)
+    async def invalid_transaction_rule_handler(
+        request: Request,
+        error: InvalidTransactionRuleError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"detail": str(error)},
+        )
+
+    @app.exception_handler(InvalidTransactionStatusTransitionError)
+    async def invalid_transaction_status_transition_handler(
+        request: Request,
+        error: InvalidTransactionStatusTransitionError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": str(error)},
         )

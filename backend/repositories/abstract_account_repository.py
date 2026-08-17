@@ -14,6 +14,14 @@ class AbstractAccountRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_by_id_for_user(
+        self,
+        account_id: int,
+        user_id: int,
+    ) -> Account | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_by_id_for_update(self, account_id: int) -> Account | None:
         raise NotImplementedError
 
