@@ -1,7 +1,5 @@
 from uuid import uuid4
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from domain.transaction import Transaction, TransactionLog
 from domain.transaction_rules import (
     balance_effect,
@@ -13,13 +11,6 @@ from exceptions import (
     InvalidTransactionStatusTransitionError,
     TransactionNotFoundError,
 )
-from repositories.abstract_account_repository import AbstractAccountRepository
-from repositories.abstract_beneficiary_repository import (
-    AbstractBeneficiaryRepository,
-)
-from repositories.abstract_transaction_repository import (
-    AbstractTransactionRepository,
-)
 from schemas.transaction import (
     PaginatedResponse,
     TransactionCreate,
@@ -27,20 +18,20 @@ from schemas.transaction import (
     TransactionLogResponse,
     TransactionResponse,
 )
+from unit_of_work.abstract_transaction_unit_of_work import (
+    AbstractTransactionUnitOfWork,
+)
 
 
 class TransactionService:
     def __init__(
         self,
-        session: AsyncSession,
-        transaction_repository: AbstractTransactionRepository,
-        account_repository: AbstractAccountRepository,
-        beneficiary_repository: AbstractBeneficiaryRepository,
+        unit_of_work: AbstractTransactionUnitOfWork,
     ):
-        self.session = session
-        self.transactions = transaction_repository
-        self.accounts = account_repository
-        self.beneficiaries = beneficiary_repository
+        self.unit_of_work = unit_of_work
+        self.transactions = unit_of_work.transactions
+        self.accounts = unit_of_work.accounts
+        self.beneficiaries = unit_of_work.beneficiaries
 
     async def create(
         self,
@@ -104,7 +95,7 @@ class TransactionService:
                 message="Transaction created",
             )
         )
-        await self.session.commit()
+        await self.unit_of_work.commit()
         return transaction_response(transaction)
 
     async def list_transactions(
@@ -161,7 +152,7 @@ class TransactionService:
                 message="Transaction cancelled",
             )
         )
-        await self.session.commit()
+        await self.unit_of_work.commit()
         return transaction_response(cancelled)
 
     async def logs(

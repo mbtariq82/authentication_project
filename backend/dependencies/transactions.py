@@ -1,39 +1,24 @@
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from collections.abc import AsyncIterator
 
-from dependencies.database import get_db
-from repositories.abstract_account_repository import AbstractAccountRepository
-from repositories.abstract_beneficiary_repository import (
-    AbstractBeneficiaryRepository,
+from fastapi import Depends
+from database import async_session_factory
+from unit_of_work.abstract_transaction_unit_of_work import (
+    AbstractTransactionUnitOfWork,
 )
-from repositories.abstract_transaction_repository import (
-    AbstractTransactionRepository,
-)
-from repositories.sqlalchemy_account_repository import SqlAlchemyAccountRepository
-from repositories.sqlalchemy_beneficiary_repository import (
-    SqlAlchemyBeneficiaryRepository,
-)
-from repositories.sqlalchemy_transaction_repository import (
-    SqlAlchemyTransactionRepository,
+from unit_of_work.sqlalchemy_transaction_unit_of_work import (
+    SqlAlchemyTransactionUnitOfWork,
 )
 from services.transaction_service import TransactionService
 
 
+async def get_transaction_unit_of_work() -> AsyncIterator[AbstractTransactionUnitOfWork]:
+    async with SqlAlchemyTransactionUnitOfWork(async_session_factory) as unit_of_work:
+        yield unit_of_work
+
+
 def get_transaction_service(
-    session: AsyncSession = Depends(get_db),
+    unit_of_work: AbstractTransactionUnitOfWork = Depends(
+        get_transaction_unit_of_work
+    ),
 ) -> TransactionService:
-    transaction_repository: AbstractTransactionRepository = (
-        SqlAlchemyTransactionRepository(session)
-    )
-    account_repository: AbstractAccountRepository = SqlAlchemyAccountRepository(
-        session
-    )
-    beneficiary_repository: AbstractBeneficiaryRepository = (
-        SqlAlchemyBeneficiaryRepository(session)
-    )
-    return TransactionService(
-        session=session,
-        transaction_repository=transaction_repository,
-        account_repository=account_repository,
-        beneficiary_repository=beneficiary_repository,
-    )
+    return TransactionService(unit_of_work)
