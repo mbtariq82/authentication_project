@@ -2,10 +2,12 @@
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from dependencies.card import get_card_service
 from dependencies.auth import require_admin
 from dependencies.database import get_db
 from schemas.admin_schema import UpdateUserStatusCommand, UserResponse
 from services.admin_service import AdminUserService
+from services.card_service import CardService
 
 router = APIRouter(
     prefix="/admin", 
@@ -16,9 +18,9 @@ router = APIRouter(
 @router.patch("/users/status")
 async def update_user_status(
     data: UpdateUserStatusCommand,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),card_service: CardService = Depends(get_card_service),
 ):
-    service = AdminUserService(db)
+    service = AdminUserService(db, card_service=card_service,)
 
     return await service.update_status(
         user_id=data.user_id,
