@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ConsultantsPage from "./pages/Consultants";
 import AddConsultantPage from "./pages/AddConsultantPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
+import CardPage from "./pages/CardPage";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/account" element={<CustomerHomePage />} />
+        <Route path="/card" element={<CardPage />} />
         <Route path="/profile" element={<Navigate to="/account" replace />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/admin/dashboard" element={<DashboardPage />} />

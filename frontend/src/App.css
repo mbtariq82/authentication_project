@@ -35,8 +35,16 @@
   place-items: center;
   padding: clamp(1rem, 4vw, 3rem);
   background:
-    radial-gradient(circle at 10% 12%, rgb(14 165 233 / 18%), transparent 28rem),
-    radial-gradient(circle at 90% 88%, rgb(16 185 129 / 12%), transparent 25rem),
+    radial-gradient(
+      circle at 10% 12%,
+      rgb(14 165 233 / 18%),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 90% 88%,
+      rgb(16 185 129 / 12%),
+      transparent 25rem
+    ),
     #f0f5f7;
   color: #102a43;
 }
@@ -58,8 +66,7 @@
   padding: clamp(2rem, 4vw, 3.5rem);
   overflow: hidden;
   background:
-    linear-gradient(145deg, rgb(8 47 73 / 96%), rgb(12 74 110 / 94%)),
-    #082f49;
+    linear-gradient(145deg, rgb(8 47 73 / 96%), rgb(12 74 110 / 94%)), #082f49;
   color: #ffffff;
 }
 .auth-brand-panel::after {
@@ -216,7 +223,9 @@
   border-radius: 0.65rem;
   background: #ffffff;
   color: #102a43;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 .auth-form input:focus {
   border-color: #0284c7;
@@ -240,7 +249,9 @@
   font-weight: 750;
   cursor: pointer;
   box-shadow: 0 0.5rem 1rem rgb(3 105 161 / 18%);
-  transition: background 140ms ease, transform 140ms ease;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
 }
 .auth-primary-action:hover:not(:disabled) {
   background: #075985;
@@ -321,7 +332,6 @@
     grid-template-columns: 1fr;
   }
 }
-
 
 /* Customer home */
 .customer-home {
@@ -420,9 +430,16 @@
   flex-direction: column;
   justify-content: space-between;
   background:
-    radial-gradient(circle at 100% 100%, rgb(56 189 248 / 18%), transparent 18rem),
+    radial-gradient(
+      circle at 100% 100%,
+      rgb(56 189 248 / 18%),
+      transparent 18rem
+    ),
     linear-gradient(145deg, #082f49, #0c4a6e);
   color: #ffffff;
+}
+.customer-card-button:hover {
+  background: var(--navy-700);
 }
 .customer-card-label {
   margin: 0 0 0.75rem;
@@ -446,6 +463,27 @@
   margin: 0;
   color: #cfe8f3;
   line-height: 1.65;
+}
+.customer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.customer-card-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(56 189 248 / 16%);
+  color: #bae6fd;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.12s ease;
+}
+.customer-card-button:hover {
+  background: rgb(56 189 248 / 24%);
 }
 .customer-status {
   width: fit-content;
@@ -497,7 +535,6 @@
   }
 }
 
-
 /* Dashboard Page */
 .dashboard-page {
   min-height: 100vh;
@@ -533,7 +570,6 @@
   font-size: 2rem;
   font-weight: 700;
 }
-
 
 /* Dashboard Charts */
 .dashboard-charts {
@@ -583,7 +619,6 @@
     grid-template-columns: 1fr;
   }
 }
-
 
 /* Attention Table */
 .attention-section {
@@ -680,7 +715,6 @@
   text-align: center;
 }
 
-
 /* Consultants Page */
 .consultants-page {
   display: flex;
@@ -728,7 +762,6 @@
   cursor: not-allowed;
   opacity: 0.5;
 }
-
 
 /* Add Consultant Page */
 .add-consultant-page {

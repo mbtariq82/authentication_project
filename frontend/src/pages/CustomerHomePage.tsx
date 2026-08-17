@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { logout } from "../api/authClient";
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
+import { Link } from "react-router";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
@@ -85,11 +86,16 @@ export default function CustomerHomePage() {
               <p className="customer-card-label">Everyday account</p>
               <h2>Account setup ready</h2>
               <p>
-                Your banking products and balances will appear here as the
-                demo account services are connected.
+                Your banking products and balances will appear here as the demo
+                account services are connected.
               </p>
             </div>
-            <span className="customer-status">Secure access active</span>
+            <div className="customer-actions">
+              <span className="customer-status">Secure access active</span>
+              <Link to="/card" className="customer-card-button">
+                View card
+              </Link>
+            </div>
           </article>
 
           <article className="customer-details-card">
