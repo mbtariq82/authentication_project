@@ -12,6 +12,7 @@ class CardRow(Base):
     expiry_date = Column(DateTime(timezone=True), nullable=True)
     cvc = Column(String(10), nullable=True)
     status = Column(String(20), nullable=True)
+    type = Column(String(6), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
