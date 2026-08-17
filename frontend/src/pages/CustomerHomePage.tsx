@@ -56,8 +56,8 @@ export default function CustomerHomePage() {
               <p className="customer-card-label">Everyday account</p>
               <h2>Account setup ready</h2>
               <p>
-                Your banking products and balances will appear here as the
-                demo account services are connected.
+                Your banking products and balances will appear here as the demo
+                account services are connected.
               </p>
             </div>
             <span className="customer-status">Secure access active</span>
