@@ -3,6 +3,7 @@ from jose import JWTError
 
 from database import async_session_factory
 from dependencies.accounts import get_account_service
+from dependencies.profile_images import get_profile_image_storage
 from dependencies.users import get_user_service
 from domain.card import AuthenticatedUserContext
 from enums import Role
@@ -16,12 +17,17 @@ from security import decode_token, oauth2_scheme
 from services.auth_service import AuthService
 from services.account_service import AccountService
 from services.user_service import UserService
+from storage.abstract_profile_image_storage import AbstractProfileImageStorage
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
 
 
-def get_auth_service() -> AuthService:
+def get_auth_service(
+    image_storage: AbstractProfileImageStorage = Depends(
+        get_profile_image_storage
+    ),
+) -> AuthService:
     unit_of_work = SqlAlchemyAuthUnitOfWork(async_session_factory)
-    return AuthService(unit_of_work)
+    return AuthService(unit_of_work, image_storage)
 
 
 async def get_current_user(

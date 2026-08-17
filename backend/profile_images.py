@@ -2,12 +2,25 @@ import warnings
 from io import BytesIO
 
 from PIL import Image
+from starlette.datastructures import UploadFile
 
-from exceptions import InvalidProfileImageError
+from exceptions import InvalidProfileImageError, ProfileImageTooLargeError
 
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
+MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 OUTPUT_DIMENSIONS = (1024, 1024)
+
+
+async def read_profile_image(upload: UploadFile) -> bytes:
+    try:
+        image_bytes = await upload.read(MAX_PROFILE_IMAGE_BYTES + 1)
+    finally:
+        await upload.close()
+
+    if len(image_bytes) > MAX_PROFILE_IMAGE_BYTES:
+        raise ProfileImageTooLargeError()
+    return image_bytes
 
 
 def normalize_profile_image(image_bytes: bytes) -> bytes:

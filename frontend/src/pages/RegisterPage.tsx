@@ -5,6 +5,8 @@ import { register } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 import AuthShell from "../components/AuthShell";
 
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+
 function isStrongPassword(password: string): boolean {
   return (
     password.length >= 12 &&
@@ -23,6 +25,7 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileImage, setProfileImage] = useState<File | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -42,6 +45,10 @@ export default function RegisterPage() {
       setError("The passwords do not match.");
       return;
     }
+    if (profileImage && profileImage.size > MAX_PROFILE_IMAGE_BYTES) {
+      setError("Choose a profile photo that is 5 MB or smaller.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const tokens = await register({
@@ -49,6 +56,7 @@ export default function RegisterPage() {
         password,
         first_name: firstName,
         last_name: lastName,
+        profile_image: profileImage,
       });
       saveTokens(tokens);
       navigate("/account", { replace: true });
@@ -106,6 +114,22 @@ export default function RegisterPage() {
             autoCapitalize="none"
             required
           />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="profileImage">Profile photo (optional)</label>
+          <input
+            id="profileImage"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => {
+              setProfileImage(event.target.files?.[0] ?? null);
+            }}
+            aria-describedby="profile-image-hint"
+          />
+          <p className="auth-hint" id="profile-image-hint">
+            JPEG, PNG, or WebP, up to 5 MB.
+          </p>
         </div>
 
         <div className="auth-field">

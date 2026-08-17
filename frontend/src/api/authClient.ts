@@ -13,6 +13,7 @@ type RegisterCommand = {
   password: string;
   first_name: string;
   last_name: string;
+  profile_image?: File | null;
 };
 
 type TokenResponse = {
@@ -30,12 +31,23 @@ let refreshPromise: Promise<void> | null = null;
 export async function register(
   command: RegisterCommand,
 ): Promise<TokenResponse> {
+  const { profile_image, ...customerDetails } = command;
+  const request: RequestInit = { method: "POST" };
+
+  if (profile_image) {
+    const formData = new FormData();
+    Object.entries(customerDetails).forEach(([field, value]) => {
+      formData.append(field, value);
+    });
+    formData.append("profile_image", profile_image);
+    request.body = formData;
+  } else {
+    request.headers = { "Content-Type": "application/json" };
+    request.body = JSON.stringify(customerDetails);
+  }
+
   const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(command),
+    ...request,
   });
 
   if (!response.ok) {
