@@ -44,6 +44,7 @@ async def freeze_card(
         user_id = context.user.id
     )
 
+# TODO: move this into /admin router
 @router.patch("/block/{card_id}", response_model=CardStatusResponse)
 async def block_card(
     card_id: int,
