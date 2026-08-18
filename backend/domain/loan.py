@@ -16,7 +16,9 @@ def assess_loan(application: LoanApplication) -> bool:
     if disposable_income <= 0:
         return False
 
-    if application.loan_amount > disposable_income * 10:
+    monthly_repayment = application.loan_amount / application.duration
+
+    if monthly_repayment > disposable_income * 0.30:
         return False
 
     return True

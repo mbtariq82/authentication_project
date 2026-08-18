@@ -233,3 +233,27 @@
     width: 100%;
   }
 }
+
+.customer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customer-apply-loan {
+  padding: 0.65rem 1rem;
+  border: 1px solid rgb(186 230 253 / 35%);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #e0f2fe;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.customer-apply-loan:hover {
+  border-color: #7dd3fc;
+  background: rgb(14 165 233 / 12%);
+}

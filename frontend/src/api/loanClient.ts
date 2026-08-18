@@ -20,6 +20,14 @@ export type LoanDecisionRequest = {
   status: "ACCEPTED" | "REJECTED";
 };
 
+export type LoanApplicationRequest = {
+  loan_type: string;
+  loan_amount: number;
+  monthly_income: number;
+  monthly_expenses: number;
+  duration: number;
+};
+
 export type LoanApplicationResponse = {
   eligible: boolean;
   status: LoanStatus;
@@ -106,4 +114,24 @@ export async function repayLoan(
   }
 
   return (await response.json()) as LoanRepaymentResponse;
+}
+
+export async function applyForLoan(
+  request: LoanApplicationRequest,
+): Promise<LoanApplicationResponse> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/loans/loanForm`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = (await response.json()) as ApiErrorResponse;
+
+    throw new Error(errorData.detail ?? "Failed to submit loan application.");
+  }
+
+  return (await response.json()) as LoanApplicationResponse;
 }

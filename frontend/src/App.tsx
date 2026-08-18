@@ -8,6 +8,8 @@ import ConsultantsPage from "./pages/Consultants";
 import AddConsultantPage from "./pages/AddConsultantPage";
 import LoansPage from "./pages/MyLoansPage";
 import LoanRepaymentPage from "./pages/LoanRepaymentPage";
+import LoanApplicationPage from "./pages/LoanApplicationPage";
+import EMICalculatorPage from "./pages/EMICalculatorPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import "./App.css";
 
@@ -28,6 +30,8 @@ function App() {
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/my-loans" element={<LoansPage />} />
         <Route path="/repay" element={<LoanRepaymentPage />} />
+        <Route path="/loans/apply" element={<LoanApplicationPage />} />
+        <Route path="/emi-calculator" element={<EMICalculatorPage />} />
       </Routes>
     </QueryClientProvider>
   );

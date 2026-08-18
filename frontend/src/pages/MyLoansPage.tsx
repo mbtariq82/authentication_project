@@ -55,9 +55,17 @@ export default function LoansPage() {
           <span>Demo Bank</span>
         </div>
 
-        <Link to="/account" className="customer-back">
-          Back to account
-        </Link>
+        <div className="customer-header-actions">
+          <Link to="/emi-calculator" className="customer-back">
+            EMI Calculator
+          </Link>
+          <Link to="/loans/apply" className="customer-apply-loan">
+            Apply for a loan
+          </Link>
+          <Link to="/account" className="customer-back">
+            Back to account
+          </Link>
+        </div>
       </header>
 
       <main className="loans-page-container">
