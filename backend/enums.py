@@ -22,3 +22,22 @@ class TransactionStatus(StrEnum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+
+
+class AccountStatus(StrEnum):
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PENDING = "PENDING"
+    CLOSED ="CLOSED"
+
+class AccountType(StrEnum):
+    SAVINGS = "SAVINGS"
+
+class UserStatus(StrEnum):
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PENDING = "PENDING"
+    CLOSED ="CLOSED"
+    
+
+

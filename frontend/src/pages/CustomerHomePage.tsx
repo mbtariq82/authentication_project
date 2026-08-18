@@ -8,6 +8,8 @@ import CustomerNavigation from "../components/CustomerNavigation";
 export default function CustomerHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadCurrentUser() {
@@ -33,16 +35,38 @@ export default function CustomerHomePage() {
 
   const displayName = user.first_name || "Customer";
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
+  const initials =
+    [user.first_name, user.last_name]
+      .filter(Boolean)
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase() || user.email[0].toUpperCase();
+  const showProfileImage = user.profile_image_url && !profileImageFailed;
 
   return (
     <main className="customer-home">
       <CustomerNavigation />
 
       <section className="customer-content">
-        <div className="customer-welcome">
-          <p className="auth-eyebrow">Customer account</p>
-          <h1>Welcome, {displayName}</h1>
-          <p>Your secure Demo Bank sign-in is active.</p>
+        <div className="customer-profile-intro">
+          {showProfileImage ? (
+            <img
+              className="customer-profile-image"
+              src={user.profile_image_url ?? undefined}
+              alt={`${fullName || displayName}'s profile`}
+              onError={() => setProfileImageFailed(true)}
+            />
+          ) : (
+            <span className="customer-profile-fallback" aria-hidden="true">
+              {initials}
+            </span>
+          )}
+
+          <div className="customer-welcome">
+            <p className="auth-eyebrow">Customer account</p>
+            <h1>Welcome, {displayName}</h1>
+            <p>Your secure Demo Bank sign-in is active.</p>
+          </div>
         </div>
 
         <aside className="customer-demo-notice">

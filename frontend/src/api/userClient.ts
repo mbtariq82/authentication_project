@@ -10,6 +10,7 @@ export type UserResponse = {
   first_name: string;
   last_name: string;
   role: UserRole;
+  profile_image_url: string | null;
 };
 
 export async function getUserProfile(): Promise<UserResponse> {
@@ -26,5 +27,12 @@ export async function getUserProfile(): Promise<UserResponse> {
     );
   }
 
-  return response.json() as Promise<UserResponse>;
+  const user = (await response.json()) as UserResponse;
+
+  return {
+    ...user,
+    profile_image_url: user.profile_image_url
+      ? new URL(user.profile_image_url, `${API_BASE_URL}/`).toString()
+      : null,
+  };
 }

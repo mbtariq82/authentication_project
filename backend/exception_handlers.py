@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from exceptions import (
     AccountAlreadyExistsError,
     AccountNotFoundError,
+    EmailAlreadyRegisteredError,
     BeneficiaryNotFoundError,
     InvalidBeneficiaryUpdateError,
     GoogleAccountConflictError,
@@ -11,6 +12,8 @@ from exceptions import (
     InvalidAccessTokenError,
     InvalidCredentialsError,
     InvalidGoogleTokenError,
+    InvalidProfileImageError,
+    InvalidProfileUpdateError,
     InvalidRefreshTokenError,
     InsufficientFundsError,
     InvalidTransactionRuleError,
@@ -18,6 +21,9 @@ from exceptions import (
     TransactionNotFoundError,
     EmailAlreadyRegisteredError,
     PermissionDeniedError
+    PermissionDeniedError,
+    ProfileImageStorageError,
+    ProfileImageTooLargeError,
 )
 
 
@@ -182,4 +188,42 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": str(error)},
+    @app.exception_handler(InvalidProfileImageError)
+    async def invalid_profile_image_handler(
+        request: Request,
+        error: InvalidProfileImageError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": str(error)},
+        )
+
+    @app.exception_handler(ProfileImageTooLargeError)
+    async def profile_image_too_large_handler(
+        request: Request,
+        error: ProfileImageTooLargeError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            content={"detail": "Profile image must be 5 MB or smaller"},
+        )
+
+    @app.exception_handler(InvalidProfileUpdateError)
+    async def invalid_profile_update_handler(
+        request: Request,
+        error: InvalidProfileUpdateError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": str(error)},
+        )
+
+    @app.exception_handler(ProfileImageStorageError)
+    async def profile_image_storage_handler(
+        request: Request,
+        error: ProfileImageStorageError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "Profile image storage is unavailable"},
         )
