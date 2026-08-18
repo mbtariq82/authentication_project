@@ -35,6 +35,16 @@ export default function LoansPage() {
     );
   }
 
+  const activeLoans = loans.filter(
+    (loan) => loan.current_loan_status === "ACCEPTED",
+  );
+
+  const pendingLoans = loans.filter(
+    (loan) => loan.current_loan_status === "PENDING",
+  );
+
+  const paidLoans = loans.filter((loan) => loan.current_loan_status === "PAID");
+
   return (
     <div className="loans-page">
       <header className="customer-header">
@@ -54,9 +64,7 @@ export default function LoansPage() {
         <header className="loans-page-header">
           <p className="auth-eyebrow">Customer Loans</p>
           <h1>My Loans</h1>
-          <p className="loans-page-subtitle">
-            View and manage your current loans.
-          </p>
+          <p className="loans-page-subtitle">View and manage your loans.</p>
         </header>
 
         {error && <div className="loans-error">{error}</div>}
@@ -64,7 +72,7 @@ export default function LoansPage() {
         {!error && loans.length === 0 && (
           <div className="loan-empty-card">
             <h2>No current loans</h2>
-            <p>You don't currently have any active or pending loans.</p>
+            <p>You don't currently have any loans.</p>
 
             <Link to="/loans/apply" className="loan-action-button">
               Apply for a loan
@@ -73,11 +81,45 @@ export default function LoansPage() {
         )}
 
         {!error && loans.length > 0 && (
-          <div className="loan-list">
-            {loans.map((loan) => (
-              <LoanCard key={loan.id} loan={loan} />
-            ))}
-          </div>
+          <>
+            {/* Active Loans */}
+            {(activeLoans.length > 0 || pendingLoans.length > 0) && (
+              <section className="loan-section">
+                <header className="loan-section-header">
+                  <h2>Active & Pending Loans</h2>
+                  <p>
+                    Your current loans and applications awaiting a decision.
+                  </p>
+                </header>
+
+                <div className="loan-list">
+                  {activeLoans.map((loan) => (
+                    <LoanCard key={loan.id} loan={loan} />
+                  ))}
+
+                  {pendingLoans.map((loan) => (
+                    <LoanCard key={loan.id} loan={loan} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Paid Loans */}
+            {paidLoans.length > 0 && (
+              <section className="loan-section">
+                <header className="loan-section-header">
+                  <h2>Paid Loans</h2>
+                  <p>Loans that have been fully repaid.</p>
+                </header>
+
+                <div className="loan-list">
+                  {paidLoans.map((loan) => (
+                    <LoanCard key={loan.id} loan={loan} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
     </div>
@@ -124,7 +166,7 @@ function LoanCard({ loan }: LoanCardProps) {
       {loan.current_loan_status === "ACCEPTED" && (
         <div className="loan-card-actions">
           <Link
-            to={`/repay`}
+            to="/repay"
             state={{ loanId: loan.id }}
             className="loan-action-button"
           >
