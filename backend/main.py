@@ -15,7 +15,7 @@ from redis_client import redis_client
 from router import accounts, admin, auth, card, users
 from telemetry import configure_telemetry, instrument_application
 
-from router import accounts, admin, auth, beneficiaries, transactions, users
+from router import beneficiaries, transactions
 
 telemetry_providers = configure_telemetry()
 

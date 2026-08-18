@@ -62,6 +62,9 @@ class BeneficiaryNotFoundError(ApplicationError):
 
 
 class InvalidBeneficiaryUpdateError(ApplicationError):
+    pass
+
+
 class CardNotFoundError(ApplicationError):
     pass
 

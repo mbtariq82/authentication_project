@@ -19,8 +19,6 @@ from exceptions import (
     InvalidTransactionRuleError,
     InvalidTransactionStatusTransitionError,
     TransactionNotFoundError,
-    EmailAlreadyRegisteredError,
-    PermissionDeniedError
     PermissionDeniedError,
     ProfileImageStorageError,
     ProfileImageTooLargeError,
@@ -188,6 +186,8 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": str(error)},
+        )
+
     @app.exception_handler(InvalidProfileImageError)
     async def invalid_profile_image_handler(
         request: Request,
