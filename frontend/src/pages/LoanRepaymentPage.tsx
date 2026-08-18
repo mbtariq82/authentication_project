@@ -1,12 +1,13 @@
 import { useEffect, useState, type SubmitEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 
 import { getUserLoans, repayLoan, type Loan } from "../api/loanClient";
 
 import "../styles/loan-repayment.css";
 
 export default function LoanRepaymentPage() {
-  const { loanId } = useParams();
+  const location = useLocation();
+  const loanId = location.state?.loanId;
   const navigate = useNavigate();
 
   const [loan, setLoan] = useState<Loan | null>(null);
@@ -71,9 +72,12 @@ export default function LoanRepaymentPage() {
       setRepaying(true);
       setError(null);
 
-      await repayLoan(loan.id, repaymentAmount);
+      await repayLoan({
+        loan_id: loan.id,
+        amount: repaymentAmount,
+      });
 
-      navigate("/loans");
+      navigate("/my-loans");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to make repayment.",
@@ -101,7 +105,7 @@ export default function LoanRepaymentPage() {
             {error ?? "Loan not found."}
           </div>
 
-          <Link to="/loans" className="loan-repayment-back">
+          <Link to="/my-loans" className="loan-repayment-back">
             Back to loans
           </Link>
         </div>

@@ -27,7 +27,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/my-loans" element={<LoansPage />} />
-        <Route path="/loans/:loanId/repay" element={<LoanRepaymentPage />} />
+        <Route path="/repay" element={<LoanRepaymentPage />} />
       </Routes>
     </QueryClientProvider>
   );

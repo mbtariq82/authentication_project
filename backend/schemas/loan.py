@@ -1,4 +1,5 @@
 from typing import Literal
+from decimal import Decimal
 from pydantic import BaseModel, field_validator, Field
 
 class LoanApplicationRequest(BaseModel):
@@ -14,7 +15,6 @@ class LoanApplicationRequest(BaseModel):
         if value <= 0 or value % 6 != 0:
             raise ValueError("Duration must be a positive number divisible by 6.")
         return value
-
 
 class LoanApplicationResponse(BaseModel):
     eligible: bool
@@ -35,11 +35,11 @@ class LoanListResponse(BaseModel):
     loans: list[LoanResponse]
 
 class LoanRepaymentRequest(BaseModel):
-    amount: int = Field(gt=0)
+    loan_id: int
+    amount: Decimal = Field(gt=0)
 
 class LoanRepaymentResponse(BaseModel):
     loan_id: int
     repayment_amount: int
     remaining_amount: int
     status: str
-    

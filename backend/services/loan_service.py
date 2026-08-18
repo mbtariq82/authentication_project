@@ -1,9 +1,16 @@
 from domain.loan import LoanApplication, assess_loan
 from domain.card import AuthenticatedUserContext
 from models.loan import LoanRow
-from schemas.loan import (LoanApplicationRequest, LoanApplicationResponse, LoanResponse, LoanListResponse)
+from schemas.loan import (
+    LoanApplicationRequest, 
+    LoanApplicationResponse, 
+    LoanResponse, 
+    LoanListResponse,
+    LoanRepaymentRequest,
+    LoanRepaymentResponse
+    )
 from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
-from exceptions import LoanNotFoundError, InvalidLoanStatusError
+from exceptions import LoanNotFoundError, InvalidLoanStatusError, PermissionDeniedError, InvalidRepaymentAmountError
 
 class LoanService:
 
@@ -100,4 +107,40 @@ class LoanService:
                 )
                 for loan in loans
             ]
+        )
+
+    async def repay_loan(self, request: LoanRepaymentRequest, user_context: AuthenticatedUserContext) -> LoanRepaymentResponse:
+        loan = await self.uow.loans.get_loan_by_id(request.loan_id)
+
+        if not loan:
+            raise LoanNotFoundError()
+
+        if loan.account_id != user_context.account.id:
+            raise PermissionDeniedError()
+
+        if loan.current_loan_status != "ACCEPTED":
+            raise InvalidLoanStatusError()
+
+        account = await self.uow.account.get_by_user(user_context.user.id)
+
+        if not account:
+            raise PermissionDeniedError()
+
+        if request.amount > account.balance:
+            raise InvalidRepaymentAmountError()
+
+        if request.amount > loan.loan_amount:
+            raise InvalidRepaymentAmountError()
+
+        account.balance -= request.amount
+        loan.loan_amount -= request.amount
+
+        if loan.loan_amount == 0:
+            loan.current_loan_status = "PAID"
+
+        return LoanRepaymentResponse(
+            loan_id = loan.id,
+            repayment_amount=request.amount,
+            remaining_amount=loan.loan_amount,
+            status=loan.current_loan_status
         )

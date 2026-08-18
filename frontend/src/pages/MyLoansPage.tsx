@@ -123,7 +123,11 @@ function LoanCard({ loan }: LoanCardProps) {
 
       {loan.current_loan_status === "ACCEPTED" && (
         <div className="loan-card-actions">
-          <Link to={`/loans/${loan.id}/repay`} className="loan-action-button">
+          <Link
+            to={`/repay`}
+            state={{ loanId: loan.id }}
+            className="loan-action-button"
+          >
             Make repayment
           </Link>
         </div>

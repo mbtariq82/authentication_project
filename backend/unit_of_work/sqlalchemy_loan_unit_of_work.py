@@ -1,7 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from repositories.abstract_loan_repository import AbstractLoanRepository
+from repositories.abstract_account_repository import AbstractAccountRepository
 from repositories.sqlalchemy_loan_repository import SQLAlchemyLoanRepository
+from repositories.sqlalchemy_account_repository import SqlAlchemyAccountRepository
 from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
 
 
@@ -10,6 +12,8 @@ class SqlAlchemyLoanUnitOfWork(AbstractLoanUnitOfWork):
     def __init__(self, session: AsyncSession):
         self.session = session
         self.loans: AbstractLoanRepository = SQLAlchemyLoanRepository(session)
+        self.account: AbstractAccountRepository = SqlAlchemyAccountRepository(session)
+
 
     async def __aenter__(self):
         return self

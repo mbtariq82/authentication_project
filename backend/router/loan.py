@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from schemas.loan import (LoanApplicationRequest, LoanApplicationResponse, LoanDecisionRequest, LoanListResponse)
+from schemas.loan import (LoanApplicationRequest, LoanApplicationResponse, LoanDecisionRequest, LoanListResponse, LoanRepaymentRequest, LoanRepaymentResponse)
 from services.loan_service import LoanService
 from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
 from domain.card import AuthenticatedUserContext
@@ -43,3 +43,17 @@ async def get_my_loans(
     loan_service: LoanService = Depends(get_loan_service)
 ):
     return await loan_service.get_user_loans(user_context=user_context)
+
+@router.post(
+    "/repay",
+    response_model=LoanRepaymentResponse,
+)
+async def repay_loan(
+    request: LoanRepaymentRequest,
+    user_context: AuthenticatedUserContext = Depends(get_user_account),
+    loan_service: LoanService = Depends(get_loan_service),
+):
+    return await loan_service.repay_loan(
+        request=request,
+        user_context=user_context,
+    )

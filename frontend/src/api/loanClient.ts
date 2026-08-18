@@ -27,6 +27,7 @@ export type LoanApplicationResponse = {
 };
 
 export type LoanRepaymentRequest = {
+  load_id: number;
   amount: number;
 };
 
@@ -88,21 +89,15 @@ export async function updateLoanStatus(
 }
 
 export async function repayLoan(
-  loanId: number,
-  amount: number,
+  request: LoanRepaymentRequest,
 ): Promise<LoanRepaymentResponse> {
-  const response = await fetchWithAuth(
-    `${API_BASE_URL}/loans/${loanId}/repay`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount,
-      } satisfies LoanRepaymentRequest),
+  const response = await fetchWithAuth(`${API_BASE_URL}/loans/repay`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(request),
+  });
 
   if (!response.ok) {
     const errorData = (await response.json()) as ApiErrorResponse;
