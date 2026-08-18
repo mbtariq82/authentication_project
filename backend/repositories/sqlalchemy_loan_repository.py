@@ -26,7 +26,7 @@ class SQLAlchemyLoanRepository(AbstractLoanRepository):
         result = await self.session.execute(
             select(LoanRow).where(
                 LoanRow.account_id == account_id,
-                LoanRow.current_loan_status.in_(["PENDING", "ACCEPTED"]))
+                LoanRow.current_loan_status.in_(["PENDING", "ACCEPTED", "PAID"]))
         )
         return list(result.scalars().all())
 
