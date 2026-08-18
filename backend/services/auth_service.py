@@ -1,41 +1,93 @@
+import asyncio
+import logging
 from datetime import datetime, timezone
+
 from jose import JWTError
 
 from domain.user import User
-
+from profile_images import normalize_profile_image
 from schemas.auth import (
-    RegisterCommand, LoginCommand, LogoutCommand, TokenResponse, RefreshCommand, 
-    GoogleLoginCommand
+    GoogleLoginCommand,
+    LoginCommand,
+    LogoutCommand,
+    RefreshCommand,
+    RegisterCommand,
+    TokenResponse,
 )
 from security import (
-    create_access_token, create_refresh_token, pwd_context, decode_token, 
-    verify_google_id_token
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    pwd_context,
+    verify_google_id_token,
 )
 from exceptions import (
-    EmailAlreadyRegisteredError, InvalidCredentialsError, InvalidRefreshTokenError,
-    GoogleAccountConflictError, GoogleEmailNotVerifiedError
+    EmailAlreadyRegisteredError,
+    GoogleAccountConflictError,
+    GoogleEmailNotVerifiedError,
+    InvalidCredentialsError,
+    InvalidRefreshTokenError,
 )
+from storage.abstract_profile_image_storage import AbstractProfileImageStorage
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
 
+
+logger = logging.getLogger(__name__)
+
+
 class AuthService:
-    def __init__(self, uow: AbstractAuthUnitOfWork):  
+    def __init__(
+        self,
+        uow: AbstractAuthUnitOfWork,
+        image_storage: AbstractProfileImageStorage,
+    ) -> None:
         self.uow = uow
- 
-    async def register(self, command: RegisterCommand) -> TokenResponse:
-        async with self.uow:
-            existing_user = await self.uow.users.get_by_email(command.email)
-            if existing_user:
-                raise EmailAlreadyRegisteredError()
-            new_user = User(
-                first_name=command.first_name,
-                last_name=command.last_name,
-                email=command.email,
-                hashed_password=pwd_context.hash(command.password),
-            )
-            new_user =await self.uow.users.add(new_user)
-            token_response = await self._issue_tokens(new_user)
-            await self.uow.commit()
-            return token_response
+        self.image_storage = image_storage
+
+    async def register(
+        self,
+        command: RegisterCommand,
+        profile_image: bytes | None = None,
+    ) -> TokenResponse:
+        image_key: str | None = None
+
+        try:
+            async with self.uow:
+                existing_user = await self.uow.users.get_by_email(command.email)
+                if existing_user:
+                    raise EmailAlreadyRegisteredError()
+                new_user = User(
+                    first_name=command.first_name,
+                    last_name=command.last_name,
+                    email=command.email,
+                    hashed_password=await asyncio.to_thread(
+                        pwd_context.hash,
+                        command.password,
+                    ),
+                )
+                new_user = await self.uow.users.add(new_user)
+
+                if profile_image is not None:
+                    if new_user.id is None:
+                        raise RuntimeError("New user has no ID")
+                    normalized_image = await asyncio.to_thread(
+                        normalize_profile_image,
+                        profile_image,
+                    )
+                    image_key = await self.image_storage.save(
+                        new_user.id,
+                        normalized_image,
+                    )
+                    new_user.profile_image_key = image_key
+                    new_user = await self.uow.users.save(new_user)
+
+                token_response = await self._issue_tokens(new_user)
+                await self.uow.commit()
+                return token_response
+        except Exception:
+            if image_key is not None:
+                await self._delete_image_safely(image_key)
+            raise
 
     async def login(self, command: LoginCommand) -> TokenResponse:
         async with self.uow:
@@ -128,3 +180,9 @@ class AuthService:
             refresh_token=refresh_token,
             token_type="bearer",
         )
+
+    async def _delete_image_safely(self, key: str) -> None:
+        try:
+            await self.image_storage.delete(key)
+        except Exception:
+            logger.exception("Unable to delete profile image %s", key)

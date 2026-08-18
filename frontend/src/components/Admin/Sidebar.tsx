@@ -1,4 +1,6 @@
-import type { PanelKey } from "../types/admin";
+import type { ReactElement } from "react";
+
+import type { PanelKey } from "../../types/admin";
 
 interface SidebarProps {
   activePanel: PanelKey;
@@ -6,7 +8,7 @@ interface SidebarProps {
   pendingCounts: Record<PanelKey, number>;
 }
 
-const NAV_ITEMS: { key: PanelKey; label: string; icon: JSX.Element }[] = [
+const NAV_ITEMS: { key: PanelKey; label: string; icon: ReactElement }[] = [
   {
     key: "accounts",
     label: "Accounts",

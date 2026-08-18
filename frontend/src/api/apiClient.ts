@@ -5,6 +5,18 @@ export type ApiErrorResponse = {
   detail?: string;
 };
 
+export async function getApiErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  try {
+    const errorData = (await response.json()) as ApiErrorResponse;
+    return errorData.detail ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function performRequest(
   input: RequestInfo,
   init: RequestInit = {},

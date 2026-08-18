@@ -1,4 +1,8 @@
-import type { AccountStatus, LoanStatus, CardStatus } from "../types/admin";
+import type {
+  AccountStatus,
+  CardStatus,
+  LoanStatus,
+} from "../../types/admin";
 
 interface StatusBadgeProps {
   status: AccountStatus | LoanStatus | CardStatus;

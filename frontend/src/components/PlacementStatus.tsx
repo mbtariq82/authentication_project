@@ -7,6 +7,8 @@ import {
   Tooltip,
 } from "recharts";
 
+import { colors } from "../theme/colors";
+
 interface PlacementStatusItem {
   status: string;
   count: number;
@@ -16,11 +18,9 @@ interface PlacementStatusProps {
   data: PlacementStatusItem[];
 }
 
-const STATUS_COLORS = ["#22c55e", "#3b82f6", "#f59e0b"];
+const STATUS_COLORS = [colors.success, colors.info, colors.warning];
 
-export default function PlacementStatus({
-  data,
-}: PlacementStatusProps) {
+export default function PlacementStatus({ data }: PlacementStatusProps) {
   const total = data.reduce((sum, item) => sum + item.count, 0);
 
   return (

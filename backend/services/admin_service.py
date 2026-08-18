@@ -8,10 +8,11 @@ from enums import UserStatus, AccountStatus
 from models.account import AccountRow
 from repositories.admin_repository import (
     UserRepository,
-    AccountRepository,
+    AccountRepository, CardRepository
 )
 
 import secrets
+from services.card_service import CardService
 
 
 def generate_account_number(user_id: int) -> str:
@@ -32,11 +33,35 @@ def generate_sort_code() -> str:
     )
 
 
-class AdminUserService:
+class AdminCardService:
     def __init__(self, db: AsyncSession):
+        self.repo = CardRepository(db)
+
+    async def list_cards(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_cards(skip, limit)
+
+class AdminAccountService:
+    def __init__(self, db: AsyncSession):
+        self.repo = AccountRepository(db)
+
+    async def list_accounts(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_accounts(skip, limit)
+
+
+class AdminUserService:
+    def __init__(self, db: AsyncSession, card_service: CardService,):
         self.db = db
         self.user_repo = UserRepository(db)
         self.account_repo = AccountRepository(db)
+        self.card_service = card_service
 
     async def get_user(self, user_id: int):
         user = await self.user_repo.get_by_id(user_id)
@@ -110,8 +135,18 @@ class AdminUserService:
                     balance=0,
                     account_status=AccountStatus.APPROVED.value,
                 )
+                account = await self.account_repo.create(account)
+                card_call= await self.card_service.create_card(account_id=account.id,user_id=user.id)
 
-                await self.account_repo.create(account)
+            else:
+                account = existing_account
+
+         
+            print("Creating card for user_id:", user.id, "account_id:", account.id)
+            
+
+            
+
 
         # OTHER STATUS, e.g. PENDING
         else:
@@ -130,3 +165,4 @@ class AdminUserService:
         limit: int = 100,
     ):
         return await self.user_repo.list_users(skip, limit)
+

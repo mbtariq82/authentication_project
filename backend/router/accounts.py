@@ -9,15 +9,6 @@ from services.account_service import AccountService
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
-
-@router.post("", response_model=AccountResponse)
-async def create_account(
-    user: User = Depends(get_current_user),
-    service: AccountService = Depends(get_account_service),
-) -> AccountResponse:
-    return await service.create_account(user.id)
-
-
 @router.get("/me", response_model=AccountResponse)
 async def get_account(
     user: User = Depends(get_current_user),

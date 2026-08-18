@@ -8,7 +8,6 @@ class Role(StrEnum):
 
 class TransactionType(StrEnum):
     TRANSFER = "TRANSFER"
-    PAYMENT = "PAYMENT"
     DEPOSIT = "DEPOSIT"
     WITHDRAWAL = "WITHDRAWAL"
 

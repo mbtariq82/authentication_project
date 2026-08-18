@@ -233,6 +233,7 @@ ENV/
 .env.development
 .env.production
 /k8s/development/.env
+backend/uploads/
 
 # Editor settings
 .vscode/
