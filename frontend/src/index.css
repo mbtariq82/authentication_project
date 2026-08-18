@@ -2,6 +2,22 @@
   font-family: Inter, system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  --color-primary: #2563eb;
+  --color-navy: #0f172a;
+  --color-background: #f8fafc;
+  --color-white: #ffffff;
+  --color-text: #1e293b;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #16a34a;
+  --color-success-background: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-background: #fffbeb;
+  --color-error: #dc2626;
+  --color-error-background: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-background: #eff6ff;
 }
 
 * {
@@ -9,7 +25,7 @@
 }
 
 html {
-  background: #080b12;
+  background: var(--color-background);
 }
 
 body {

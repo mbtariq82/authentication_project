@@ -37,6 +37,34 @@ class AccountAlreadyExistsError(ApplicationError):
     pass
 
 
+class InsufficientFundsError(ApplicationError):
+    pass
+
+
+class InvalidBalanceAmountError(ApplicationError):
+    pass
+
+
+class InvalidTransactionRuleError(ApplicationError):
+    pass
+
+
+class InvalidTransactionStatusTransitionError(ApplicationError):
+    pass
+
+
+class TransactionNotFoundError(ApplicationError):
+    pass
+
+
+class BeneficiaryNotFoundError(ApplicationError):
+    pass
+
+
+class InvalidBeneficiaryUpdateError(ApplicationError):
+    pass
+
+
 class CardNotFoundError(ApplicationError):
     pass
 

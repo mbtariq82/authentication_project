@@ -15,6 +15,8 @@ from redis_client import redis_client
 from router import accounts, admin, auth, card, users, loan
 from telemetry import configure_telemetry, instrument_application
 
+from router import beneficiaries, transactions
+
 telemetry_providers = configure_telemetry()
 
 
@@ -63,6 +65,8 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(accounts.router)
+app.include_router(beneficiaries.router)
+app.include_router(transactions.router)
 app.include_router(card.router)
 app.include_router(loan.router)
 
