@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router";
+import { useState } from "react";
 
 import { logout } from "../api/authClient";
 import { clearTokens } from "../auth/tokenStorage";
@@ -7,9 +8,11 @@ import { routes } from "../routes";
 export default function CustomerNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   async function handleLogout() {
     try {
+      setIsLoggingOut(true);
       await logout();
     } finally {
       clearTokens();
@@ -68,8 +71,9 @@ export default function CustomerNavigation() {
           className="customer-logout"
           type="button"
           onClick={() => void handleLogout()}
+          disabled={isLoggingOut}
         >
-          Sign out
+          {isLoggingOut ? "Signing out..." : "Sign out"}
         </button>
       </nav>
     </header>

@@ -10,7 +10,6 @@ export default function CustomerHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [profileImageFailed, setProfileImageFailed] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadCurrentUser() {
