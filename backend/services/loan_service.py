@@ -1,0 +1,103 @@
+from domain.loan import LoanApplication, assess_loan
+from domain.card import AuthenticatedUserContext
+from models.loan import LoanRow
+from schemas.loan import (LoanApplicationRequest, LoanApplicationResponse, LoanResponse, LoanListResponse)
+from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
+from exceptions import LoanNotFoundError, InvalidLoanStatusError
+
+class LoanService:
+
+    def __init__(self, uow: AbstractLoanUnitOfWork):
+        self.uow = uow
+
+    async def apply_for_loan(
+        self,
+        request: LoanApplicationRequest,
+        user_context: AuthenticatedUserContext,
+    ) -> LoanApplicationResponse:
+
+        account_id = user_context.account.id
+
+        application = LoanApplication(
+            loan_type=request.loan_type,
+            loan_amount=request.loan_amount,
+            monthly_income=request.monthly_income,
+            monthly_expenses=request.monthly_expenses,
+            duration=request.duration,
+        )
+
+        eligible = assess_loan(application)
+
+        if not eligible:
+            return LoanApplicationResponse(
+                eligible=False,
+                status="REJECTED",
+                loan_id=None,
+            )
+
+        loan = LoanRow(
+            account_id=account_id,
+            loan_amount=request.loan_amount,
+            duration=request.duration,
+            current_loan_status="PENDING",
+            loan_type=request.loan_type,
+        )
+
+        created_loan = await self.uow.loans.create(loan)
+
+        return LoanApplicationResponse(
+            eligible=True,
+            status="PENDING",
+            loan_id=created_loan.id,
+        )
+
+    async def update_loan_status(self, loan_id: int, status: str) -> LoanApplicationResponse:
+        loan = await self.uow.loans.get_loan_by_id(loan_id)
+
+        if not loan:
+            raise LoanNotFoundError()
+
+        if loan.current_loan_status != "PENDING":
+            raise InvalidLoanStatusError()
+
+        loan.current_loan_status = status
+
+        return LoanApplicationResponse(
+            eligible=True,
+            status=status,
+            loan_id=loan.id
+        )
+
+    async def get_user_loans(self, user_context: AuthenticatedUserContext) -> LoanListResponse:
+        account_id = user_context.account.id
+
+        loans = await self.uow.loans.get_loans_by_account_id(account_id=account_id)
+
+        return LoanListResponse(
+        loans=[
+            LoanResponse(
+                id=loan.id,
+                loan_type=loan.loan_type,
+                loan_amount=loan.loan_amount,
+                duration=loan.duration,
+                current_loan_status=loan.current_loan_status,
+            )
+            for loan in loans
+        ]
+    )
+
+    async def get_pending_loans(self) -> LoanListResponse:
+        loans = await self.uow.loans.get_pending_loans()
+
+        return LoanListResponse(
+            loans = [
+                LoanResponse(
+                    id = loan.id,
+                    loan_type = loan.loan_type,
+                    loan_amount = loan.loan_amount,
+                    duration = loan.duration,
+                    current_loan_status = loan.current_loan_status
+                )
+                for loan in loans
+            ]
+        )

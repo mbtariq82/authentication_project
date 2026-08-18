@@ -1,0 +1,45 @@
+from typing import Literal
+from pydantic import BaseModel, field_validator, Field
+
+class LoanApplicationRequest(BaseModel):
+    loan_type: str = "PERSONAL"
+    loan_amount: int
+    monthly_income: int
+    monthly_expenses: int
+    duration: int
+
+    @field_validator("duration")
+    @classmethod
+    def validate_duration(cls, value: int) -> int:
+        if value <= 0 or value % 6 != 0:
+            raise ValueError("Duration must be a positive number divisible by 6.")
+        return value
+
+
+class LoanApplicationResponse(BaseModel):
+    eligible: bool
+    status: str
+    loan_id: int | None = None
+
+class LoanDecisionRequest(BaseModel):
+    status: Literal["ACCEPTED", "REJECTED"]
+
+class LoanResponse(BaseModel):
+    id: int
+    loan_type: str
+    loan_amount: int
+    duration: int
+    current_loan_status: str
+
+class LoanListResponse(BaseModel):
+    loans: list[LoanResponse]
+
+class LoanRepaymentRequest(BaseModel):
+    amount: int = Field(gt=0)
+
+class LoanRepaymentResponse(BaseModel):
+    loan_id: int
+    repayment_amount: int
+    remaining_amount: int
+    status: str
+    

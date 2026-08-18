@@ -6,6 +6,8 @@ import DashboardPage from "./pages/DashboardPage";
 import RegisterPage from "./pages/RegisterPage";
 import ConsultantsPage from "./pages/Consultants";
 import AddConsultantPage from "./pages/AddConsultantPage";
+import LoansPage from "./pages/MyLoansPage";
+import LoanRepaymentPage from "./pages/LoanRepaymentPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import "./App.css";
 
@@ -24,6 +26,8 @@ function App() {
         <Route path="/admin/consultants/new" element={<AddConsultantPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/my-loans" element={<LoansPage />} />
+        <Route path="/loans/:loanId/repay" element={<LoanRepaymentPage />} />
       </Routes>
     </QueryClientProvider>
   );
