@@ -12,8 +12,6 @@
   padding: clamp(2.5rem, 6vw, 5rem) 0;
 }
 
-/* ---------- Layout ---------- */
-
 .card-content-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
@@ -41,8 +39,6 @@
   display: flex;
   flex-direction: column;
 }
-
-/* ---------- Header ---------- */
 
 .card-page-header {
   margin-bottom: 28px;
@@ -79,8 +75,6 @@
   background: rgb(14 165 233 / 12%);
 }
 
-/* ---------- Card ---------- */
-
 .card-visual {
   position: relative;
   width: 100%;
@@ -107,7 +101,6 @@
 
 .card-visual-frozen {
   filter: grayscale(0.35);
-  opacity: 0.8;
   box-shadow:
     0 0 0 1px var(--steel),
     var(--shadow);
@@ -196,8 +189,6 @@
   font-size: 12px;
 }
 
-/* ---------- Details panel ---------- */
-
 .card-panel {
   margin-bottom: 16px;
   overflow: hidden;
@@ -220,8 +211,6 @@
   font-size: 14.5px;
   font-weight: 600;
 }
-
-/* ---------- Status ---------- */
 
 .card-status {
   display: inline-flex;
@@ -270,8 +259,6 @@
   background: var(--red);
 }
 
-/* ---------- Details ---------- */
-
 .card-details {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -308,8 +295,6 @@
   font-family: "IBM Plex Mono", monospace;
   font-size: 14px;
 }
-
-/* ---------- Actions ---------- */
 
 .card-actions {
   display: flex;
@@ -395,8 +380,6 @@
   cursor: not-allowed;
 }
 
-/* ---------- Modals ---------- */
-
 .card-modal-overlay {
   position: fixed;
   inset: 0;
@@ -451,8 +434,6 @@
   margin-top: 18px;
 }
 
-/* ---------- Loading / Error ---------- */
-
 .card-loading,
 .card-error {
   padding: 40px 20px;
@@ -464,8 +445,6 @@
 .card-error {
   color: var(--red);
 }
-
-/* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
   .card-page {
@@ -532,4 +511,116 @@
   .card-btn.primary {
     width: 100%;
   }
+}
+
+/* ---------- Card Flip ---------- */
+
+.card-visual-container {
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 1.586 / 1;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.card-visual-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+
+.card-visual-container-flipped .card-visual-inner {
+  transform: rotateY(180deg);
+}
+
+.card-visual-front,
+.card-visual-back {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ---------- Back ---------- */
+
+.card-visual-back {
+  transform: rotateY(180deg);
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 28px;
+
+  border-radius: 14px;
+  overflow: hidden;
+
+  background: linear-gradient(135deg, var(--navy-950), var(--navy-900));
+
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.card-back-stripe {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+
+  height: 48px;
+
+  background: #111827;
+}
+
+.card-back-cvv {
+  position: absolute;
+  top: 125px;
+  left: 28px;
+  right: 28px;
+
+  text-align: right;
+}
+
+.card-back-cvv span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--slate-300);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card-back-cvv div {
+  padding: 8px 10px;
+
+  background: white;
+  color: #102a43;
+
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+
+  border-radius: 3px;
+}
+
+.card-back-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 28px;
+  right: 28px;
+
+  display: flex;
+  justify-content: space-between;
+
+  color: var(--slate-300);
+
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

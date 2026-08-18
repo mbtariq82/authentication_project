@@ -5,7 +5,7 @@ type CardDetailsProps = {
   cardStatus: "ACTIVE" | "FROZEN";
 };
 
-function formatCardNumber(cardNumber: string): string {
+export function formatCardNumber(cardNumber: string): string {
   return cardNumber.match(/.{1,4}/g)?.join(" ") ?? cardNumber;
 }
 
