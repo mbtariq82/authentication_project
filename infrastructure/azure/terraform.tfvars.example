@@ -1,0 +1,4 @@
+location = "uksouth"
+environment = "dev"
+admin_ip = "YOUR_PUBLIC_IP/32"
+db_password = "YourStrongPassword123!"
