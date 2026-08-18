@@ -3,13 +3,13 @@ import { useNavigate } from "react-router";
 
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
+import { Link } from "react-router";
 import CustomerNavigation from "../components/CustomerNavigation";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [profileImageFailed, setProfileImageFailed] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadCurrentUser() {
@@ -84,7 +84,12 @@ export default function CustomerHomePage() {
                 account services are connected.
               </p>
             </div>
-            <span className="customer-status">Secure access active</span>
+            <div className="customer-actions">
+              <span className="customer-status">Secure access active</span>
+              <Link to="/card" className="customer-card-button">
+                View card
+              </Link>
+            </div>
           </article>
 
           <article className="customer-details-card">

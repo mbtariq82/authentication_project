@@ -15,6 +15,7 @@ import LoanRepaymentPage from "./pages/LoanRepaymentPage";
 import LoanApplicationPage from "./pages/LoanApplicationPage";
 import EMICalculatorPage from "./pages/EMICalculatorPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
+import CardPage from "./pages/CardPage";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function App() {
         <Route path="/admin/consultants/new" element={<AddConsultantPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/card" element={<CardPage />} />
         <Route path="/my-loans" element={<LoansPage />} />
         <Route path="/repay" element={<LoanRepaymentPage />} />
         <Route path="/loans/apply" element={<LoanApplicationPage />} />
