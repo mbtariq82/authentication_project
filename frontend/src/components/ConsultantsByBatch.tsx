@@ -7,6 +7,8 @@ import {
   Tooltip,
 } from "recharts";
 
+import { colors } from "../theme/colors";
+
 interface BatchCount {
   batch: string;
   count: number;
@@ -16,11 +18,14 @@ interface ConsultantsByBatchProps {
   data: BatchCount[];
 }
 
-const CHART_COLORS = ["#2563eb", "#7c3aed", "#14b8a6", "#f59e0b"];
+const CHART_COLORS = [
+  colors.primary,
+  colors.chartPurple,
+  colors.chartTeal,
+  colors.warning,
+];
 
-export default function ConsultantsByBatch({
-  data,
-}: ConsultantsByBatchProps) {
+export default function ConsultantsByBatch({ data }: ConsultantsByBatchProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>

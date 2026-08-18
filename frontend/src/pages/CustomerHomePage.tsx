@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
@@ -25,18 +25,6 @@ export default function CustomerHomePage() {
     void loadCurrentUser();
   }, [navigate]);
 
-  async function handleLogout() {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Backend logout failed", error);
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
-
   if (!user) {
     return (
       <main className="customer-home customer-home-loading">
@@ -57,23 +45,7 @@ export default function CustomerHomePage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <button
-          className="customer-logout"
-          type="button"
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-        >
-          {isLoggingOut ? "Signing out…" : "Sign out"}
-        </button>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content">
         <div className="customer-profile-intro">
@@ -108,8 +80,8 @@ export default function CustomerHomePage() {
               <p className="customer-card-label">Everyday account</p>
               <h2>Account setup ready</h2>
               <p>
-                Your banking products and balances will appear here as the
-                demo account services are connected.
+                Your banking products and balances will appear here as the demo
+                account services are connected.
               </p>
             </div>
             <span className="customer-status">Secure access active</span>
