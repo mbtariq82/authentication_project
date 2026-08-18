@@ -11,6 +11,7 @@ import TransactionsPage from "./pages/TransactionsPage";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import { routes } from "./routes";
 import AdminDashboard from "./components/Admin/AdminDashboard";
+import CardPage from "./pages/CardPage";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ function App() {
         <Route path="/admin/consultants/new" element={<AddConsultantPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/card" element={<CardPage />} />
       </Routes>
     </QueryClientProvider>
   );
