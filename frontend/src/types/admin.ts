@@ -1,9 +1,3 @@
-export type AccountStatus =
-  | "pending"
-  | "approved"
-  | "reject"
-  | "frozen"
-  | "closed";
 export type LoanStatus =
   | "pending"
   | "approved"
@@ -12,14 +6,23 @@ export type LoanStatus =
   | "closed";
 export type CardStatus = "active" | "frozen" | "expired" | "cancel";
 
+export type AccountStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "frozen"
+  | "closed";
+
 export interface AdminAccount {
   id: number;
-  customerName: string;
-  customerEmail: string;
-  accountNumber: string | null;
-  accountType: "savings" | "current";
-  status: AccountStatus;
-  openedAt: string;
+  account_number: string | null;
+  account_type: string;
+  account_status: AccountStatus;
+  created_at: string;
+
+  first_name?: string;
+  last_name?: string;
+  email?: string;
 }
 
 export interface AdminLoan {
