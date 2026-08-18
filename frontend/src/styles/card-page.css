@@ -513,8 +513,6 @@
   }
 }
 
-/* ---------- Card Flip ---------- */
-
 .card-visual-container {
   width: 100%;
   max-width: 460px;
@@ -546,8 +544,6 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-
-/* ---------- Back ---------- */
 
 .card-visual-back {
   transform: rotateY(180deg);
