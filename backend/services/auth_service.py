@@ -64,6 +64,12 @@ class AuthService:
                         pwd_context.hash,
                         command.password,
                     ),
+                    phone=command.phone,
+                    address=command.address,
+                    dob=command.dob,
+                    postcode=command.postcode,
+                    country=command.country,
+                    city=command.city,
                 )
                 new_user = await self.uow.users.add(new_user)
 

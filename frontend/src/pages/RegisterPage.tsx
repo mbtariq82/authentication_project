@@ -31,6 +31,12 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [dob, setDob] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -66,6 +72,12 @@ export default function RegisterPage() {
         password,
         first_name: firstName,
         last_name: lastName,
+        phone,
+        address,
+        dob,
+        postcode,
+        country,
+        city,
         profile_image: profileImage,
       });
       saveTokens(tokens);
@@ -124,6 +136,38 @@ export default function RegisterPage() {
             autoCapitalize="none"
             required
           />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="phone">Phone</label>
+          <input id="phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="address">Address</label>
+          <input id="address" type="text" value={address} onChange={(event) => setAddress(event.target.value)} autoComplete="street-address" />
+        </div>
+
+        <div className="auth-name-row">
+          <div className="auth-field">
+            <label htmlFor="city">City</label>
+            <input id="city" type="text" value={city} onChange={(event) => setCity(event.target.value)} autoComplete="address-level2" />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="postcode">Postcode</label>
+            <input id="postcode" type="text" value={postcode} onChange={(event) => setPostcode(event.target.value)} autoComplete="postal-code" />
+          </div>
+        </div>
+
+        <div className="auth-name-row">
+          <div className="auth-field">
+            <label htmlFor="country">Country</label>
+            <input id="country" type="text" value={country} onChange={(event) => setCountry(event.target.value)} autoComplete="country-name" />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="dob">Date of birth</label>
+            <input id="dob" type="date" value={dob} onChange={(event) => setDob(event.target.value)} autoComplete="bday" />
+          </div>
         </div>
 
         <div className="auth-field">

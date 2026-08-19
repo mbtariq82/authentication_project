@@ -21,6 +21,12 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             hashed_password=row.hashed_password,
             google_subject=row.google_subject,
             profile_image_key=row.profile_image_key,
+            phone=row.mobile,
+            address=row.address_line,
+            dob=row.dob,
+            postcode=row.postcode,
+            country=row.country,
+            city=row.city,
         )
     
     @staticmethod
@@ -32,6 +38,12 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         row.hashed_password = user.hashed_password
         row.google_subject = user.google_subject
         row.profile_image_key = user.profile_image_key
+        row.mobile = user.phone
+        row.address_line = user.address
+        row.dob = user.dob
+        row.postcode = user.postcode
+        row.country = user.country
+        row.city = user.city
 
     async def add(self, user: User) -> User:
         row = UserRow(
@@ -42,6 +54,12 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             hashed_password=user.hashed_password,
             google_subject=user.google_subject,
             profile_image_key=user.profile_image_key,
+            mobile=user.phone,
+            address_line=user.address,
+            dob=user.dob,
+            postcode=user.postcode,
+            country=user.country,
+            city=user.city,
         )
         self.session.add(row)
         await self.session.flush() # we need User.id
