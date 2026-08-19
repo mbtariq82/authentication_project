@@ -91,20 +91,64 @@ class AccountRepository:
 
         return account
     
+    # async def list_accounts(
+    #     self,
+    #     skip: int = 0,
+    #     limit: int = 100,
+    # ) -> list[AccountRow]:
+
+    #     result = await self.db.execute(
+    #         select(AccountRow)
+    #         .where(AccountRow.is_deleted == False)
+    #         .offset(skip)
+    #         .limit(limit)
+    #     )
+
+    #     return list(result.scalars().all())
     async def list_accounts(
         self,
         skip: int = 0,
         limit: int = 100,
-    ) -> list[AccountRow]:
-
-        result = await self.db.execute(
-            select(AccountRow)
+    ):
+        stmt = (
+            select(AccountRow, UserRow)
+            .join(
+                UserRow,
+                AccountRow.user_id == UserRow.id,
+            )
             .where(AccountRow.is_deleted == False)
             .offset(skip)
             .limit(limit)
         )
 
-        return list(result.scalars().all())
+        result = await self.db.execute(stmt)
+
+        rows = result.all()
+        return [
+            {
+                "id": account.id,
+                "user_id": account.user_id,
+                "sort_code": account.sort_code,
+                "branch": account.branch,
+                "account_type": account.account_type,
+                "account_number": account.account_number,
+                "balance": account.balance,
+                "account_status": account.account_status,
+                "is_deleted": account.is_deleted,
+                "close_reason": account.close_reason,
+                "closed_at": account.closed_at,
+                "created_at": account.created_at,
+                "updated_at": account.updated_at,
+
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            }
+            for account, user in rows
+        ]
+
+
+
 
 
 class CardRepository:
@@ -115,12 +159,39 @@ class CardRepository:
         self,
         skip: int = 0,
         limit: int = 100,
-    ) -> list[CardRow]:
-
-        result = await self.db.execute(
-            select(CardRow)
+    ):
+        stmt = (
+            select(CardRow, AccountRow, UserRow)
+            .join(
+                AccountRow,
+                CardRow.account_id == AccountRow.id,
+            )
+            .join(
+                UserRow,
+                AccountRow.user_id == UserRow.id,
+            )
             .offset(skip)
             .limit(limit)
         )
 
-        return list(result.scalars().all())
+        result = await self.db.execute(stmt)
+
+        rows = result.all()
+
+        return [
+            {
+                "id": card.id,
+                "account_id": card.account_id,
+                "card_number": card.card_number,
+                "cvc": card.cvc,
+                "expiry_date": card.expiry_date,
+                "status": card.status,
+                "created_at": card.created_at,
+
+                "user_id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            }
+            for card, account, user in rows
+        ]
