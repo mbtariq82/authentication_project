@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AccountResponse(BaseModel):
@@ -43,3 +43,7 @@ class AdminAccountResponse(BaseModel):
     email: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CloseAccountRequest(BaseModel):
+    close_reason: str = Field(min_length=1, max_length=255)
