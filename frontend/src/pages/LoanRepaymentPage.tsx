@@ -149,7 +149,7 @@ export default function LoanRepaymentPage() {
             </div>
 
             <div>
-              <span className="loan-repayment-label">Remaining balance</span>
+              <span className="loan-repayment-label">Remaining Amount</span>
 
               <span className="loan-repayment-value">{formattedAmount}</span>
             </div>
