@@ -113,13 +113,21 @@ export default function LoanApplicationPage() {
             <div className="loan-application-field">
               <label htmlFor="loan-type">Loan type</label>
 
-              <input
+              <select
                 id="loan-type"
                 value={loanType}
                 onChange={(event) => setLoanType(event.target.value)}
                 disabled={submitting}
                 required
-              />
+              >
+                <option value="" disabled>
+                  Select a loan type
+                </option>
+                <option value="House">House</option>
+                <option value="Automobile">Automobile</option>
+                <option value="Education">Education</option>
+                <option value="Emergency Expense">Emergency Expense</option>
+              </select>
             </div>
 
             <div className="loan-application-field">

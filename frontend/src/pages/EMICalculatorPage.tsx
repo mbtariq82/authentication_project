@@ -3,20 +3,28 @@ import { Link } from "react-router";
 
 import "../styles/emi-calculator.css";
 
+const LOAN_INTEREST_RATES: Record<string, number> = {
+  House: 5,
+  Automobile: 6,
+  Education: 4,
+  "Emergency Expense": 8,
+};
+
 export default function EMICalculatorPage() {
+  const [loanType, setLoanType] = useState("");
   const [loanAmount, setLoanAmount] = useState("");
-  const [interestRate, setInterestRate] = useState("");
   const [duration, setDuration] = useState("");
 
   const calculation = useMemo(() => {
     const principal = Number(loanAmount);
-    const annualRate = Number(interestRate);
     const months = Number(duration);
+    const annualRate = LOAN_INTEREST_RATES[loanType];
 
     if (
+      !loanType ||
       !principal ||
       principal <= 0 ||
-      annualRate < 0 ||
+      annualRate === undefined ||
       !months ||
       months <= 0
     ) {
@@ -25,15 +33,11 @@ export default function EMICalculatorPage() {
 
     const monthlyRate = annualRate / 100 / 12;
 
-    let emi: number;
-
-    if (monthlyRate === 0) {
-      emi = principal / months;
-    } else {
-      emi =
-        (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
-        (Math.pow(1 + monthlyRate, months) - 1);
-    }
+    const emi =
+      monthlyRate === 0
+        ? principal / months
+        : (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+          (Math.pow(1 + monthlyRate, months) - 1);
 
     const totalRepayment = emi * months;
     const totalInterest = totalRepayment - principal;
@@ -42,8 +46,9 @@ export default function EMICalculatorPage() {
       emi,
       totalRepayment,
       totalInterest,
+      annualRate,
     };
-  }, [loanAmount, interestRate, duration]);
+  }, [loanType, loanAmount, duration]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("en-GB", {
@@ -87,6 +92,24 @@ export default function EMICalculatorPage() {
 
             <div className="emi-calculator-form">
               <div className="emi-field">
+                <label htmlFor="loan-type">Loan type</label>
+
+                <select
+                  id="loan-type"
+                  value={loanType}
+                  onChange={(event) => setLoanType(event.target.value)}
+                >
+                  <option value="" disabled>
+                    Select a loan type
+                  </option>
+                  <option value="House">House</option>
+                  <option value="Automobile">Automobile</option>
+                  <option value="Education">Education</option>
+                  <option value="Emergency Expense">Emergency Expense</option>
+                </select>
+              </div>
+
+              <div className="emi-field">
                 <label htmlFor="loan-amount">Loan amount</label>
 
                 <div className="emi-input-wrapper">
@@ -110,25 +133,23 @@ export default function EMICalculatorPage() {
                 <div className="emi-input-wrapper">
                   <input
                     id="interest-rate"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={interestRate}
-                    onChange={(event) => setInterestRate(event.target.value)}
-                    placeholder="5"
+                    type="text"
+                    value={loanType ? `${LOAN_INTEREST_RATES[loanType]}%` : ""}
+                    placeholder="Select a loan type"
+                    readOnly
                   />
-
-                  <span>%</span>
                 </div>
               </div>
 
               <div className="emi-field">
                 <label htmlFor="duration">Loan duration (Months)</label>
+
                 <input
                   id="duration"
                   value={duration}
                   onChange={(event) => setDuration(event.target.value)}
                 />
+
                 <p className="loan-application-help">
                   Loan duration must be in multiples of 6 months.
                 </p>
@@ -152,6 +173,13 @@ export default function EMICalculatorPage() {
               </div>
 
               <div className="emi-result-row">
+                <span>Interest rate</span>
+                <strong>
+                  {calculation ? `${calculation.annualRate}%` : "0%"}
+                </strong>
+              </div>
+
+              <div className="emi-result-row">
                 <span>Total interest</span>
                 <strong>
                   {calculation
@@ -171,7 +199,7 @@ export default function EMICalculatorPage() {
 
               <div className="emi-result-row">
                 <span>Duration</span>
-                <strong>{duration} months</strong>
+                <strong>{duration || "0"} months</strong>
               </div>
             </div>
 

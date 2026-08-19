@@ -1,16 +1,28 @@
-from domain.loan import LoanApplication, assess_loan
+from domain.loan import (
+    LoanApplication,
+    assess_loan,
+    get_interest_rate,
+    calculate_emi,
+)
 from domain.card import AuthenticatedUserContext
 from models.loan import LoanRow
 from schemas.loan import (
-    LoanApplicationRequest, 
-    LoanApplicationResponse, 
-    LoanResponse, 
+    LoanApplicationRequest,
+    LoanApplicationResponse,
+    LoanResponse,
     LoanListResponse,
     LoanRepaymentRequest,
-    LoanRepaymentResponse
-    )
+    LoanRepaymentResponse,
+)
 from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
-from exceptions import LoanNotFoundError, InvalidLoanStatusError, PermissionDeniedError, InvalidRepaymentAmountError
+from exceptions import (
+    LoanNotFoundError,
+    InvalidLoanStatusError,
+    PermissionDeniedError,
+    InvalidRepaymentAmountError,
+    InsufficientFundsError,
+)
+
 
 class LoanService:
 
@@ -25,11 +37,14 @@ class LoanService:
 
         account_id = user_context.account.id
 
+        interest = get_interest_rate(request.loan_type)
+
         application = LoanApplication(
             loan_type=request.loan_type,
             loan_amount=request.loan_amount,
             monthly_income=request.monthly_income,
             monthly_expenses=request.monthly_expenses,
+            interest=interest,
             duration=request.duration,
         )
 
@@ -42,12 +57,20 @@ class LoanService:
                 loan_id=None,
             )
 
+        emi = calculate_emi(
+            loan_amount=request.loan_amount,
+            interest=interest,
+            duration=request.duration,
+        )
+
         loan = LoanRow(
             account_id=account_id,
             loan_amount=request.loan_amount,
             duration=request.duration,
             current_loan_status="PENDING",
             loan_type=request.loan_type,
+            interest=interest,
+            emi=emi,
         )
 
         created_loan = await self.uow.loans.create(loan)
@@ -58,7 +81,12 @@ class LoanService:
             loan_id=created_loan.id,
         )
 
-    async def update_loan_status(self, loan_id: int, status: str) -> LoanApplicationResponse:
+    async def update_loan_status(
+        self,
+        loan_id: int,
+        status: str,
+    ) -> LoanApplicationResponse:
+
         loan = await self.uow.loans.get_loan_by_id(loan_id)
 
         if not loan:
@@ -72,44 +100,60 @@ class LoanService:
         return LoanApplicationResponse(
             eligible=True,
             status=status,
-            loan_id=loan.id
+            loan_id=loan.id,
         )
 
-    async def get_user_loans(self, user_context: AuthenticatedUserContext) -> LoanListResponse:
+    async def get_user_loans(
+        self,
+        user_context: AuthenticatedUserContext,
+    ) -> LoanListResponse:
+
         account_id = user_context.account.id
 
-        loans = await self.uow.loans.get_loans_by_account_id(account_id=account_id)
+        loans = await self.uow.loans.get_loans_by_account_id(
+            account_id=account_id
+        )
 
         return LoanListResponse(
-        loans=[
-            LoanResponse(
-                id=loan.id,
-                loan_type=loan.loan_type,
-                loan_amount=loan.loan_amount,
-                duration=loan.duration,
-                current_loan_status=loan.current_loan_status,
-            )
-            for loan in loans
-        ]
-    )
-
-    async def get_pending_loans(self) -> LoanListResponse:
-        loans = await self.uow.loans.get_pending_loans()
-
-        return LoanListResponse(
-            loans = [
+            loans=[
                 LoanResponse(
-                    id = loan.id,
-                    loan_type = loan.loan_type,
-                    loan_amount = loan.loan_amount,
-                    duration = loan.duration,
-                    current_loan_status = loan.current_loan_status
-                )
+                            id=loan.id,
+                            loan_type=loan.loan_type,
+                            loan_amount=loan.loan_amount,
+                            duration=loan.duration,
+                            interest=loan.interest,
+                            emi=loan.emi,
+                            current_loan_status=loan.current_loan_status,
+                        )
                 for loan in loans
             ]
         )
 
-    async def repay_loan(self, request: LoanRepaymentRequest, user_context: AuthenticatedUserContext) -> LoanRepaymentResponse:
+    async def get_pending_loans(self) -> LoanListResponse:
+
+        loans = await self.uow.loans.get_pending_loans()
+
+        return LoanListResponse(
+            loans=[
+                LoanResponse(
+                            id=loan.id,
+                            loan_type=loan.loan_type,
+                            loan_amount=loan.loan_amount,
+                            duration=loan.duration,
+                            interest=loan.interest,
+                            emi=loan.emi,
+                            current_loan_status=loan.current_loan_status,
+                        )
+                for loan in loans
+            ]
+        )
+
+    async def repay_loan(
+        self,
+        request: LoanRepaymentRequest,
+        user_context: AuthenticatedUserContext,
+    ) -> LoanRepaymentResponse:
+
         loan = await self.uow.loans.get_loan_by_id(request.loan_id)
 
         if not loan:
@@ -121,26 +165,25 @@ class LoanService:
         if loan.current_loan_status != "ACCEPTED":
             raise InvalidLoanStatusError()
 
-        account = await self.uow.account.get_by_user(user_context.user.id)
-
-        if not account:
-            raise PermissionDeniedError()
-
-        if request.amount > account.balance:
-            raise InvalidRepaymentAmountError()
-
         if request.amount > loan.loan_amount:
             raise InvalidRepaymentAmountError()
 
-        account.balance -= request.amount
+        try:
+            await self.uow.account.debit(
+                account_id=user_context.account.id,
+                amount=request.amount,
+            )
+        except InsufficientFundsError:
+            raise InvalidRepaymentAmountError()
+
         loan.loan_amount -= request.amount
 
         if loan.loan_amount == 0:
             loan.current_loan_status = "PAID"
 
         return LoanRepaymentResponse(
-            loan_id = loan.id,
+            loan_id=loan.id,
             repayment_amount=request.amount,
             remaining_amount=loan.loan_amount,
-            status=loan.current_loan_status
+            status=loan.current_loan_status,
         )

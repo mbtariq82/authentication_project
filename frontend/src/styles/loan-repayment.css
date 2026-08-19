@@ -12,6 +12,8 @@
   padding: clamp(2.5rem, 6vw, 5rem) 0;
 }
 
+/* ---------- Header ---------- */
+
 .loan-repayment-header {
   margin-bottom: 28px;
 }
@@ -29,6 +31,8 @@
   font-size: 1.05rem;
 }
 
+/* ---------- Repayment card ---------- */
+
 .loan-repayment-card {
   overflow: hidden;
   background: var(--card);
@@ -36,6 +40,8 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+
+/* ---------- Loan summary ---------- */
 
 .loan-repayment-summary {
   display: grid;
@@ -67,6 +73,8 @@
   font-size: 14px;
 }
 
+/* ---------- Repayment form ---------- */
+
 .loan-repayment-form {
   padding: 24px;
 }
@@ -86,10 +94,10 @@
 .loan-repayment-input-wrapper {
   display: flex;
   align-items: center;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
-  overflow: hidden;
 }
 
 .loan-repayment-input-wrapper span {
@@ -142,6 +150,8 @@
   cursor: not-allowed;
 }
 
+/* ---------- Loading / error ---------- */
+
 .loan-repayment-loading,
 .loan-repayment-error {
   padding: 40px 20px;
@@ -162,6 +172,77 @@
   text-decoration: none;
 }
 
+/* ---------- Confirmation modal ---------- */
+
+.loan-repayment-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  background: rgb(0 0 0 / 60%);
+}
+
+.loan-repayment-modal {
+  width: min(100%, 500px);
+  padding: 32px;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  background: var(--card);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 25%);
+}
+
+.loan-repayment-modal h2 {
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.loan-repayment-modal p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.loan-repayment-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.loan-repayment-modal-cancel,
+.loan-repayment-modal-confirm {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.loan-repayment-modal-cancel {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.loan-repayment-modal-confirm {
+  background: var(--navy-900);
+  color: #ffffff;
+}
+
+.loan-repayment-modal-cancel:disabled,
+.loan-repayment-modal-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+
 @media (max-width: 600px) {
   .loan-repayment-container {
     width: min(100% - 2rem, 42rem);
@@ -174,5 +255,18 @@
   .loan-repayment-summary > div:not(:last-child) {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .loan-repayment-modal {
+    padding: 24px;
+  }
+
+  .loan-repayment-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .loan-repayment-modal-cancel,
+  .loan-repayment-modal-confirm {
+    width: 100%;
   }
 }

@@ -1,14 +1,13 @@
-
 from abc import ABC, abstractmethod
 
-from repositories.sqlalchemy_loan_repository import SQLAlchemyLoanRepository
-from repositories.sqlalchemy_account_repository import SqlAlchemyAccountRepository
+from repositories.abstract_loan_repository import AbstractLoanRepository
+from repositories.abstract_account_repository import AbstractAccountRepository
 
 
 class AbstractLoanUnitOfWork(ABC):
 
-    loans: SQLAlchemyLoanRepository
-    account: SqlAlchemyAccountRepository
+    loans: AbstractLoanRepository
+    account: AbstractAccountRepository
 
     @abstractmethod
     async def __aenter__(self):

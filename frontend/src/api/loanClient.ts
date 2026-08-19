@@ -10,6 +10,8 @@ export type Loan = {
   loan_amount: number;
   duration: number;
   current_loan_status: LoanStatus;
+  interest: number;
+  emi: number;
 };
 
 export type LoanListResponse = {

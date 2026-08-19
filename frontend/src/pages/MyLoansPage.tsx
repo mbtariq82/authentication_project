@@ -166,6 +166,21 @@ function LoanCard({ loan }: LoanCardProps) {
         </div>
 
         <div className="loan-detail">
+          <span className="loan-detail-label">Interest</span>
+          <span className="loan-detail-value">{loan.interest}%</span>
+        </div>
+
+        <div className="loan-detail">
+          <span className="loan-detail-label">Monthly EMI</span>
+          <span className="loan-detail-value">
+            {new Intl.NumberFormat("en-GB", {
+              style: "currency",
+              currency: "GBP",
+            }).format(Number(loan.emi))}
+          </span>
+        </div>
+
+        <div className="loan-detail">
           <span className="loan-detail-label">Duration</span>
           <span className="loan-detail-value">{loan.duration} months</span>
         </div>

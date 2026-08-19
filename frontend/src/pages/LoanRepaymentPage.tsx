@@ -16,6 +16,7 @@ export default function LoanRepaymentPage() {
   const [loading, setLoading] = useState(true);
   const [repaying, setRepaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
     const loadLoan = async () => {
@@ -47,7 +48,33 @@ export default function LoanRepaymentPage() {
     loadLoan();
   }, [loanId]);
 
-  async function handleRepayment(event: SubmitEvent<HTMLFormElement>) {
+  async function submitRepayment() {
+    if (!loan) {
+      return;
+    }
+
+    const repaymentAmount = Number(amount);
+
+    try {
+      setRepaying(true);
+      setError(null);
+
+      await repayLoan({
+        loan_id: loan.id,
+        amount: repaymentAmount,
+      });
+
+      navigate("/my-loans");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to make repayment.",
+      );
+    } finally {
+      setRepaying(false);
+    }
+  }
+
+  function handleRepayment(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!loan) {
@@ -68,23 +95,19 @@ export default function LoanRepaymentPage() {
       return;
     }
 
-    try {
-      setRepaying(true);
-      setError(null);
-
-      await repayLoan({
-        loan_id: loan.id,
-        amount: repaymentAmount,
-      });
-
-      navigate("/my-loans");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to make repayment.",
-      );
-    } finally {
-      setRepaying(false);
+    // Show a warning if the repayment is below the EMI.
+    if (repaymentAmount < loan.emi) {
+      setShowWarning(true);
+      return;
     }
+
+    // EMI or greater — proceed normally.
+    submitRepayment();
+  }
+
+  async function acknowledgeAndRepay() {
+    setShowWarning(false);
+    await submitRepayment();
   }
 
   if (loading) {
@@ -113,10 +136,13 @@ export default function LoanRepaymentPage() {
     );
   }
 
-  const formattedAmount = new Intl.NumberFormat("en-GB", {
+  const currencyFormatter = new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
-  }).format(loan.loan_amount);
+  });
+
+  const formattedAmount = currencyFormatter.format(loan.loan_amount);
+  const formattedEmi = currencyFormatter.format(loan.emi);
 
   return (
     <div className="loan-repayment-page">
@@ -128,7 +154,7 @@ export default function LoanRepaymentPage() {
           <span>Demo Bank</span>
         </div>
 
-        <Link to="/loans" className="customer-back">
+        <Link to="/my-loans" className="customer-back">
           Back to loans
         </Link>
       </header>
@@ -144,19 +170,26 @@ export default function LoanRepaymentPage() {
           <div className="loan-repayment-summary">
             <div>
               <span className="loan-repayment-label">Loan type</span>
-
               <span className="loan-repayment-value">{loan.loan_type}</span>
             </div>
 
             <div>
-              <span className="loan-repayment-label">Remaining Amount</span>
-
+              <span className="loan-repayment-label">Remaining amount</span>
               <span className="loan-repayment-value">{formattedAmount}</span>
             </div>
 
             <div>
-              <span className="loan-repayment-label">Duration</span>
+              <span className="loan-repayment-label">Monthly repayment</span>
+              <span className="loan-repayment-value">{formattedEmi}</span>
+            </div>
 
+            <div>
+              <span className="loan-repayment-label">Interest rate</span>
+              <span className="loan-repayment-value">{loan.interest}%</span>
+            </div>
+
+            <div>
+              <span className="loan-repayment-label">Duration</span>
               <span className="loan-repayment-value">
                 {loan.duration} months
               </span>
@@ -200,6 +233,52 @@ export default function LoanRepaymentPage() {
           </form>
         </section>
       </main>
+
+      {showWarning && (
+        <div className="loan-repayment-modal-backdrop" role="presentation">
+          <div
+            className="loan-repayment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repayment-warning-title"
+          >
+            <h2 id="repayment-warning-title">Repayment below monthly amount</h2>
+
+            <p>
+              The amount you have entered is less than your expected monthly
+              repayment of <strong>{formattedEmi}</strong>.
+            </p>
+
+            <p>
+              Making repayments below this amount could potentially increase the
+              total interest you pay and may result in changes to your future
+              repayment amount.
+            </p>
+
+            <p>Are you sure you want to continue with this repayment?</p>
+
+            <div className="loan-repayment-modal-actions">
+              <button
+                type="button"
+                className="loan-repayment-modal-cancel"
+                onClick={() => setShowWarning(false)}
+                disabled={repaying}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="loan-repayment-modal-confirm"
+                onClick={acknowledgeAndRepay}
+                disabled={repaying}
+              >
+                {repaying ? "Processing..." : "Acknowledge & make payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
