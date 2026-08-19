@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
-import { Link } from "react-router";
+import { useAccount } from "../hooks/useAccount";
 import CustomerNavigation from "../components/CustomerNavigation";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [profileImageFailed, setProfileImageFailed] = useState(false);
+
+  const {
+    data: account,
+    isLoading: isAccountLoading,
+    isError: isAccountError,
+  } = useAccount();
 
   useEffect(() => {
     async function loadCurrentUser() {
@@ -42,6 +48,15 @@ export default function CustomerHomePage() {
       .join("")
       .toUpperCase() || user.email[0].toUpperCase();
   const showProfileImage = user.profile_image_url && !profileImageFailed;
+
+  const balanceDisplay =
+    account != null
+      ? new Intl.NumberFormat("en-GB", {
+          style: "currency",
+          currency: "GBP",
+        }).format(Number(account.balance))
+      : null;
+  const statusLabel = account?.account_status ?? "Pending";
 
   return (
     <main className="customer-home">
@@ -76,20 +91,42 @@ export default function CustomerHomePage() {
 
         <section className="customer-grid" aria-label="Account overview">
           <article className="customer-primary-card">
-            <div>
-              <p className="customer-card-label">Everyday account</p>
-              <h2>Account setup ready</h2>
-              <p>
-                Your banking products and balances will appear here as the demo
-                account services are connected.
-              </p>
-            </div>
-            <div className="customer-actions">
-              <span className="customer-status">Secure access active</span>
-              <Link to="/card" className="customer-card-button">
-                View card
-              </Link>
-            </div>
+            {isAccountError ? (
+              <div>
+                <p className="customer-card-label">Everyday account</p>
+                <h2>Account unavailable</h2>
+                <p>
+                  We couldn't load your account details right now. Please try
+                  again shortly.
+                </p>
+              </div>
+            ) : isAccountLoading || !account ? (
+              <div>
+                <p className="customer-card-label">Everyday account</p>
+                <h2>Loading account…</h2>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <p className="customer-card-label">Everyday account</p>
+                  <h2>{balanceDisplay}</h2>
+                  <p>
+                    {account.account_number
+                      ? `Account number ${account.account_number}`
+                      : "Account number pending assignment"}
+                    {account.sort_code
+                      ? ` · Sort code ${account.sort_code}`
+                      : ""}
+                  </p>
+                </div>
+                <div className="customer-actions">
+                  <span className="customer-status">{statusLabel}</span>
+                  <Link to="/card" className="customer-card-button">
+                    View card
+                  </Link>
+                </div>
+              </>
+            )}
           </article>
 
           <article className="customer-details-card">
