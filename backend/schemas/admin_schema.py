@@ -24,3 +24,21 @@ class UserResponse(BaseModel):
     is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class AdminUserResponse(BaseModel):
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    role: Role
+    dob: date | None = None
+    address_line: str | None = None
+    user_status: UserStatus
+    city: str | None = None
+    county: str | None = None
+    postcode: str | None = None
+    mobile: str | None = None
+    rejection_reason: str | None = None
+    is_deleted: bool
+
+    model_config = ConfigDict(from_attributes=True)

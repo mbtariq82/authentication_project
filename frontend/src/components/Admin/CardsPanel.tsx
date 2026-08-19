@@ -20,6 +20,7 @@ export default function CardsPanel() {
   async function load() {
     setLoading(true);
     setError(null);
+
     try {
       const data = await fetchCards();
       setCards(data);
@@ -36,9 +37,13 @@ export default function CardsPanel() {
 
   async function handleAction(cardId: number, status: CardStatus) {
     setActingOn(cardId);
+
     try {
       const updated = await updateCardStatus(cardId, status);
-      setCards((prev) => prev.map((c) => (c.id === cardId ? updated : c)));
+
+      setCards((prev) =>
+        prev.map((card) => (card.id === cardId ? updated : card)),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
     } finally {
@@ -47,12 +52,13 @@ export default function CardsPanel() {
   }
 
   const visible =
-    filter === "all" ? cards : cards.filter((c) => c.status === filter);
+    filter === "all" ? cards : cards.filter((card) => card.status === filter);
 
   return (
     <div className="panel">
       <div className="panel-header">
         <div className="panel-title">Issued cards</div>
+
         <div className="tabs">
           {FILTERS.map((f) => (
             <button
@@ -67,7 +73,8 @@ export default function CardsPanel() {
         </div>
       </div>
 
-      {loading && <div className="panel-loading">Loading cards…</div>}
+      {loading && <div className="panel-loading">Loading cards...</div>}
+
       {error && <div className="panel-error">{error}</div>}
 
       {!loading && !error && (
@@ -80,76 +87,87 @@ export default function CardsPanel() {
                 <tr>
                   <th>Customer</th>
                   <th>Card number</th>
-                  <th>Type</th>
                   <th>Status</th>
                   <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {visible.map((card) => (
-                  <tr key={card.id}>
-                    <td>
-                      <div className="customer">
-                        <div className="customer-avatar">
-                          {card.customerName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </div>
-                        <div>
-                          <div className="customer-name">
-                            {card.customerName}
+                {visible.map((card) => {
+                  const customerName = `${card.first_name ?? ""} ${
+                    card.last_name ?? ""
+                  }`.trim();
+
+                  const initials = `${card.first_name?.[0] ?? ""}${
+                    card.last_name?.[0] ?? ""
+                  }`;
+
+                  return (
+                    <tr key={card.id}>
+                      <td>
+                        <div className="customer">
+                          <div className="customer-avatar">
+                            {initials || "NA"}
                           </div>
-                          <div className="customer-email">
-                            {card.customerEmail}
+
+                          <div>
+                            <div className="customer-name">
+                              {customerName || "Unknown customer"}
+                            </div>
+
+                            <div className="customer-email">
+                              {card.email ?? "—"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="mono-value">{card.cardNumberMasked}</td>
-                    <td style={{ textTransform: "capitalize" }}>
-                      {card.cardType}
-                    </td>
-                    <td>
-                      <StatusBadge status={card.status} />
-                    </td>
-                    <td>
-                      <div className="actions">
-                        {card.status === "active" && (
-                          <button
-                            className="btn freeze"
-                            disabled={actingOn === card.id}
-                            onClick={() => handleAction(card.id, "frozen")}
-                          >
-                            Freeze
-                          </button>
-                        )}
-                        {card.status === "frozen" && (
-                          <button
-                            className="btn approve"
-                            disabled={actingOn === card.id}
-                            onClick={() => handleAction(card.id, "active")}
-                          >
-                            Unfreeze
-                          </button>
-                        )}
-                        {card.status !== "cancel" && (
-                          <button
-                            className="btn reject"
-                            disabled={actingOn === card.id}
-                            onClick={() => handleAction(card.id, "cancel")}
-                          >
-                            Cancel
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td className="mono-value">{card.card_number ?? "—"}</td>
+
+                      <td>
+                        <StatusBadge status={card.status} />
+                      </td>
+
+                      <td>
+                        <div className="actions">
+                          {card.status === "active" && (
+                            <button
+                              className="btn freeze"
+                              disabled={actingOn === card.id}
+                              onClick={() => handleAction(card.id, "frozen")}
+                            >
+                              Freeze
+                            </button>
+                          )}
+
+                          {card.status === "frozen" && (
+                            <button
+                              className="btn approve"
+                              disabled={actingOn === card.id}
+                              onClick={() => handleAction(card.id, "active")}
+                            >
+                              Unfreeze
+                            </button>
+                          )}
+
+                          {card.status !== "cancel" && (
+                            <button
+                              className="btn reject"
+                              disabled={actingOn === card.id}
+                              onClick={() => handleAction(card.id, "cancel")}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
+
           <div className="panel-footer">
             Showing {visible.length} of {cards.length} cards
           </div>

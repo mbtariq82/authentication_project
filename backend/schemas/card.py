@@ -29,3 +29,22 @@ class CardDetailsResponse(BaseModel):
 
 class CardStatusResponse(BaseModel):
     status: str
+
+
+class AdminCardResponse(BaseModel):
+    id: int
+    account_id: int
+
+    card_number: str
+    cvc: str
+    expiry_date: datetime
+    status: str
+    created_at: datetime
+
+    # Customer information
+    user_id: int
+    first_name: str
+    last_name: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)

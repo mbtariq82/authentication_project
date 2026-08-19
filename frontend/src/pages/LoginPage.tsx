@@ -36,7 +36,7 @@ export default function LoginPage() {
       const user = await getUserProfile();
 
       if (user.role === "ADMIN") {
-        navigate("/admin/dashboard");
+        navigate("/bank/admin/dashboard");
         return;
       }
       navigate("/account", { replace: true });
@@ -61,7 +61,7 @@ export default function LoginPage() {
       saveTokens(tokens);
       const user = await getUserProfile();
       if (user.role === "ADMIN") {
-        navigate("/admin/dashboard");
+        navigate("/bank/admin/dashboard");
         return;
       }
       navigate("/account", { replace: true });
@@ -74,7 +74,11 @@ export default function LoginPage() {
 
   return (
     <AuthShell>
-      <form className="auth-form" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+      <form
+        className="auth-form"
+        onSubmit={handleSubmit}
+        aria-busy={isSubmitting}
+      >
         <header className="auth-form-heading">
           <p className="auth-eyebrow">Secure customer access</p>
           <h1>Welcome back</h1>
@@ -112,7 +116,11 @@ export default function LoginPage() {
           </p>
         )}
 
-        <button className="auth-primary-action" type="submit" disabled={isSubmitting}>
+        <button
+          className="auth-primary-action"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
 

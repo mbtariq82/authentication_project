@@ -5,93 +5,161 @@ import type {
   AccountStatus,
   LoanStatus,
   CardStatus,
+  AdminUser,
+  UserStatus,
 } from "../types/admin";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/admin";
+import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
 
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem("admin_token") ?? "";
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-async function handle<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail ?? `Request failed with status ${res.status}`);
+async function handle<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData = (await response
+      .json()
+      .catch(() => ({}))) as ApiErrorResponse;
+
+    throw new Error(
+      errorData.detail ?? `Request failed with status ${response.status}`,
+    );
   }
-  return res.json() as Promise<T>;
+
+  return response.json() as Promise<T>;
 }
 
-// ---------- Accounts ----------
+// ---------------- USERS ----------------
+export async function fetchUsers(skip = 0, limit = 100): Promise<AdminUser[]> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/all_users?skip=${skip}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+
+    throw new Error(data.detail ?? `Failed to load users: ${response.status}`);
+  }
+
+  return response.json() as Promise<AdminUser[]>;
+}
+
+export async function updateUserStatus(
+  userId: number,
+  status: UserStatus,
+  rejectionReason?: string,
+): Promise<AdminUser> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      status: status,
+      rejection_reason: rejectionReason ?? null,
+    }),
+  });
+
+  return handle<AdminUser>(response);
+}
+
+// ---------------- ACCOUNTS ----------------
+
 export async function fetchAccounts(
-  status?: AccountStatus,
+  skip = 0,
+  limit = 100,
 ): Promise<AdminAccount[]> {
-  const url = status
-    ? `${BASE_URL}/accounts?status=${status}`
-    : `${BASE_URL}/accounts`;
-  const res = await fetch(url, { headers: authHeaders() });
-  return handle<AdminAccount[]>(res);
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/all_accounts?skip=${skip}&limit=${limit}`,
+    {
+      method: "GET",
+    },
+  );
+
+  return handle<AdminAccount[]>(response);
 }
 
 export async function updateAccountStatus(
   accountId: number,
   status: AccountStatus,
-  reason?: string,
 ): Promise<AdminAccount> {
-  const res = await fetch(`${BASE_URL}/accounts/${accountId}/status`, {
-    method: "PATCH",
-    headers: authHeaders(),
-    body: JSON.stringify({ status, reason }),
-  });
-  return handle<AdminAccount>(res);
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/accounts/${accountId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+      }),
+    },
+  );
+
+  return handle<AdminAccount>(response);
 }
 
-// ---------- Loans ----------
-// NOTE: these endpoints don't exist in the backend yet — add matching
-// FastAPI routes (PATCH /admin/loans/{id}/status) when loan approval
-// is wired up server-side. Shaped to mirror the accounts pattern.
-export async function fetchLoans(status?: LoanStatus): Promise<AdminLoan[]> {
-  const url = status
-    ? `${BASE_URL}/loans?status=${status}`
-    : `${BASE_URL}/loans`;
-  const res = await fetch(url, { headers: authHeaders() });
-  return handle<AdminLoan[]>(res);
+// ---------------- LOANS ----------------
+
+export async function fetchLoans(skip = 0, limit = 100): Promise<AdminLoan[]> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/all_loans?skip=${skip}&limit=${limit}`,
+    {
+      method: "GET",
+    },
+  );
+
+  return handle<AdminLoan[]>(response);
 }
 
 export async function updateLoanStatus(
   loanId: number,
   status: LoanStatus,
-  reason?: string,
 ): Promise<AdminLoan> {
-  const res = await fetch(`${BASE_URL}/loans/${loanId}/status`, {
-    method: "PATCH",
-    headers: authHeaders(),
-    body: JSON.stringify({ status, reason }),
-  });
-  return handle<AdminLoan>(res);
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/loans/${loanId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+      }),
+    },
+  );
+
+  return handle<AdminLoan>(response);
 }
 
-// ---------- Cards ----------
-// NOTE: same as loans above — backend routes not implemented yet.
-export async function fetchCards(status?: CardStatus): Promise<AdminCard[]> {
-  const url = status
-    ? `${BASE_URL}/cards?status=${status}`
-    : `${BASE_URL}/cards`;
-  const res = await fetch(url, { headers: authHeaders() });
-  return handle<AdminCard[]>(res);
+// ---------------- CARDS ----------------
+
+export async function fetchCards(skip = 0, limit = 100): Promise<AdminCard[]> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/all_cards?skip=${skip}&limit=${limit}`,
+    {
+      method: "GET",
+    },
+  );
+
+  return handle<AdminCard[]>(response);
 }
 
 export async function updateCardStatus(
   cardId: number,
   status: CardStatus,
 ): Promise<AdminCard> {
-  const res = await fetch(`${BASE_URL}/cards/${cardId}/status`, {
-    method: "PATCH",
-    headers: authHeaders(),
-    body: JSON.stringify({ status }),
-  });
-  return handle<AdminCard>(res);
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/cards/${cardId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+      }),
+    },
+  );
+
+  return handle<AdminCard>(response);
 }

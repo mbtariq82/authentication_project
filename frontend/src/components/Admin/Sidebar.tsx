@@ -1,6 +1,8 @@
-import type { ReactElement } from "react";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 import type { PanelKey } from "../../types/admin";
+import { getUserProfile, type UserResponse } from "../../api/userClient";
 
 interface SidebarProps {
   activePanel: PanelKey;
@@ -8,12 +10,42 @@ interface SidebarProps {
   pendingCounts: Record<PanelKey, number>;
 }
 
-const NAV_ITEMS: { key: PanelKey; label: string; icon: ReactElement }[] = [
+const NAV_ITEMS: {
+  key: PanelKey;
+  label: string;
+  icon: ReactNode;
+}[] = [
+  {
+    key: "users",
+    label: "Users",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      >
+        <circle cx="9" cy="8" r="4" />
+        <path d="M3 20c0-4 2.7-6 6-6s6 2 6 6" />
+        <path d="M16 11a4 4 0 0 0 0-6" />
+        <path d="M17 14c2.5.5 4 2.3 4 6" />
+      </svg>
+    ),
+  },
   {
     key: "accounts",
     label: "Accounts",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      >
         <rect x="2" y="6" width="20" height="14" rx="2" />
         <path d="M2 10h20" />
       </svg>
@@ -23,7 +55,14 @@ const NAV_ITEMS: { key: PanelKey; label: string; icon: ReactElement }[] = [
     key: "loans",
     label: "Loans",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      >
         <rect x="2" y="5" width="20" height="14" rx="2" />
         <path d="M2 10h20M6 15h4" />
       </svg>
@@ -33,7 +72,14 @@ const NAV_ITEMS: { key: PanelKey; label: string; icon: ReactElement }[] = [
     key: "cards",
     label: "Cards",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      >
         <rect x="2" y="5" width="20" height="14" rx="3" />
         <path d="M2 10h20" />
         <circle cx="16" cy="15" r="1.5" />
@@ -42,11 +88,31 @@ const NAV_ITEMS: { key: PanelKey; label: string; icon: ReactElement }[] = [
   },
 ];
 
-export default function Sidebar({ activePanel, onSelectPanel, pendingCounts }: SidebarProps) {
+export default function Sidebar({
+  activePanel,
+  onSelectPanel,
+  pendingCounts,
+}: SidebarProps) {
+  const [user, setUser] = useState<UserResponse | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const userData = await getUserProfile();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      }
+    }
+
+    loadUser();
+  }, []);
+
   return (
     <aside className="sidebar">
       <div className="brand">
         <div className="brand-mark">₿</div>
+
         <div>
           <div className="brand-text">Meridian Bank</div>
           <div className="brand-sub">Admin Console</div>
@@ -54,7 +120,28 @@ export default function Sidebar({ activePanel, onSelectPanel, pendingCounts }: S
       </div>
 
       <nav className="nav-list">
+        <button
+          className={`nav-item ${activePanel === "dashboard" ? "active" : ""}`}
+          onClick={() => onSelectPanel("dashboard")}
+          type="button"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Dashboard
+        </button>
         <div className="nav-label">Review queue</div>
+
         {NAV_ITEMS.map((item) => (
           <button
             key={item.key}
@@ -63,7 +150,9 @@ export default function Sidebar({ activePanel, onSelectPanel, pendingCounts }: S
             type="button"
           >
             {item.icon}
+
             {item.label}
+
             {pendingCounts[item.key] > 0 && (
               <span className="nav-count">{pendingCounts[item.key]}</span>
             )}
@@ -72,10 +161,18 @@ export default function Sidebar({ activePanel, onSelectPanel, pendingCounts }: S
       </nav>
 
       <div className="sidebar-footer">
-        <div className="avatar">RA</div>
+        <div className="avatar">
+          {user
+            ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
+            : ""}
+        </div>
+
         <div>
-          <div className="admin-name">Riya Admin</div>
-          <div className="admin-role">Compliance Officer</div>
+          <div className="admin-name">
+            {user ? `${user.first_name} ${user.last_name}` : "Loading..."}
+          </div>
+
+          <div className="admin-role">{user?.role ?? ""}</div>
         </div>
       </div>
     </aside>
