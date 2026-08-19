@@ -15,16 +15,26 @@ export type AccountStatus =
 
 export interface AdminAccount {
   id: number;
+  user_id: number;
+
   account_number: string | null;
+  sort_code?: string | null;
+  branch?: string | null;
   account_type: string;
+  balance?: string | number;
+
   account_status: AccountStatus;
-  created_at: string;
 
   first_name?: string;
   last_name?: string;
   email?: string;
-}
 
+  close_reason?: string | null;
+  closed_at?: string | null;
+
+  created_at: string;
+  updated_at?: string;
+}
 export interface AdminLoan {
   id: number;
   customerName: string;
@@ -54,16 +64,6 @@ export interface AdminCard {
 }
 
 export type PanelKey = "dashboard" | "users" | "accounts" | "loans" | "cards";
-// export type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
-
-// export interface AdminUser {
-//   id: number;
-//   email: string;
-//   first_name: string;
-//   last_name: string;
-//   role: string;
-//   user_status: UserStatus;
-// }
 
 export type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
 

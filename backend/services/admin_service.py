@@ -44,16 +44,102 @@ class AdminCardService:
     ):
         return await self.repo.list_cards(skip, limit)
 
+
+
 class AdminAccountService:
-    def __init__(self, db: AsyncSession):
+    def __init__(
+        self,
+        db: AsyncSession,
+        card_service: CardService,
+    ):
+        self.db = db
         self.repo = AccountRepository(db)
+        self.card_service = card_service
 
     async def list_accounts(
         self,
         skip: int = 0,
         limit: int = 100,
     ):
-        return await self.repo.list_accounts(skip, limit)
+        return await self.repo.list_accounts(
+            skip=skip,
+            limit=limit,
+        )
+
+    async def update_status(
+        self,
+        account_id: int,
+        account_status: AccountStatus,
+        close_reason: str | None = None,
+    ):
+        account = await self.repo.get_by_id(account_id)
+
+        if not account:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Account not found",
+            )
+
+        # ----------------------
+        # APPROVE / UNFREEZE
+        # ----------------------
+        if account_status == AccountStatus.APPROVED:
+            account.account_status = AccountStatus.APPROVED.value
+            account.close_reason = None
+            account.closed_at = None
+
+            await self.card_service.update_status_by_account(
+                account_id=account.id,
+                new_status=CardStatus.ACTIVE,
+            )
+
+        # ----------------------
+        # FREEZE ACCOUNT
+        # ----------------------
+        elif account_status == AccountStatus.FROZEN:
+            account.account_status = AccountStatus.FROZEN.value
+
+            await self.card_service.update_status_by_account(
+                account_id=account.id,
+                new_status=CardStatus.FROZEN,
+            )
+
+        # ----------------------
+        # CLOSE ACCOUNT
+        # ----------------------
+        elif account_status == AccountStatus.CLOSED:
+            if not close_reason:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Close reason is required",
+                )
+
+            account.account_status = AccountStatus.CLOSED.value
+            account.close_reason = close_reason
+            account.closed_at = datetime.now(timezone.utc)
+
+            await self.card_service.update_status_by_account(
+                account_id=account.id,
+                new_status=CardStatus.CANCEL,
+            )
+
+        # ----------------------
+        # REJECT ACCOUNT
+        # ----------------------
+        elif account_status == AccountStatus.REJECTED:
+            account.account_status = AccountStatus.REJECTED.value
+
+            await self.card_service.update_status_by_account(
+                account_id=account.id,
+                new_status=CardStatus.CANCEL,
+            )
+
+        else:
+            account.account_status = account_status.value
+
+        await self.repo.save(account)
+
+        return account
 
 
 class AdminUserService:

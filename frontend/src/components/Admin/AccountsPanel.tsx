@@ -16,9 +16,21 @@ const FILTERS: {
 export default function AccountsPanel() {
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
   const [filter, setFilter] = useState<AccountStatus | "all">("all");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [actingOn, setActingOn] = useState<number | null>(null);
+
+  // Detail modal
+  const [selectedAccount, setSelectedAccount] = useState<AdminAccount | null>(
+    null,
+  );
+
+  // Edit modal
+  const [editingAccount, setEditingAccount] = useState<AdminAccount | null>(
+    null,
+  );
 
   async function load() {
     setLoading(true);
@@ -40,6 +52,7 @@ export default function AccountsPanel() {
 
   async function handleAction(accountId: number, status: AccountStatus) {
     setActingOn(accountId);
+    setError(null);
 
     try {
       const updated = await updateAccountStatus(accountId, status);
@@ -47,6 +60,8 @@ export default function AccountsPanel() {
       setAccounts((prev) =>
         prev.map((account) => (account.id === accountId ? updated : account)),
       );
+
+      setEditingAccount(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
     } finally {
@@ -61,6 +76,8 @@ export default function AccountsPanel() {
 
   return (
     <div className="panel">
+      {/* HEADER */}
+
       <div className="panel-header">
         <div className="panel-title">Account applications</div>
 
@@ -78,9 +95,15 @@ export default function AccountsPanel() {
         </div>
       </div>
 
+      {/* LOADING */}
+
       {loading && <div className="panel-loading">Loading accounts...</div>}
 
+      {/* ERROR */}
+
       {error && <div className="panel-error">{error}</div>}
+
+      {/* TABLE */}
 
       {!loading && !error && (
         <>
@@ -95,7 +118,7 @@ export default function AccountsPanel() {
                   <th>Type</th>
                   <th>Status</th>
                   <th>Opened</th>
-                  <th style={{ textAlign: "right" }}>Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
 
@@ -111,6 +134,8 @@ export default function AccountsPanel() {
 
                   return (
                     <tr key={account.id}>
+                      {/* CUSTOMER */}
+
                       <td>
                         <div className="customer">
                           <div className="customer-avatar">
@@ -129,9 +154,13 @@ export default function AccountsPanel() {
                         </div>
                       </td>
 
+                      {/* ACCOUNT NUMBER */}
+
                       <td className="mono-value">
                         {account.account_number ?? "— pending —"}
                       </td>
+
+                      {/* TYPE */}
 
                       <td
                         style={{
@@ -141,9 +170,13 @@ export default function AccountsPanel() {
                         {account.account_type}
                       </td>
 
+                      {/* STATUS */}
+
                       <td>
                         <StatusBadge status={account.account_status} />
                       </td>
+
+                      {/* OPENED */}
 
                       <td>
                         {account.created_at
@@ -151,79 +184,28 @@ export default function AccountsPanel() {
                           : "—"}
                       </td>
 
+                      {/* ACTIONS */}
+
                       <td>
                         <div className="actions">
-                          {account.account_status === "PENDING" && (
-                            <>
-                              <button
-                                className="btn approve"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "APPROVED")
-                                }
-                              >
-                                Approve
-                              </button>
+                          <button
+                            className="btn detail-btn"
+                            type="button"
+                            onClick={() => setSelectedAccount(account)}
+                          >
+                            👁 Detail
+                          </button>
 
-                              <button
-                                className="btn reject"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "REJECTED")
-                                }
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-
-                          {account.account_status === "APPROVED" && (
-                            <>
-                              <button
-                                className="btn freeze"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "FROZEN")
-                                }
-                              >
-                                Freeze
-                              </button>
-
-                              <button
-                                className="btn reject"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "CLOSED")
-                                }
-                              >
-                                Close
-                              </button>
-                            </>
-                          )}
-
-                          {account.account_status === "FROZEN" && (
-                            <>
-                              <button
-                                className="btn approve"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "APPROVED")
-                                }
-                              >
-                                Unfreeze
-                              </button>
-
-                              <button
-                                className="btn reject"
-                                disabled={actingOn === account.id}
-                                onClick={() =>
-                                  handleAction(account.id, "CLOSED")
-                                }
-                              >
-                                Close
-                              </button>
-                            </>
-                          )}
+                          <button
+                            className="btn edit-btn"
+                            type="button"
+                            onClick={() => {
+                              setEditingAccount(account);
+                              setError(null);
+                            }}
+                          >
+                            ✎ Edit
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -237,6 +219,260 @@ export default function AccountsPanel() {
             Showing {visible.length} of {accounts.length} accounts
           </div>
         </>
+      )}
+
+      {/* ==========================
+          ACCOUNT DETAIL MODAL
+      ========================== */}
+
+      {selectedAccount && (
+        <div className="modal-overlay">
+          <div className="admin-modal">
+            <div className="modal-header">
+              <h2>Account Details</h2>
+
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setSelectedAccount(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="user-details-grid">
+              <div>
+                <strong>Customer</strong>
+
+                <p>
+                  {selectedAccount.first_name} {selectedAccount.last_name}
+                </p>
+              </div>
+
+              <div>
+                <strong>Email</strong>
+
+                <p>{selectedAccount.email ?? "—"}</p>
+              </div>
+
+              <div>
+                <strong>User ID</strong>
+
+                <p>{selectedAccount.user_id}</p>
+              </div>
+
+              <div>
+                <strong>Account ID</strong>
+
+                <p>{selectedAccount.id}</p>
+              </div>
+
+              <div>
+                <strong>Account Number</strong>
+
+                <p>{selectedAccount.account_number ?? "—"}</p>
+              </div>
+
+              <div>
+                <strong>Sort Code</strong>
+
+                <p>{selectedAccount.sort_code ?? "—"}</p>
+              </div>
+
+              <div>
+                <strong>Account Type</strong>
+
+                <p>{selectedAccount.account_type}</p>
+              </div>
+
+              <div>
+                <strong>Branch</strong>
+
+                <p>{selectedAccount.branch ?? "—"}</p>
+              </div>
+
+              <div>
+                <strong>Balance</strong>
+
+                <p>{selectedAccount.balance ?? "0"}</p>
+              </div>
+
+              <div>
+                <strong>Status</strong>
+
+                <p>{selectedAccount.account_status}</p>
+              </div>
+
+              <div>
+                <strong>Opened</strong>
+
+                <p>
+                  {selectedAccount.created_at
+                    ? new Date(selectedAccount.created_at).toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+
+              <div>
+                <strong>Updated</strong>
+
+                <p>
+                  {selectedAccount.updated_at
+                    ? new Date(selectedAccount.updated_at).toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+
+              {selectedAccount.close_reason && (
+                <div>
+                  <strong>Close Reason</strong>
+
+                  <p>{selectedAccount.close_reason}</p>
+                </div>
+              )}
+
+              {selectedAccount.closed_at && (
+                <div>
+                  <strong>Closed At</strong>
+
+                  <p>{new Date(selectedAccount.closed_at).toLocaleString()}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setSelectedAccount(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================
+          EDIT ACCOUNT MODAL
+      ========================== */}
+
+      {editingAccount && (
+        <div className="modal-overlay">
+          <div className="admin-modal">
+            <div className="modal-header">
+              <h2>Edit Account</h2>
+
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setEditingAccount(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="edit-user-info">
+              <p>
+                <strong>Customer:</strong> {editingAccount.first_name}{" "}
+                {editingAccount.last_name}
+              </p>
+
+              <p>
+                <strong>Account Number:</strong>{" "}
+                {editingAccount.account_number ?? "—"}
+              </p>
+
+              <p>
+                <strong>Current Status:</strong> {editingAccount.account_status}
+              </p>
+            </div>
+
+            {/* PENDING */}
+
+            {editingAccount.account_status === "PENDING" && (
+              <div className="modal-actions">
+                <button
+                  className="btn approve"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "APPROVED")}
+                >
+                  {actingOn === editingAccount.id ? "Approving..." : "Approve"}
+                </button>
+
+                <button
+                  className="btn reject"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "REJECTED")}
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+
+            {/* APPROVED */}
+
+            {editingAccount.account_status === "APPROVED" && (
+              <div className="modal-actions">
+                <button
+                  className="btn freeze"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "FROZEN")}
+                >
+                  Freeze
+                </button>
+
+                <button
+                  className="btn reject"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "CLOSED")}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
+            {/* FROZEN */}
+
+            {editingAccount.account_status === "FROZEN" && (
+              <div className="modal-actions">
+                <button
+                  className="btn approve"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "APPROVED")}
+                >
+                  Unfreeze
+                </button>
+
+                <button
+                  className="btn reject"
+                  type="button"
+                  disabled={actingOn === editingAccount.id}
+                  onClick={() => handleAction(editingAccount.id, "CLOSED")}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
+            {/* REJECTED */}
+
+            {editingAccount.account_status === "REJECTED" && (
+              <div className="modal-message">This account is rejected.</div>
+            )}
+
+            {/* CLOSED */}
+
+            {editingAccount.account_status === "CLOSED" && (
+              <div className="modal-message">This account is closed.</div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
