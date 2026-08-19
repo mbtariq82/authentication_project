@@ -7,11 +7,11 @@ export type LoanStatus =
 export type CardStatus = "active" | "frozen" | "expired" | "cancel";
 
 export type AccountStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "frozen"
-  | "closed";
+  | "PENDING"
+  | "APPROVED"
+  | "FROZEN"
+  | "CLOSED"
+  | "REJECTED";
 
 export interface AdminAccount {
   id: number;
@@ -38,12 +38,48 @@ export interface AdminLoan {
 
 export interface AdminCard {
   id: number;
-  customerName: string;
-  customerEmail: string;
-  cardType: "debit" | "credit";
-  cardNumberMasked: string;
+  account_id: number;
+
+  card_number: string;
+  cvc: string;
+  expiry_date: string;
   status: CardStatus;
-  issuedAt: string;
+  created_at: string;
+
+  // Customer details returned by admin API
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
-export type PanelKey = "accounts" | "loans" | "cards";
+export type PanelKey = "dashboard" | "users" | "accounts" | "loans" | "cards";
+// export type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+// export interface AdminUser {
+//   id: number;
+//   email: string;
+//   first_name: string;
+//   last_name: string;
+//   role: string;
+//   user_status: UserStatus;
+// }
+
+export type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface AdminUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  dob?: string;
+  address_line?: string;
+  city?: string;
+  county?: string;
+  postcode?: string;
+  mobile?: string;
+  rejection_reason?: string | null;
+  is_deleted: boolean;
+  user_status: UserStatus;
+}

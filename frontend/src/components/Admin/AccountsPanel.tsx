@@ -3,11 +3,14 @@ import type { AdminAccount, AccountStatus } from "../../types/admin";
 import { fetchAccounts, updateAccountStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
 
-const FILTERS: { key: AccountStatus | "all"; label: string }[] = [
+const FILTERS: {
+  key: AccountStatus | "all";
+  label: string;
+}[] = [
   { key: "all", label: "All" },
-  { key: "pending", label: "Pending" },
-  { key: "approved", label: "Approved" },
-  { key: "frozen", label: "Frozen" },
+  { key: "PENDING", label: "Pending" },
+  { key: "APPROVED", label: "Approved" },
+  { key: "FROZEN", label: "Frozen" },
 ];
 
 export default function AccountsPanel() {

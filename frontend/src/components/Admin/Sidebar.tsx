@@ -16,6 +16,25 @@ const NAV_ITEMS: {
   icon: ReactNode;
 }[] = [
   {
+    key: "users",
+    label: "Users",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      >
+        <circle cx="9" cy="8" r="4" />
+        <path d="M3 20c0-4 2.7-6 6-6s6 2 6 6" />
+        <path d="M16 11a4 4 0 0 0 0-6" />
+        <path d="M17 14c2.5.5 4 2.3 4 6" />
+      </svg>
+    ),
+  },
+  {
     key: "accounts",
     label: "Accounts",
     icon: (
@@ -101,6 +120,26 @@ export default function Sidebar({
       </div>
 
       <nav className="nav-list">
+        <button
+          className={`nav-item ${activePanel === "dashboard" ? "active" : ""}`}
+          onClick={() => onSelectPanel("dashboard")}
+          type="button"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Dashboard
+        </button>
         <div className="nav-label">Review queue</div>
 
         {NAV_ITEMS.map((item) => (

@@ -509,3 +509,108 @@ tbody td {
     padding: 20px;
   }
 }
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e1e6eb;
+  border-radius: 10px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 2px rgba(11, 21, 38, 0.06);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64707d;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #16202c;
+}
+
+.dashboard-chart-card {
+  background: #ffffff;
+  border: 1px solid #e1e6eb;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.dashboard-chart-card h3 {
+  margin: 0 0 24px;
+}
+
+.status-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 40px;
+  align-items: center;
+  gap: 16px;
+}
+
+.chart-track {
+  height: 12px;
+  background: #edf0f4;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  border-radius: 10px;
+}
+
+.approved-bar {
+  background: #1e9e76;
+}
+
+.pending-bar {
+  background: #d8b791;
+}
+
+.rejected-bar {
+  background: #b93a32;
+}
+
+.new-users-panel {
+  margin-top: 0;
+}
+
+.dashboard-description {
+  font-size: 13px;
+  color: #64707d;
+  margin-top: 4px;
+}
+
+.pending-user-count {
+  background: #fbf0dd;
+  color: #8b5a14;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

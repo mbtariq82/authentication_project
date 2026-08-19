@@ -5,6 +5,7 @@ import type {
   AccountStatus,
   LoanStatus,
   CardStatus,
+  AdminUser,
 } from "../types/admin";
 
 import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
@@ -23,6 +24,21 @@ async function handle<T>(response: Response): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+// ---------------- USERS ----------------
+export async function fetchUsers(skip = 0, limit = 100): Promise<AdminUser[]> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/all_users?skip=${skip}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+
+    throw new Error(data.detail ?? `Failed to load users: ${response.status}`);
+  }
+
+  return response.json() as Promise<AdminUser[]>;
 }
 
 // ---------------- ACCOUNTS ----------------
