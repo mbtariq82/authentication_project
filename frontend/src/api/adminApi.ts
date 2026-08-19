@@ -6,6 +6,7 @@ import type {
   LoanStatus,
   CardStatus,
   AdminUser,
+  UserStatus,
 } from "../types/admin";
 
 import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
@@ -39,6 +40,26 @@ export async function fetchUsers(skip = 0, limit = 100): Promise<AdminUser[]> {
   }
 
   return response.json() as Promise<AdminUser[]>;
+}
+
+export async function updateUserStatus(
+  userId: number,
+  status: UserStatus,
+  rejectionReason?: string,
+): Promise<AdminUser> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      status: status,
+      rejection_reason: rejectionReason ?? null,
+    }),
+  });
+
+  return handle<AdminUser>(response);
 }
 
 // ---------------- ACCOUNTS ----------------
