@@ -208,7 +208,7 @@ export default function BeneficiariesPage() {
                   <button
                     className="secondary-action"
                     type="button"
-                    onClick={resetForm}
+                    onClick={() => resetForm()}
                   >
                     Cancel
                   </button>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
+import { Link } from "react-router";
 import { useAccount } from "../hooks/useAccount";
 import CustomerNavigation from "../components/CustomerNavigation";
 
@@ -119,7 +120,12 @@ export default function CustomerHomePage() {
                       : ""}
                   </p>
                 </div>
-                <span className="customer-status">{statusLabel}</span>
+                <div className="customer-actions">
+                  <span className="customer-status">{statusLabel}</span>
+                  <Link to="/card" className="customer-card-button">
+                    View card
+                  </Link>
+                </div>
               </>
             )}
           </article>
