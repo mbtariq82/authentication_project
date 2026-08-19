@@ -153,13 +153,13 @@ export default function AccountsPanel() {
 
                       <td>
                         <div className="actions">
-                          {account.account_status === "pending" && (
+                          {account.account_status === "PENDING" && (
                             <>
                               <button
                                 className="btn approve"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "approved")
+                                  handleAction(account.id, "APPROVED")
                                 }
                               >
                                 Approve
@@ -169,7 +169,7 @@ export default function AccountsPanel() {
                                 className="btn reject"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "rejected")
+                                  handleAction(account.id, "REJECTED")
                                 }
                               >
                                 Reject
@@ -177,13 +177,13 @@ export default function AccountsPanel() {
                             </>
                           )}
 
-                          {account.account_status === "approved" && (
+                          {account.account_status === "APPROVED" && (
                             <>
                               <button
                                 className="btn freeze"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "frozen")
+                                  handleAction(account.id, "FROZEN")
                                 }
                               >
                                 Freeze
@@ -193,7 +193,7 @@ export default function AccountsPanel() {
                                 className="btn reject"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "closed")
+                                  handleAction(account.id, "CLOSED")
                                 }
                               >
                                 Close
@@ -201,13 +201,13 @@ export default function AccountsPanel() {
                             </>
                           )}
 
-                          {account.account_status === "frozen" && (
+                          {account.account_status === "FROZEN" && (
                             <>
                               <button
                                 className="btn approve"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "approved")
+                                  handleAction(account.id, "APPROVED")
                                 }
                               >
                                 Unfreeze
@@ -217,7 +217,7 @@ export default function AccountsPanel() {
                                 className="btn reject"
                                 disabled={actingOn === account.id}
                                 onClick={() =>
-                                  handleAction(account.id, "closed")
+                                  handleAction(account.id, "CLOSED")
                                 }
                               >
                                 Close
