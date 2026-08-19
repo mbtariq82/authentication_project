@@ -12,7 +12,7 @@ from config import (
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
-    REFRESH_TOKEN_EXPIRE_DAYS,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
     GOOGLE_CLIENT_ID
 )
 
@@ -44,7 +44,7 @@ def create_access_token(subject: str) -> str:
 
 def create_refresh_token(subject: str) -> tuple[str, datetime]:
     expire = datetime.now(timezone.utc) + timedelta(
-        days=REFRESH_TOKEN_EXPIRE_DAYS
+        days=REFRESH_TOKEN_EXPIRE_MINUTES
     )
     payload = {
         "sub": subject,
