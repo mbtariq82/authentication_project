@@ -102,6 +102,15 @@ export default function CustomerHomePage() {
                 <p className="customer-card-label">Everyday account</p>
                 <h2>Loading account…</h2>
               </div>
+            ) : statusLabel === "PENDING" ? (
+              <div>
+                <p className="customer-card-label">Everyday account</p>
+                <h2>Account pending verification</h2>
+                <p>
+                  This account is not yet verified. Please allow a few days
+                  while we get your account verified.
+                </p>
+              </div>
             ) : (
               <>
                 <div>
