@@ -1,6 +1,10 @@
 from domain.account import Account
+from decimal import Decimal
+
 from exceptions import (
+    AccountAlreadyClosedError,
     AccountAlreadyExistsError,
+    AccountBalanceNotZeroError,
     AccountNotFoundError,
 )
 from schemas.account import AccountResponse
@@ -19,3 +23,24 @@ class AccountService:
             if account is None:
                 raise AccountNotFoundError()
             return AccountResponse.model_validate(account)
+
+    async def close_account(
+        self,
+        user_id: int,
+        close_reason: str,
+    ) -> AccountResponse:
+        async with self.unit_of_work as uow:
+            account = await uow.accounts.get_by_user(user_id)
+            if account is None:
+                raise AccountNotFoundError()
+            if account.is_deleted:
+                raise AccountAlreadyClosedError()
+            if account.balance != Decimal("0.00"):
+                raise AccountBalanceNotZeroError(
+                    "Live money still in account. "
+                    "Please transfer before going further."
+                )
+
+            closed = await uow.accounts.close(account.id, close_reason)
+            await uow.commit()
+            return AccountResponse.model_validate(closed)
