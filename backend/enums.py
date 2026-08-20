@@ -29,6 +29,7 @@ class AccountStatus(StrEnum):
     REJECTED = "REJECTED"
     PENDING = "PENDING"
     CLOSED ="CLOSED"
+    FROZEN = "FROZEN"
 
 class AccountType(StrEnum):
     SAVINGS = "SAVINGS"
@@ -40,4 +41,7 @@ class UserStatus(StrEnum):
     CLOSED ="CLOSED"
     
 
-
+class CardStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    FROZEN = "FROZEN"
+    CLOSED = "CLOSED"

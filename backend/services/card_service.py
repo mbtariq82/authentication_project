@@ -176,3 +176,5 @@ class CardService:
             return CardStatusResponse(
                 status=card.status
             )
+
+    

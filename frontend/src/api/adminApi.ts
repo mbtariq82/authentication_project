@@ -81,19 +81,19 @@ export async function fetchAccounts(
 export async function updateAccountStatus(
   accountId: number,
   status: AccountStatus,
+  reason?: string,
 ): Promise<AdminAccount> {
-  const response = await fetchWithAuth(
-    `${API_BASE_URL}/admin/accounts/${accountId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-      }),
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/account/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      account_id: accountId,
+      account_status: status,
+      close_reason: reason ?? null,
+    }),
+  });
 
   return handle<AdminAccount>(response);
 }

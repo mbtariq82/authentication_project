@@ -91,20 +91,7 @@ class AccountRepository:
 
         return account
     
-    # async def list_accounts(
-    #     self,
-    #     skip: int = 0,
-    #     limit: int = 100,
-    # ) -> list[AccountRow]:
-
-    #     result = await self.db.execute(
-    #         select(AccountRow)
-    #         .where(AccountRow.is_deleted == False)
-    #         .offset(skip)
-    #         .limit(limit)
-    #     )
-
-    #     return list(result.scalars().all())
+   
     async def list_accounts(
         self,
         skip: int = 0,
@@ -146,6 +133,28 @@ class AccountRepository:
             }
             for account, user in rows
         ]
+    async def get_by_id(
+        self,
+        account_id: int,
+    ):
+        result = await self.db.execute(
+            select(AccountRow).where(
+                AccountRow.id == account_id
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+
+    async def save(
+        self,
+        account: AccountRow,
+    ):
+        self.db.add(account)
+        await self.db.flush()
+        await self.db.refresh(account)
+
+        return account
 
 
 
@@ -195,3 +204,24 @@ class CardRepository:
             }
             for card, account, user in rows
         ]
+    async def get_by_account_id(
+        self,
+        account_id: int,
+    ):
+        result = await self.db.execute(
+            select(CardRow).where(
+                CardRow.account_id == account_id
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+    async def save(
+        self,
+        card: CardRow,
+    ):
+        self.db.add(card)
+        await self.db.flush()
+        await self.db.refresh(card)
+
+        return card
