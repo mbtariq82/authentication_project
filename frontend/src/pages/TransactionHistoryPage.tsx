@@ -50,6 +50,11 @@ export default function TransactionHistoryPage() {
     setSelectedId(null);
   }
 
+  function closeTransactionDetails() {
+    setSelectedId(null);
+    setMessage("");
+  }
+
   async function cancelSelected() {
     if (!selectedId) return;
     setMessage("");
@@ -237,22 +242,60 @@ export default function TransactionHistoryPage() {
         </section>
 
         {selectedId && (
-          <section
-            className="transaction-panel transaction-detail-panel"
-            aria-labelledby="transaction-detail-title"
+          <div
+            className="transaction-modal-backdrop"
+            role="presentation"
+            onMouseDown={closeTransactionDetails}
           >
-            {selectedQuery.isLoading && (
-              <p role="status">Loading transaction details...</p>
-            )}
-            {selectedQuery.data && (
-              <>
-                <div className="history-toolbar">
-                  <div>
-                    <p className="customer-card-label">Selected transaction</p>
-                    <h2 id="transaction-detail-title">
-                      {formatType(selectedQuery.data.transaction_type)}
-                    </h2>
+            <section
+              className="transaction-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="transaction-detail-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <button
+                className="transaction-modal-close"
+                type="button"
+                aria-label="Close transaction details"
+                onClick={closeTransactionDetails}
+              >
+                ×
+              </button>
+              {selectedQuery.isLoading && (
+                <p role="status">Loading transaction details...</p>
+              )}
+              {selectedQuery.data && (
+                <>
+                  <div className="transaction-modal-header">
+                    <div>
+                      <p className="customer-card-label">Transaction details</p>
+                      <h2 id="transaction-detail-title">
+                        {formatType(selectedQuery.data.transaction_type)}
+                      </h2>
+                    </div>
+                    <span
+                      className={`history-status history-status-${selectedQuery.data.status.toLowerCase()}`}
+                    >
+                      {selectedQuery.data.status}
+                    </span>
                   </div>
+                  <dl className="transaction-detail-grid">
+                    <div>
+                      <dt>Amount</dt>
+                      <dd>£{selectedQuery.data.amount}</dd>
+                    </div>
+                    <div>
+                      <dt>Reference</dt>
+                      <dd>{selectedQuery.data.reference}</dd>
+                    </div>
+                    <div>
+                      <dt>Description</dt>
+                      <dd>
+                        {selectedQuery.data.description || "No description"}
+                      </dd>
+                    </div>
+                  </dl>
                   {selectedQuery.data.status === "PENDING" && (
                     <button
                       className="danger-action"
@@ -265,46 +308,26 @@ export default function TransactionHistoryPage() {
                         : "Cancel transaction"}
                     </button>
                   )}
-                </div>
-                <dl className="transaction-detail-grid">
-                  <div>
-                    <dt>Amount</dt>
-                    <dd>£{selectedQuery.data.amount}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{selectedQuery.data.status}</dd>
-                  </div>
-                  <div>
-                    <dt>Reference</dt>
-                    <dd>{selectedQuery.data.reference}</dd>
-                  </div>
-                  <div>
-                    <dt>Description</dt>
-                    <dd>
-                      {selectedQuery.data.description || "No description"}
-                    </dd>
-                  </div>
-                </dl>
-                {message && (
-                  <p className="transaction-message" role="status">
-                    {message}
-                  </p>
-                )}
-                <div className="history-logs">
-                  <h3>Activity log</h3>
-                  {logsQuery.isLoading && <p role="status">Loading log...</p>}
-                  {logsQuery.data?.map((log) => (
-                    <p key={log.id}>
-                      <strong>{log.action}</strong> ·{" "}
-                      {log.message || log.status} ·{" "}
-                      {new Date(log.created_at).toLocaleString()}
+                  {message && (
+                    <p className="transaction-message" role="status">
+                      {message}
                     </p>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
+                  )}
+                  <div className="history-logs">
+                    <h3>Activity log</h3>
+                    {logsQuery.isLoading && <p role="status">Loading log...</p>}
+                    {logsQuery.data?.map((log) => (
+                      <p key={log.id}>
+                        <strong>{log.action}</strong> ·{" "}
+                        {log.message || log.status} ·{" "}
+                        {new Date(log.created_at).toLocaleString()}
+                      </p>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          </div>
         )}
       </section>
     </main>

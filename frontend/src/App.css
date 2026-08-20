@@ -986,6 +986,60 @@
 .transaction-detail-panel {
   margin-top: 1.25rem;
 }
+.transaction-modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(8 47 73 / 52%);
+  backdrop-filter: blur(5px);
+}
+.transaction-modal {
+  position: relative;
+  width: min(100%, 42rem);
+  max-height: min(44rem, calc(100vh - 3rem));
+  overflow-y: auto;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border: 1px solid #d9e2ec;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  box-shadow: 0 1.5rem 4rem rgb(2 6 23 / 32%);
+}
+.transaction-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-right: 2rem;
+}
+.transaction-modal-header h2 {
+  margin: 0;
+  color: #102a43;
+}
+.transaction-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f0f5f7;
+  color: #486581;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.transaction-modal-close:hover,
+.transaction-modal-close:focus-visible {
+  background: #e0f2fe;
+  color: #075985;
+  outline: none;
+}
 .history-toolbar {
   align-items: center;
   display: flex;
