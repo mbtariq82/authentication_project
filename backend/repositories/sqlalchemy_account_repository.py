@@ -1,3 +1,4 @@
+from typing import Any
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -23,7 +24,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         self.session = session
 
     @staticmethod
-    def _to_domain(row: AccountRow) -> Account:
+    def _to_domain(row: Any) -> Account:
         return Account(
             id=row.id,
             user_id=row.user_id,
@@ -58,7 +59,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         result = await self.session.execute(
             select(AccountRow).where(AccountRow.user_id == user_id)
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def get_by_id_for_user(
@@ -72,7 +73,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
                 AccountRow.user_id == user_id,
             )
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def get_by_account_number_and_sort_code(
@@ -88,7 +89,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
                 AccountRow.is_deleted.is_(False),
             )
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def get_by_id_for_update(self, account_id: int) -> Account | None:
@@ -97,7 +98,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def credit(self, account_id: int, amount: Decimal) -> Account:
@@ -109,7 +110,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
 
@@ -127,7 +128,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
         if row.balance < amount:
@@ -144,7 +145,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
 
@@ -162,7 +163,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
 

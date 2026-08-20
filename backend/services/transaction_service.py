@@ -3,6 +3,7 @@ from uuid import uuid4
 from domain.transaction import Transaction, TransactionLog
 from domain.transaction_rules import (
     balance_effect,
+    TransferKind,
     validate_status_transition,
 )
 from enums import TransactionStatus, TransactionType
@@ -45,13 +46,28 @@ class TransactionService:
         if account is None:
             raise TransactionNotFoundError()
 
+        transfer_kind: TransferKind | None = None
         if command.transaction_type is TransactionType.TRANSFER:
+            if command.beneficiary_id is None:
+                raise BeneficiaryNotFoundError()
             beneficiary = await self.beneficiaries.get_by_id(
                 command.beneficiary_id,
                 user_id,
             )
             if beneficiary is None or not beneficiary.is_active:
                 raise BeneficiaryNotFoundError()
+
+            internal_account = (
+                await self.accounts.get_by_account_number_and_sort_code(
+                    beneficiary.account_number,
+                    beneficiary.sort_code,
+                )
+            )
+            transfer_kind = (
+                TransferKind.INTERNAL
+                if internal_account is not None
+                else TransferKind.UK_LOCAL
+            )
 
         status = (
             TransactionStatus.COMPLETED
@@ -74,6 +90,8 @@ class TransactionService:
                 description=command.description,
             )
         )
+        if transaction.id is None:
+            raise TransactionNotFoundError()
 
         effect = balance_effect(
             transaction.transaction_type,
@@ -93,6 +111,11 @@ class TransactionService:
                 action="CREATE",
                 status=transaction.status.value,
                 message="Transaction created",
+                metadata=(
+                    {"transfer_kind": transfer_kind.value}
+                    if transfer_kind is not None
+                    else None
+                ),
             )
         )
         await self.unit_of_work.commit()
@@ -185,6 +208,7 @@ class TransactionService:
                 created_at=entry.created_at,
             )
             for entry in entries
+            if entry.id is not None and entry.created_at is not None
         ]
 
     @staticmethod
@@ -193,6 +217,12 @@ class TransactionService:
 
 
 def transaction_response(transaction: Transaction) -> TransactionResponse:
+    if (
+        transaction.id is None
+        or transaction.created_at is None
+        or transaction.updated_at is None
+    ):
+        raise TransactionNotFoundError()
     return TransactionResponse(
         id=transaction.id,
         account_id=transaction.account_id,
