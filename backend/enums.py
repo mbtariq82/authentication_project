@@ -45,3 +45,4 @@ class CardStatus(StrEnum):
     ACTIVE = "ACTIVE"
     FROZEN = "FROZEN"
     CLOSED = "CLOSED"
+    

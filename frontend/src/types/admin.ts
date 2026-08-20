@@ -1,10 +1,4 @@
-export type LoanStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "cancelled"
-  | "closed";
-
+export type LoanStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 export type AccountStatus =
   | "PENDING"
   | "APPROVED"
@@ -36,15 +30,20 @@ export interface AdminAccount {
 }
 export interface AdminLoan {
   id: number;
-  customerName: string;
-  customerEmail: string;
-  loanType: string;
-  amount: number;
-  durationMonths: number;
-  status: LoanStatus;
-  appliedAt: string;
-}
 
+  loan_type: string;
+  loan_amount: string;
+  duration: number;
+  interest: number;
+  emi: string;
+
+  current_loan_status: LoanStatus;
+
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 export interface AdminCard {
   id: number;
   account_id: number;

@@ -3,23 +3,37 @@ import type { AdminLoan, LoanStatus } from "../../types/admin";
 import { fetchLoans, updateLoanStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
 
-const FILTERS: { key: LoanStatus | "all"; label: string }[] = [
+const FILTERS: {
+  key: LoanStatus | "all";
+  label: string;
+}[] = [
   { key: "all", label: "All" },
-  { key: "pending", label: "Pending" },
-  { key: "approved", label: "Approved" },
-  { key: "rejected", label: "Rejected" },
+  { key: "PENDING", label: "Pending" },
+  { key: "ACCEPTED", label: "Accepted" },
+  { key: "REJECTED", label: "Rejected" },
 ];
 
 export default function LoansPanel() {
   const [loans, setLoans] = useState<AdminLoan[]>([]);
+
   const [filter, setFilter] = useState<LoanStatus | "all">("all");
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
+
   const [actingOn, setActingOn] = useState<number | null>(null);
+
+  // Detail modal
+  const [selectedLoan, setSelectedLoan] = useState<AdminLoan | null>(null);
+
+  // Edit modal
+  const [editingLoan, setEditingLoan] = useState<AdminLoan | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
+
     try {
       const data = await fetchLoans();
       setLoans(data);
@@ -31,14 +45,21 @@ export default function LoansPanel() {
   }
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
 
   async function handleAction(loanId: number, status: LoanStatus) {
     setActingOn(loanId);
+    setError(null);
+
     try {
-      const updated = await updateLoanStatus(loanId, status);
-      setLoans((prev) => prev.map((l) => (l.id === loanId ? updated : l)));
+      await updateLoanStatus(loanId, status);
+
+      // Fetch latest loans after status update
+      await load();
+
+      // Close edit modal
+      setEditingLoan(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
     } finally {
@@ -47,12 +68,17 @@ export default function LoansPanel() {
   }
 
   const visible =
-    filter === "all" ? loans : loans.filter((l) => l.status === filter);
+    filter === "all"
+      ? loans
+      : loans.filter((loan) => loan.current_loan_status === filter);
 
   return (
     <div className="panel">
+      {/* HEADER */}
+
       <div className="panel-header">
         <div className="panel-title">Loan applications</div>
+
         <div className="tabs">
           {FILTERS.map((f) => (
             <button
@@ -67,8 +93,15 @@ export default function LoansPanel() {
         </div>
       </div>
 
-      {loading && <div className="panel-loading">Loading loans…</div>}
+      {/* LOADING */}
+
+      {loading && <div className="panel-loading">Loading loans...</div>}
+
+      {/* ERROR */}
+
       {error && <div className="panel-error">{error}</div>}
+
+      {/* TABLE */}
 
       {!loading && !error && (
         <>
@@ -83,81 +116,284 @@ export default function LoansPanel() {
                   <th>Amount</th>
                   <th>Duration</th>
                   <th>Status</th>
-                  <th style={{ textAlign: "right" }}>Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {visible.map((loan) => (
-                  <tr key={loan.id}>
-                    <td>
-                      <div className="customer">
-                        <div className="customer-avatar">
-                          {loan.customerName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </div>
-                        <div>
-                          <div className="customer-name">
-                            {loan.customerName}
+                {visible.map((loan) => {
+                  const customerName = `${loan.first_name ?? ""} ${
+                    loan.last_name ?? ""
+                  }`.trim();
+
+                  const initials = `${loan.first_name?.[0] ?? ""}${
+                    loan.last_name?.[0] ?? ""
+                  }`;
+
+                  return (
+                    <tr key={loan.id}>
+                      {/* CUSTOMER */}
+
+                      <td>
+                        <div className="customer">
+                          <div className="customer-avatar">
+                            {initials || "NA"}
                           </div>
-                          <div className="customer-email">
-                            {loan.customerEmail}
+
+                          <div>
+                            <div className="customer-name">
+                              {customerName || "Unknown customer"}
+                            </div>
+
+                            <div className="customer-email">
+                              {loan.email ?? "—"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td style={{ textTransform: "capitalize" }}>
-                      {loan.loanType}
-                    </td>
-                    <td className="mono-value">
-                      ${loan.amount.toLocaleString()}
-                    </td>
-                    <td>{loan.durationMonths} mo</td>
-                    <td>
-                      <StatusBadge status={loan.status} />
-                    </td>
-                    <td>
-                      <div className="actions">
-                        {loan.status === "pending" && (
-                          <>
-                            <button
-                              className="btn approve"
-                              disabled={actingOn === loan.id}
-                              onClick={() => handleAction(loan.id, "approved")}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="btn reject"
-                              disabled={actingOn === loan.id}
-                              onClick={() => handleAction(loan.id, "rejected")}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {loan.status === "approved" && (
+                      </td>
+
+                      {/* LOAN TYPE */}
+
+                      <td
+                        style={{
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {loan.loan_type}
+                      </td>
+
+                      {/* AMOUNT */}
+
+                      <td className="mono-value">
+                        £{Number(loan.loan_amount).toLocaleString()}
+                      </td>
+
+                      {/* DURATION */}
+
+                      <td>{loan.duration} months</td>
+
+                      {/* STATUS */}
+
+                      <td>
+                        <StatusBadge status={loan.current_loan_status} />
+                      </td>
+
+                      {/* ACTIONS */}
+
+                      <td>
+                        <div className="actions">
                           <button
-                            className="btn reject"
-                            disabled={actingOn === loan.id}
-                            onClick={() => handleAction(loan.id, "cancelled")}
+                            className="btn detail-btn"
+                            type="button"
+                            onClick={() => setSelectedLoan(loan)}
                           >
-                            Cancel
+                            👁 Detail
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+
+                          <button
+                            className="btn edit-btn"
+                            type="button"
+                            onClick={() => {
+                              setEditingLoan(loan);
+                              setError(null);
+                            }}
+                          >
+                            ✎ Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
+
           <div className="panel-footer">
             Showing {visible.length} of {loans.length} loans
           </div>
         </>
+      )}
+
+      {/* ==========================
+          LOAN DETAIL MODAL
+      ========================== */}
+
+      {selectedLoan && (
+        <div className="modal-overlay">
+          <div className="admin-modal">
+            <div className="modal-header">
+              <h2>Loan Details</h2>
+
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setSelectedLoan(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="user-details-grid">
+              <div>
+                <strong>Customer</strong>
+
+                <p>
+                  {selectedLoan.first_name} {selectedLoan.last_name}
+                </p>
+              </div>
+
+              <div>
+                <strong>Email</strong>
+
+                <p>{selectedLoan.email ?? "—"}</p>
+              </div>
+
+              <div>
+                <strong>Loan ID</strong>
+
+                <p>{selectedLoan.id}</p>
+              </div>
+
+              <div>
+                <strong>Loan Type</strong>
+
+                <p>{selectedLoan.loan_type}</p>
+              </div>
+
+              <div>
+                <strong>Loan Amount</strong>
+
+                <p>£{Number(selectedLoan.loan_amount).toLocaleString()}</p>
+              </div>
+
+              <div>
+                <strong>Duration</strong>
+
+                <p>{selectedLoan.duration} months</p>
+              </div>
+
+              <div>
+                <strong>Interest</strong>
+
+                <p>{selectedLoan.interest}%</p>
+              </div>
+
+              <div>
+                <strong>EMI</strong>
+
+                <p>£{Number(selectedLoan.emi).toLocaleString()}</p>
+              </div>
+
+              <div>
+                <strong>Status</strong>
+
+                <p>{selectedLoan.current_loan_status}</p>
+              </div>
+
+              {selectedLoan.user_id !== undefined && (
+                <div>
+                  <strong>User ID</strong>
+
+                  <p>{selectedLoan.user_id}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setSelectedLoan(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================
+          EDIT LOAN MODAL
+      ========================== */}
+
+      {editingLoan && (
+        <div className="modal-overlay">
+          <div className="admin-modal">
+            <div className="modal-header">
+              <h2>Edit Loan</h2>
+
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setEditingLoan(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="edit-user-info">
+              <p>
+                <strong>Customer:</strong> {editingLoan.first_name}{" "}
+                {editingLoan.last_name}
+              </p>
+
+              <p>
+                <strong>Loan Type:</strong> {editingLoan.loan_type}
+              </p>
+
+              <p>
+                <strong>Amount:</strong> £
+                {Number(editingLoan.loan_amount).toLocaleString()}
+              </p>
+
+              <p>
+                <strong>Duration:</strong> {editingLoan.duration} months
+              </p>
+
+              <p>
+                <strong>Current Status:</strong>{" "}
+                {editingLoan.current_loan_status}
+              </p>
+            </div>
+
+            {/* PENDING */}
+
+            {editingLoan.current_loan_status === "PENDING" && (
+              <div className="modal-actions">
+                <button
+                  className="btn approve"
+                  type="button"
+                  disabled={actingOn === editingLoan.id}
+                  onClick={() => handleAction(editingLoan.id, "ACCEPTED")}
+                >
+                  {actingOn === editingLoan.id ? "Accepting..." : "Accept"}
+                </button>
+
+                <button
+                  className="btn reject"
+                  type="button"
+                  disabled={actingOn === editingLoan.id}
+                  onClick={() => handleAction(editingLoan.id, "REJECTED")}
+                >
+                  {actingOn === editingLoan.id ? "Rejecting..." : "Reject"}
+                </button>
+              </div>
+            )}
+
+            {/* ACCEPTED */}
+
+            {editingLoan.current_loan_status === "ACCEPTED" && (
+              <div className="modal-message">This loan has been accepted.</div>
+            )}
+
+            {/* REJECTED */}
+
+            {editingLoan.current_loan_status === "REJECTED" && (
+              <div className="modal-message">This loan has been rejected.</div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -5,12 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies.card import get_card_service
 from dependencies.auth import require_admin
 from dependencies.database import get_db
-from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse,UpdateAccountStatus
-from services.admin_service import AdminUserService, AdminCardService, AdminAccountService
+from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse,UpdateAccountStatus, UpdateCardStatus,AdminLoanResponse
+from services.admin_service import AdminUserService, AdminCardService, AdminAccountService, AdminLoanService
 from services.card_service import CardService
 from schemas.card import AdminCardResponse
 from schemas.account import AdminAccountResponse
-
+from schemas.loan import LoanResponse
 router = APIRouter(
     prefix="/admin", 
     tags=["Admin"],
@@ -58,17 +58,7 @@ async def get_all_accounts(
     )
 
 
-# @router.patch("/account/status")
-# async def update_account_status(
-#     data: UpdateAccountStatus,
-#     db: AsyncSession = Depends(get_db),card_service: CardService = Depends(get_card_service),
-# ):
-#     service = AdminAccountService(db, card_service=card_service,)
 
-#     return await service.update_status(
-#         account_id=data.account_id,
-#         account_status=data.account_status,
-#         close_reason=data.close_reason,
 #     )
 @router.patch("/account/status")
 async def update_account_status(
@@ -97,6 +87,36 @@ async def get_all_cards(
     service = AdminCardService(db)
 
     return await service.list_cards(
+        skip=skip,
+        limit=limit,
+    )
+
+
+@router.patch("/card/status")
+async def update_card_status(
+    data: UpdateCardStatus,
+    db: AsyncSession = Depends(get_db),
+):
+    service = AdminCardService(db)
+
+    return await service.update_status(
+        card_id=data.card_id,
+        new_status=data.status,
+    )
+
+
+@router.get(
+    "/all_loans",
+    response_model=list[AdminLoanResponse],
+)
+async def get_all_loans(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    service = AdminLoanService(db)
+
+    return await service.list_loans(
         skip=skip,
         limit=limit,
     )

@@ -56,7 +56,14 @@ export default function CardsPanel() {
       const updated = await updateCardStatus(cardId, status);
 
       setCards((prev) =>
-        prev.map((card) => (card.id === cardId ? updated : card)),
+        prev.map((card) =>
+          card.id === cardId
+            ? {
+                ...card,
+                ...updated,
+              }
+            : card,
+        ),
       );
 
       setEditingCard(null);
@@ -339,7 +346,7 @@ export default function CardsPanel() {
                   disabled={actingOn === editingCard.id}
                   onClick={() => handleAction(editingCard.id, "CLOSED")}
                 >
-                  Cancel
+                  Close
                 </button>
               </div>
             )}
@@ -367,11 +374,10 @@ export default function CardsPanel() {
                 </button>
               </div>
             )}
-
             {/* CLOSED */}
 
             {editingCard.status === "CLOSED" && (
-              <div className="modal-message">This card has been closed.</div>
+              <div className="modal-message">This card is closed.</div>
             )}
           </div>
         </div>

@@ -116,7 +116,7 @@ export async function updateLoanStatus(
   status: LoanStatus,
 ): Promise<AdminLoan> {
   const response = await fetchWithAuth(
-    `${API_BASE_URL}/admin/loans/${loanId}/status`,
+    `${API_BASE_URL}/loans/${loanId}/decision`,
     {
       method: "PATCH",
       headers: {
@@ -148,18 +148,16 @@ export async function updateCardStatus(
   cardId: number,
   status: CardStatus,
 ): Promise<AdminCard> {
-  const response = await fetchWithAuth(
-    `${API_BASE_URL}/admin/cards/${cardId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-      }),
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/card/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      card_id: cardId,
+      status,
+    }),
+  });
 
   return handle<AdminCard>(response);
 }
