@@ -1,8 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
-import { clearTokens } from "../auth/tokenStorage";
 import CustomerNavigation from "../components/CustomerNavigation";
 import { useBeneficiaries } from "../hooks/useBeneficiaries";
 import {
@@ -24,7 +21,6 @@ const emptyForm: CreateBeneficiaryRequest = {
 };
 
 export default function BeneficiariesPage() {
-  const navigate = useNavigate();
   const beneficiariesQuery = useBeneficiaries();
   const createMutation = useCreateBeneficiary();
   const updateMutation = useUpdateBeneficiary();
@@ -33,15 +29,6 @@ export default function BeneficiariesPage() {
   const [form, setForm] = useState<CreateBeneficiaryRequest>(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
-
-  async function handleLogout() {
-    try {
-      await logout();
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
 
   function updateField(field: keyof CreateBeneficiaryRequest, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
