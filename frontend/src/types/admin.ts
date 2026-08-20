@@ -4,7 +4,6 @@ export type LoanStatus =
   | "rejected"
   | "cancelled"
   | "closed";
-export type CardStatus = "active" | "frozen" | "expired" | "cancel";
 
 export type AccountStatus =
   | "PENDING"
@@ -83,3 +82,4 @@ export interface AdminUser {
   is_deleted: boolean;
   user_status: UserStatus;
 }
+export type CardStatus = "ACTIVE" | "FROZEN" | "CLOSED";

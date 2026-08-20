@@ -58,19 +58,35 @@ async def get_all_accounts(
     )
 
 
+# @router.patch("/account/status")
+# async def update_account_status(
+#     data: UpdateAccountStatus,
+#     db: AsyncSession = Depends(get_db),card_service: CardService = Depends(get_card_service),
+# ):
+#     service = AdminAccountService(db, card_service=card_service,)
+
+#     return await service.update_status(
+#         account_id=data.account_id,
+#         account_status=data.account_status,
+#         close_reason=data.close_reason,
+#     )
 @router.patch("/account/status")
 async def update_account_status(
     data: UpdateAccountStatus,
-    db: AsyncSession = Depends(get_db),card_service: CardService = Depends(get_card_service),
+    db: AsyncSession = Depends(get_db),
 ):
-    service = AdminAccountService(db, card_service=card_service,)
+    admin_card_service = AdminCardService(db)
+
+    service = AdminAccountService(
+        db,
+        card_service=admin_card_service,
+    )
 
     return await service.update_status(
         account_id=data.account_id,
         account_status=data.account_status,
         close_reason=data.close_reason,
     )
-
 
 @router.get("/all_cards", response_model=list[AdminCardResponse])
 async def get_all_cards(

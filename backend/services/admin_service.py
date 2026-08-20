@@ -99,9 +99,13 @@ class AdminAccountService:
                 detail="Account not found",
             )
 
-        # ----------------------
+        if not self.card_service:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Card service is not configured",
+            )
+
         # APPROVE / UNFREEZE
-        # ----------------------
         if account_status == AccountStatus.APPROVED:
             account.account_status = AccountStatus.APPROVED.value
             account.close_reason = None
@@ -112,20 +116,17 @@ class AdminAccountService:
                 new_status=CardStatus.ACTIVE,
             )
 
-        # ----------------------
-        # FREEZE ACCOUNT
-        # ----------------------
+        # FREEZE
         elif account_status == AccountStatus.FROZEN:
             account.account_status = AccountStatus.FROZEN.value
+            account.close_reason = close_reason
 
             await self.card_service.update_status_by_account(
                 account_id=account.id,
                 new_status=CardStatus.FROZEN,
             )
 
-        # ----------------------
-        # CLOSE ACCOUNT
-        # ----------------------
+        # CLOSE
         elif account_status == AccountStatus.CLOSED:
             if not close_reason:
                 raise HTTPException(
@@ -139,24 +140,25 @@ class AdminAccountService:
 
             await self.card_service.update_status_by_account(
                 account_id=account.id,
-                new_status=CardStatus.CANCEL,
+                new_status=CardStatus.CLOSED,
             )
 
-        # ----------------------
-        # REJECT ACCOUNT
-        # ----------------------
+        # REJECT
         elif account_status == AccountStatus.REJECTED:
             account.account_status = AccountStatus.REJECTED.value
 
             await self.card_service.update_status_by_account(
                 account_id=account.id,
-                new_status=CardStatus.CANCEL,
+                new_status=CardStatus.CLOSED,
             )
 
-        else:
-            account.account_status = account_status.value
-
         await self.repo.save(account)
+
+        # IMPORTANT
+        await self.db.commit()
+
+        # Reload committed account
+        await self.db.refresh(account)
 
         return account
 
