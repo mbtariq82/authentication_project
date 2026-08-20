@@ -28,10 +28,7 @@ def generate_account_number(user_id: int) -> str:
 
 
 def generate_sort_code() -> str:
-    return "-".join(
-        "".join(random.choices(string.digits, k=2))
-        for _ in range(3)
-    )
+    return "20-10-30"
 
 class AdminCardService:
     def __init__(self, db: AsyncSession):
