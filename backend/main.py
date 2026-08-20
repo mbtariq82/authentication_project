@@ -10,6 +10,7 @@ from config import (
     PROFILE_IMAGE_URL_PREFIX,
 )
 from database import engine
+from dependencies.auth import create_kafka_event_publisher
 from exception_handlers import register_exception_handlers
 from redis_client import redis_client
 from router import accounts, admin, auth, card, users, loan
@@ -22,15 +23,21 @@ telemetry_providers = configure_telemetry()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    kafka_event_publisher = create_kafka_event_publisher()
     try:
         await redis_client.ping()
         print("Connected to Redis")
+        await kafka_event_publisher.start()
+        print("Connected to Kafka")
         yield
     finally:
         try:
-            await redis_client.aclose()
+            await kafka_event_publisher.stop()
         finally:
-            telemetry_providers.shutdown()
+            try:
+                await redis_client.aclose()
+            finally:
+                telemetry_providers.shutdown()
 
 app = FastAPI(lifespan=lifespan)
 
