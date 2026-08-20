@@ -47,7 +47,7 @@ export default function LoansPage() {
   const paidLoans = loans.filter((loan) => loan.current_loan_status === "PAID");
 
   return (
-    <div className="lo  ans-page">
+    <div className="loans-page">
       <LoanNavigation showEmiCalculator showApplyForLoan showBackToAccount />
 
       <main className="loans-page-container">
