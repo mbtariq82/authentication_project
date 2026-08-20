@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import cast
 
 import pytest
 
@@ -14,6 +15,7 @@ from exceptions import (
 )
 from schemas.transaction import TransactionCreate, TransactionFilter
 from services.transaction_service import TransactionService
+from unit_of_work.abstract_transaction_unit_of_work import AbstractTransactionUnitOfWork
 
 
 class FakeTransactionUnitOfWork:
@@ -121,9 +123,18 @@ class FakeTransactionRepository:
 
 @pytest.fixture
 def service_and_uow():
-    account = Account(user_id=1, id=1, balance=Decimal("100.00"))
+    account = Account(
+        user_id=1,
+        id=1,
+        account_number="87654321",
+        sort_code="010203",
+        balance=Decimal("100.00"),
+    )
     unit_of_work = FakeTransactionUnitOfWork(account)
-    return TransactionService(unit_of_work), unit_of_work
+    return (
+        TransactionService(cast(AbstractTransactionUnitOfWork, unit_of_work)),
+        unit_of_work,
+    )
 
 
 @pytest.mark.asyncio
@@ -200,6 +211,8 @@ async def test_create_transfer_classifies_matching_account_as_internal(service_a
     assert recipient_transaction.direction is TransactionDirection.CREDIT
     assert recipient_transaction.status is TransactionStatus.COMPLETED
     assert recipient_transaction.account_id == 2
+    assert recipient_transaction.amount == Decimal("25.00")
+    assert recipient_transaction.description == "Incoming transfer from account 87654321"
     assert (
         recipient_transaction.transfer_reference
         == sender_transaction.transfer_reference
@@ -228,6 +241,35 @@ async def test_create_transfer_rejects_sender_as_internal_beneficiary(service_an
     assert unit_of_work.transactions.items == []
     assert unit_of_work.accounts.credited == []
     assert unit_of_work.accounts.debited == []
+
+
+@pytest.mark.asyncio
+async def test_internal_transfer_with_insufficient_funds_does_not_credit_recipient(
+    service_and_uow,
+):
+    service, unit_of_work = service_and_uow
+    unit_of_work.accounts.internal_account = Account(
+        user_id=2,
+        id=2,
+        account_number="12345678",
+        sort_code="010203",
+    )
+
+    with pytest.raises(InsufficientFundsError):
+        await service.create(
+            1,
+            TransactionCreate(
+                account_id=1,
+                beneficiary_id=2,
+                transaction_type=TransactionType.TRANSFER,
+                direction=TransactionDirection.DEBIT,
+                amount=Decimal("125.00"),
+            ),
+        )
+
+    assert unit_of_work.accounts.debited == []
+    assert unit_of_work.accounts.credited == []
+    assert unit_of_work.commits == 0
 
 
 @pytest.mark.asyncio
