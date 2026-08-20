@@ -37,7 +37,7 @@ export type LoanApplicationResponse = {
 };
 
 export type LoanRepaymentRequest = {
-  load_id: number;
+  loan_id: number;
   amount: number;
 };
 
