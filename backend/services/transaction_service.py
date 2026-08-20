@@ -6,7 +6,7 @@ from domain.transaction_rules import (
     TransferKind,
     validate_status_transition,
 )
-from enums import TransactionStatus, TransactionType
+from enums import TransactionDirection, TransactionStatus, TransactionType
 from exceptions import (
     AccountNotFoundError,
     BeneficiaryNotFoundError,
@@ -83,6 +83,10 @@ class TransactionService:
             or transfer_kind is TransferKind.INTERNAL
             else TransactionStatus.PENDING
         )
+        transfer_reference = command.transfer_reference
+        if transfer_kind is TransferKind.INTERNAL and transfer_reference is None:
+            transfer_reference = self._new_reference()
+
         transaction = await self.transactions.add(
             Transaction(
                 account_id=command.account_id,
@@ -92,7 +96,7 @@ class TransactionService:
                 amount=command.amount,
                 status=status,
                 reference=self._new_reference(),
-                transfer_reference=command.transfer_reference,
+                transfer_reference=transfer_reference,
                 description=command.description,
             )
         )
@@ -114,6 +118,25 @@ class TransactionService:
                     raise AccountNotFoundError()
                 await self.accounts.credit(internal_account.id, effect.debit)
 
+                recipient_transaction = await self.transactions.add(
+                    Transaction(
+                        account_id=internal_account.id,
+                        transaction_type=TransactionType.TRANSFER,
+                        direction=TransactionDirection.CREDIT,
+                        amount=transaction.amount,
+                        status=TransactionStatus.COMPLETED,
+                        reference=self._new_reference(),
+                        transfer_reference=transaction.transfer_reference,
+                        description=(
+                            "Incoming transfer from account "
+                            f"{account.account_number}"
+                        ),
+                    )
+                )
+                if recipient_transaction.id is None:
+                    raise TransactionNotFoundError()
+                recipient_transaction_id = recipient_transaction.id
+
         await self.transactions.add_log(
             TransactionLog(
                 transaction_id=transaction.id,
@@ -128,6 +151,19 @@ class TransactionService:
                 ),
             )
         )
+        if transfer_kind is TransferKind.INTERNAL:
+            if internal_account is None or internal_account.id is None:
+                raise AccountNotFoundError()
+            await self.transactions.add_log(
+                TransactionLog(
+                    transaction_id=recipient_transaction_id,
+                    user_id=internal_account.user_id,
+                    action="RECEIVE",
+                    status=TransactionStatus.COMPLETED.value,
+                    message="Internal transfer received",
+                    metadata={"transfer_kind": TransferKind.INTERNAL.value},
+                )
+            )
         await self.unit_of_work.commit()
         return transaction_response(transaction)
 

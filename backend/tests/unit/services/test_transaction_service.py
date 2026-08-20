@@ -195,6 +195,17 @@ async def test_create_transfer_classifies_matching_account_as_internal(service_a
     }
     assert unit_of_work.accounts.credited == [Decimal("25.00")]
     assert unit_of_work.accounts.debited == [Decimal("25.00")]
+    assert len(unit_of_work.transactions.items) == 2
+    sender_transaction, recipient_transaction = unit_of_work.transactions.items
+    assert recipient_transaction.direction is TransactionDirection.CREDIT
+    assert recipient_transaction.status is TransactionStatus.COMPLETED
+    assert recipient_transaction.account_id == 2
+    assert (
+        recipient_transaction.transfer_reference
+        == sender_transaction.transfer_reference
+    )
+    assert len(unit_of_work.transactions.logs) == 2
+    assert unit_of_work.transactions.logs[1].action == "RECEIVE"
 
 
 @pytest.mark.asyncio
