@@ -78,16 +78,10 @@ export default function CustomerHomePage() {
           )}
 
           <div className="customer-welcome">
-            <p className="auth-eyebrow">Customer account</p>
+            <p className="auth-eyebrow">Customer Account</p>
             <h1>Welcome, {displayName}</h1>
-            <p>Your secure Nexa sign-in is active.</p>
           </div>
         </div>
-
-        <aside className="customer-demo-notice">
-          <strong>Demo environment</strong>
-          <span>No real accounts, payments, or funds are used.</span>
-        </aside>
 
         <section
           className="customer-grid customer-grid-single"
@@ -108,6 +102,15 @@ export default function CustomerHomePage() {
                 <p className="customer-card-label">Everyday account</p>
                 <h2>Loading account…</h2>
               </div>
+            ) : statusLabel === "PENDING" ? (
+              <div>
+                <p className="customer-card-label">Everyday account</p>
+                <h2>Account pending verification</h2>
+                <p>
+                  This account is not yet verified. Please allow a few days
+                  while we get your account verified.
+                </p>
+              </div>
             ) : (
               <>
                 <div>
@@ -123,7 +126,6 @@ export default function CustomerHomePage() {
                   </p>
                 </div>
                 <div className="customer-actions">
-                  <span className="customer-status">{statusLabel}</span>
                   {statusLabel === "APPROVED" && (
                     <Link to="/card" className="customer-card-button">
                       View card
@@ -133,7 +135,6 @@ export default function CustomerHomePage() {
               </>
             )}
           </article>
-
         </section>
       </section>
     </main>
