@@ -3,9 +3,11 @@ from fastapi.responses import JSONResponse
 
 from exceptions import (
     AccountAlreadyExistsError,
+    AccountAlreadyFrozenError,
     AccountNotFoundError,
     AccountAlreadyClosedError,
     AccountBalanceNotZeroError,
+    AccountNotFrozenError,
     EmailAlreadyRegisteredError,
     BeneficiaryNotFoundError,
     InvalidBeneficiaryUpdateError,
@@ -235,6 +237,20 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "Account is already closed"},
+        )
+
+    @app.exception_handler(AccountAlreadyFrozenError)
+    async def account_already_frozen_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is already frozen"},
+        )
+
+    @app.exception_handler(AccountNotFrozenError)
+    async def account_not_frozen_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is not frozen"},
         )
 
     @app.exception_handler(AccountBalanceNotZeroError)

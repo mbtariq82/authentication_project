@@ -17,6 +17,21 @@ async def get_account(
 ) -> AccountResponse:
     return await service.get_account(user.id)
 
+@router.patch("/me/freeze", response_model=AccountResponse)
+async def freeze_account(
+    user: User = Depends(get_current_user),
+    service: AccountService = Depends(get_account_service),
+) -> AccountResponse:
+    return await service.freeze_account(user.id)
+
+
+@router.patch("/me/unfreeze", response_model=AccountResponse)
+async def unfreeze_account(
+    user: User = Depends(get_current_user),
+    service: AccountService = Depends(get_account_service),
+) -> AccountResponse:
+    return await service.unfreeze_account(user.id)
+
 
 @router.patch("/me/close", response_model=AccountResponse)
 async def close_account(
