@@ -84,11 +84,6 @@ export default function CustomerHomePage() {
           </div>
         </div>
 
-        <aside className="customer-demo-notice">
-          <strong>Demo environment</strong>
-          <span>No real accounts, payments, or funds are used.</span>
-        </aside>
-
         <section
           className="customer-grid customer-grid-single"
           aria-label="Account overview"
@@ -133,7 +128,6 @@ export default function CustomerHomePage() {
               </>
             )}
           </article>
-
         </section>
       </section>
     </main>
