@@ -4,6 +4,12 @@ class ApplicationError(Exception):
 class AuthenticationError(ApplicationError):
     """Base class for authentication failures."""
 
+class AccountAlreadyClosedError(ApplicationError):
+    pass
+
+class AccountBalanceNotZeroError(ApplicationError):
+    pass
+
 class EmailAlreadyRegisteredError(ApplicationError):
     pass
 
@@ -87,3 +93,4 @@ class InvalidProfileUpdateError(ApplicationError):
 
 class ProfileImageStorageError(ApplicationError):
     pass
+

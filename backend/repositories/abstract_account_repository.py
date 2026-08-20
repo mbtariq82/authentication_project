@@ -32,3 +32,7 @@ class AbstractAccountRepository(ABC):
     @abstractmethod
     async def debit(self, account_id: int, amount: Decimal) -> Account:
         raise NotImplementedError
+
+    @abstractmethod
+    async def close(self, account_id: int, close_reason: str) -> Account:
+        raise NotImplementedError

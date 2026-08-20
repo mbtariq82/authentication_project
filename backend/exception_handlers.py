@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 from exceptions import (
     AccountAlreadyExistsError,
     AccountNotFoundError,
+    AccountAlreadyClosedError,
+    AccountBalanceNotZeroError,
     EmailAlreadyRegisteredError,
     BeneficiaryNotFoundError,
     InvalidBeneficiaryUpdateError,
@@ -226,4 +228,18 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"detail": "Profile image storage is unavailable"},
+        )
+    
+    @app.exception_handler(AccountAlreadyClosedError)
+    async def account_already_closed_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is already closed"},
+        )
+
+    @app.exception_handler(AccountBalanceNotZeroError)
+    async def account_balance_not_zero_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": str(error)},
         )
