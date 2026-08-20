@@ -26,6 +26,10 @@ class AbstractAccountRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def close(self, account_id: int, close_reason: str) -> Account:
+        raise NotImplementedError
+
+    @abstractmethod
     async def credit(self, account_id: int, amount: Decimal) -> Account:
         raise NotImplementedError
 
@@ -34,5 +38,5 @@ class AbstractAccountRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def close(self, account_id: int, close_reason: str) -> Account:
+    async def set_status( self, account_id: int, account_status: str) -> Account:
         raise NotImplementedError

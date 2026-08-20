@@ -139,3 +139,18 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         await self.session.flush()
         await self.session.refresh(row)
         return self._to_domain(row)
+
+    async def set_status(self, account_id: int, account_status: str) -> Account:
+        result = await self.session.execute(
+            select(AccountRow)
+            .where(AccountRow.id == account_id)
+            .with_for_update()
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            raise AccountNotFoundError()
+
+        row.account_status = account_status
+        await self.session.flush()
+        await self.session.refresh(row)
+        return self._to_domain(row)

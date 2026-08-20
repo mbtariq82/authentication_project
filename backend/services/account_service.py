@@ -1,11 +1,15 @@
 from domain.account import Account
 from decimal import Decimal
+from enums import AccountStatus
 
+# import block:
 from exceptions import (
     AccountAlreadyClosedError,
     AccountAlreadyExistsError,
+    AccountAlreadyFrozenError,
     AccountBalanceNotZeroError,
     AccountNotFoundError,
+    AccountNotFrozenError,
 )
 from schemas.account import AccountResponse
 from unit_of_work.abstract_account_unit_of_work import AbstractAccountUnitOfWork
@@ -44,3 +48,33 @@ class AccountService:
             closed = await uow.accounts.close(account.id, close_reason)
             await uow.commit()
             return AccountResponse.model_validate(closed)
+
+    async def freeze_account(self, user_id: int) -> AccountResponse:
+        async with self.unit_of_work as uow:
+            account = await uow.accounts.get_by_user(user_id)
+            if account is None:
+                raise AccountNotFoundError()
+            if account.is_deleted or account.account_status == AccountStatus.CLOSED:
+                raise AccountAlreadyClosedError()
+            if account.account_status == AccountStatus.FROZEN:
+                raise AccountAlreadyFrozenError()
+
+            frozen = await uow.accounts.set_status(
+                account.id, AccountStatus.FROZEN.value
+            )
+            await uow.commit()
+            return AccountResponse.model_validate(frozen)
+
+    async def unfreeze_account(self, user_id: int) -> AccountResponse:
+        async with self.unit_of_work as uow:
+            account = await uow.accounts.get_by_user(user_id)
+            if account is None:
+                raise AccountNotFoundError()
+            if account.account_status != AccountStatus.FROZEN:
+                raise AccountNotFrozenError()
+
+            approved = await uow.accounts.set_status(
+                account.id, AccountStatus.APPROVED.value
+            )
+            await uow.commit()
+            return AccountResponse.model_validate(approved)
