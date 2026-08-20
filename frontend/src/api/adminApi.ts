@@ -100,7 +100,7 @@ export async function updateAccountStatus(
 
 // ---------------- LOANS ----------------
 
-export async function fetchLoans(skip = 0, limit = 100): Promise<AdminLoan[]> {
+export async function fetchLoans(skip = 0, limit = 10): Promise<AdminLoan[]> {
   const response = await fetchWithAuth(
     `${API_BASE_URL}/admin/all_loans?skip=${skip}&limit=${limit}`,
     {

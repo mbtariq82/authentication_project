@@ -851,3 +851,63 @@ tbody td {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 20px;
+
+  border-top: 1px solid #e2e8f0;
+}
+
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 14px;
+  color: #64748b;
+}
+
+.page-size select {
+  padding: 6px 10px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+
+  background: white;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pagination-btn {
+  padding: 7px 14px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+
+  background: white;
+  color: #334155;
+
+  cursor: pointer;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-number {
+  font-size: 14px;
+  color: #475569;
+}

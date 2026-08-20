@@ -14,6 +14,12 @@ const FILTERS: {
 ];
 
 export default function LoansPanel() {
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const skip = (page - 1) * pageSize;
+
   const [loans, setLoans] = useState<AdminLoan[]>([]);
 
   const [filter, setFilter] = useState<LoanStatus | "all">("all");
@@ -35,7 +41,8 @@ export default function LoansPanel() {
     setError(null);
 
     try {
-      const data = await fetchLoans();
+      const data = await fetchLoans(skip, pageSize);
+
       setLoans(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load loans");
@@ -46,7 +53,7 @@ export default function LoansPanel() {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [page, pageSize]);
 
   async function handleAction(loanId: number, status: LoanStatus) {
     setActingOn(loanId);
@@ -55,10 +62,9 @@ export default function LoansPanel() {
     try {
       await updateLoanStatus(loanId, status);
 
-      // Fetch latest loans after status update
+      // Reload current page after update
       await load();
 
-      // Close edit modal
       setEditingLoan(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -72,9 +78,26 @@ export default function LoansPanel() {
       ? loans
       : loans.filter((loan) => loan.current_loan_status === filter);
 
+  function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setPageSize(Number(event.target.value));
+
+    // Always go back to first page
+    setPage(1);
+  }
+
+  function handlePrevious() {
+    setPage((previous) => Math.max(1, previous - 1));
+  }
+
+  function handleNext() {
+    setPage((previous) => previous + 1);
+  }
+
   return (
     <div className="panel">
-      {/* HEADER */}
+      {/* ==========================
+          HEADER
+      ========================== */}
 
       <div className="panel-header">
         <div className="panel-title">Loan applications</div>
@@ -84,7 +107,9 @@ export default function LoansPanel() {
             <button
               key={f.key}
               className={`tab ${filter === f.key ? "active" : ""}`}
-              onClick={() => setFilter(f.key)}
+              onClick={() => {
+                setFilter(f.key);
+              }}
               type="button"
             >
               {f.label}
@@ -93,15 +118,21 @@ export default function LoansPanel() {
         </div>
       </div>
 
-      {/* LOADING */}
+      {/* ==========================
+          LOADING
+      ========================== */}
 
       {loading && <div className="panel-loading">Loading loans...</div>}
 
-      {/* ERROR */}
+      {/* ==========================
+          ERROR
+      ========================== */}
 
       {error && <div className="panel-error">{error}</div>}
 
-      {/* TABLE */}
+      {/* ==========================
+          TABLE
+      ========================== */}
 
       {!loading && !error && (
         <>
@@ -195,6 +226,7 @@ export default function LoansPanel() {
                             type="button"
                             onClick={() => {
                               setEditingLoan(loan);
+
                               setError(null);
                             }}
                           >
@@ -209,8 +241,44 @@ export default function LoansPanel() {
             </table>
           )}
 
-          <div className="panel-footer">
-            Showing {visible.length} of {loans.length} loans
+          {/* ==========================
+              PAGINATION
+          ========================== */}
+
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
+
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={10}>10</option>
+
+                <option value={20}>20</option>
+
+                <option value={30}>30</option>
+              </select>
+            </div>
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={loans.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
