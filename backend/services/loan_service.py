@@ -4,6 +4,8 @@ from domain.loan import (
     get_interest_rate,
     calculate_emi,
 )
+from domain.transaction import Transaction
+from enums import TransactionType, TransactionDirection, TransactionStatus
 from domain.card import AuthenticatedUserContext
 from models.loan import LoanRow
 from schemas.loan import (
@@ -180,6 +182,18 @@ class LoanService:
 
         if loan.loan_amount == 0:
             loan.current_loan_status = "PAID"
+
+        transaction = Transaction(
+            account_id=user_context.account.id,
+            transaction_type=TransactionType.WITHDRAWAL,
+            direction=TransactionDirection.DEBIT,
+            amount=request.amount,
+            reference=f"LOAN-{loan.id}",
+            status=TransactionStatus.COMPLETED,
+            description=f"Loan repayment for loan {loan.id}",
+        )
+
+        await self.uow.transaction.add(transaction)
 
         return LoanRepaymentResponse(
             loan_id=loan.id,
