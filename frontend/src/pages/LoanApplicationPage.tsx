@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import LoanNavigation from "../components/LoanNavigation";
 
 import { applyForLoan } from "../api/loanClient";
 
@@ -81,18 +82,7 @@ export default function LoanApplicationPage() {
 
   return (
     <div className="loan-application-page">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <Link to="/my-loans" className="customer-back">
-          Back to loans
-        </Link>
-      </header>
+      <LoanNavigation showBackToLoans />
 
       <main className="loan-application-container">
         <header className="loan-application-header">

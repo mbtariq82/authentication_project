@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import LoanNavigation from "../components/LoanNavigation";
 
 import "../styles/emi-calculator.css";
 
@@ -58,24 +59,7 @@ export default function EMICalculatorPage() {
 
   return (
     <div className="emi-calculator-page">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <div className="customer-header-actions">
-          <Link to="/loans/apply" className="customer-apply-loan">
-            Apply for a loan
-          </Link>
-
-          <Link to="/account" className="customer-back">
-            Back to account
-          </Link>
-        </div>
-      </header>
+      <LoanNavigation showApplyForLoan showBackToAccount />
 
       <main className="emi-calculator-container">
         <header className="emi-calculator-header">
