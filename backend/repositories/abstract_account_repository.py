@@ -22,6 +22,14 @@ class AbstractAccountRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_by_account_number_and_sort_code(
+        self,
+        account_number: str,
+        sort_code: str,
+    ) -> Account | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_by_id_for_update(self, account_id: int) -> Account | None:
         raise NotImplementedError
 
