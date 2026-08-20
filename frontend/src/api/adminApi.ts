@@ -116,7 +116,7 @@ export async function updateLoanStatus(
   status: LoanStatus,
 ): Promise<AdminLoan> {
   const response = await fetchWithAuth(
-    `${API_BASE_URL}/admin/loans/${loanId}/status`,
+    `${API_BASE_URL}/loans/${loanId}/decision`,
     {
       method: "PATCH",
       headers: {

@@ -1,6 +1,7 @@
 from pydantic import BaseModel,ConfigDict
 from datetime import date
 from enums import AccountStatus, UserStatus, Role, CardStatus
+from decimal import Decimal
 
 
 class UpdateUserStatusCommand(BaseModel):
@@ -51,3 +52,19 @@ class AdminUserResponse(BaseModel):
     is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class AdminLoanResponse(BaseModel):
+    id: int
+
+    loan_type: str
+    loan_amount: Decimal
+    duration: int
+    interest: int | float
+    emi: Decimal
+
+    current_loan_status: str
+
+    user_id: int
+    first_name: str
+    last_name: str
+    email: str

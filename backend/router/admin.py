@@ -5,12 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies.card import get_card_service
 from dependencies.auth import require_admin
 from dependencies.database import get_db
-from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse,UpdateAccountStatus, UpdateCardStatus
-from services.admin_service import AdminUserService, AdminCardService, AdminAccountService
+from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse,UpdateAccountStatus, UpdateCardStatus,AdminLoanResponse
+from services.admin_service import AdminUserService, AdminCardService, AdminAccountService, AdminLoanService
 from services.card_service import CardService
 from schemas.card import AdminCardResponse
 from schemas.account import AdminAccountResponse
-
+from schemas.loan import LoanResponse
 router = APIRouter(
     prefix="/admin", 
     tags=["Admin"],
@@ -102,4 +102,21 @@ async def update_card_status(
     return await service.update_status(
         card_id=data.card_id,
         new_status=data.status,
+    )
+
+
+@router.get(
+    "/all_loans",
+    response_model=list[AdminLoanResponse],
+)
+async def get_all_loans(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    service = AdminLoanService(db)
+
+    return await service.list_loans(
+        skip=skip,
+        limit=limit,
     )

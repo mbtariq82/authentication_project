@@ -9,7 +9,7 @@ from enums import UserStatus, AccountStatus, CardStatus
 from models.account import AccountRow
 from repositories.admin_repository import (
     UserRepository,
-    AccountRepository, CardRepository
+    AccountRepository, CardRepository, LoanRepository
 )
 
 import secrets
@@ -340,3 +340,16 @@ class AdminUserService:
     ):
         return await self.user_repo.list_users(skip, limit)
 
+class AdminLoanService:
+    def __init__(self, db: AsyncSession):
+        self.repo = LoanRepository(db)
+
+    async def list_loans(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_loans(
+            skip=skip,
+            limit=limit,
+        )
