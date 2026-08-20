@@ -78,9 +78,8 @@ export default function CustomerHomePage() {
           )}
 
           <div className="customer-welcome">
-            <p className="auth-eyebrow">Customer account</p>
+            <p className="auth-eyebrow">Customer Account</p>
             <h1>Welcome, {displayName}</h1>
-            <p>Your secure Nexa sign-in is active.</p>
           </div>
         </div>
 
