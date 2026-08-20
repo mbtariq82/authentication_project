@@ -73,6 +73,10 @@ class BeneficiaryNotFoundError(ApplicationError):
     pass
 
 
+class SelfTransferError(ApplicationError):
+    pass
+
+
 class InvalidBeneficiaryUpdateError(ApplicationError):
     pass
 

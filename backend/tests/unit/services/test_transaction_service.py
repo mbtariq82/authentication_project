@@ -10,6 +10,7 @@ from enums import TransactionDirection, TransactionStatus, TransactionType
 from exceptions import (
     InsufficientFundsError,
     InvalidTransactionStatusTransitionError,
+    SelfTransferError,
 )
 from schemas.transaction import TransactionCreate, TransactionFilter
 from services.transaction_service import TransactionService
@@ -192,6 +193,28 @@ async def test_create_transfer_classifies_matching_account_as_internal(service_a
     assert unit_of_work.transactions.logs[0].metadata == {
         "transfer_kind": "INTERNAL"
     }
+    assert unit_of_work.accounts.credited == []
+    assert unit_of_work.accounts.debited == []
+
+
+@pytest.mark.asyncio
+async def test_create_transfer_rejects_sender_as_internal_beneficiary(service_and_uow):
+    service, unit_of_work = service_and_uow
+    unit_of_work.accounts.internal_account = unit_of_work.accounts.account
+
+    with pytest.raises(SelfTransferError):
+        await service.create(
+            1,
+            TransactionCreate(
+                account_id=1,
+                beneficiary_id=2,
+                transaction_type=TransactionType.TRANSFER,
+                direction=TransactionDirection.DEBIT,
+                amount=Decimal("25.00"),
+            ),
+        )
+
+    assert unit_of_work.transactions.items == []
     assert unit_of_work.accounts.credited == []
     assert unit_of_work.accounts.debited == []
 

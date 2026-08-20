@@ -10,6 +10,7 @@ from enums import TransactionStatus, TransactionType
 from exceptions import (
     BeneficiaryNotFoundError,
     InvalidTransactionStatusTransitionError,
+    SelfTransferError,
     TransactionNotFoundError,
 )
 from schemas.transaction import (
@@ -63,6 +64,8 @@ class TransactionService:
                     beneficiary.sort_code,
                 )
             )
+            if internal_account is not None and internal_account.id == account.id:
+                raise SelfTransferError()
             transfer_kind = (
                 TransferKind.INTERNAL
                 if internal_account is not None

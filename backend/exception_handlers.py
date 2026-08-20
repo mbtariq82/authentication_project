@@ -142,6 +142,16 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": "Beneficiary not found"},
         )
 
+    @app.exception_handler(SelfTransferError)
+    async def self_transfer_handler(
+        request: Request,
+        error: SelfTransferError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "You cannot transfer money to your own account"},
+        )
+
     @app.exception_handler(InvalidBeneficiaryUpdateError)
     async def invalid_beneficiary_update_handler(
         request: Request,
