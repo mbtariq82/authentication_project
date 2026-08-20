@@ -80,7 +80,7 @@ export default function CustomerHomePage() {
           <div className="customer-welcome">
             <p className="auth-eyebrow">Customer account</p>
             <h1>Welcome, {displayName}</h1>
-            <p>Your secure Demo Bank sign-in is active.</p>
+            <p>Your secure Nexa sign-in is active.</p>
           </div>
         </div>
 
@@ -108,15 +108,15 @@ export default function CustomerHomePage() {
             ) : (
               <>
                 <div>
-                  <p className="customer-card-label">Everyday account</p>
+                  <p className="customer-card-label">
+                    {account.account_number ??
+                      "Account number pending assignment"}
+                  </p>
                   <h2>{balanceDisplay}</h2>
                   <p>
-                    {account.account_number
-                      ? `Account number ${account.account_number}`
-                      : "Account number pending assignment"}
                     {account.sort_code
-                      ? ` · Sort code ${account.sort_code}`
-                      : ""}
+                      ? `Sort code ${account.sort_code}`
+                      : "Sort code pending assignment"}
                   </p>
                 </div>
                 <div className="customer-actions">

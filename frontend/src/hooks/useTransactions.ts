@@ -7,6 +7,7 @@ import {
   getTransactionLogs,
   getTransactions,
 } from "../api/transactionClient";
+import type { Account } from "../types/account";
 import type {
   CreateTransactionRequest,
   TransactionFilters,
@@ -56,8 +57,28 @@ export function useCreateTransaction() {
   return useMutation({
     mutationFn: (request: CreateTransactionRequest) =>
       createTransaction(request),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: transactionQueryKeys.all }),
+    onSuccess: (_result, request) => {
+      queryClient.setQueryData(
+        ["account", "me"],
+        (current: Account | undefined) => {
+          if (!current) return current;
+
+          const currentBalance = Number(current.balance) || 0;
+          const amountValue = Number(request.amount) || 0;
+          const nextBalance =
+            request.direction === "CREDIT"
+              ? currentBalance + amountValue
+              : currentBalance - amountValue;
+
+          return {
+            ...current,
+            balance: nextBalance.toFixed(2),
+          };
+        },
+      );
+
+      queryClient.invalidateQueries({ queryKey: transactionQueryKeys.all });
+    },
   });
 }
 

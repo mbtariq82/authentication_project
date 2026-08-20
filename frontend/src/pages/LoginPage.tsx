@@ -82,7 +82,7 @@ export default function LoginPage() {
         <header className="auth-form-heading">
           <p className="auth-eyebrow">Secure customer access</p>
           <h1>Welcome back</h1>
-          <p>Sign in to view and manage your Demo Bank account.</p>
+          <p>Sign in to view and manage your Nexa account.</p>
         </header>
 
         <div className="auth-field">
@@ -140,7 +140,7 @@ export default function LoginPage() {
         )}
 
         <p className="auth-form-footer">
-          New to Demo Bank? <Link to="/register">Open an account</Link>
+          New to Nexa? <Link to="/register">Open an account</Link>
         </p>
       </form>
     </AuthShell>

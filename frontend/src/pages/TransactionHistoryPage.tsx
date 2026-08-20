@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import { logout } from "../api/authClient";
 import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 import {
   useCancelTransaction,
   useTransaction,
@@ -77,29 +78,7 @@ export default function TransactionHistoryPage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <Link className="customer-brand-lockup" to="/account">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </Link>
-        <nav className="customer-nav" aria-label="Customer navigation">
-          <Link to="/account">Account</Link>
-          <Link to="/beneficiaries">Beneficiaries</Link>
-          <Link to="/transactions">Move money</Link>
-          <Link className="customer-nav-active" to="/transactions/history">
-            History
-          </Link>
-          <button
-            className="customer-logout"
-            type="button"
-            onClick={handleLogout}
-          >
-            Sign out
-          </button>
-        </nav>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content transactions-page">
         <div className="customer-welcome">

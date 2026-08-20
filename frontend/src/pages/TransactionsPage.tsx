@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
-import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 import { useAccount } from "../hooks/useAccount";
 import { useBeneficiaries } from "../hooks/useBeneficiaries";
 import { useCreateTransaction } from "../hooks/useTransactions";
@@ -17,8 +15,11 @@ const transactionTypes: TransactionType[] = [
   "TRANSFER",
 ];
 
+function waitForSubmissionDelay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default function TransactionsPage() {
-  const navigate = useNavigate();
   const accountQuery = useAccount();
   const beneficiariesQuery = useBeneficiaries();
   const createMutation = useCreateTransaction();
@@ -27,23 +28,17 @@ export default function TransactionsPage() {
   const [beneficiaryId, setBeneficiaryId] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
-
-  async function handleLogout() {
-    try {
-      await logout();
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accountQuery.data) return;
     setMessage("");
+    setIsSubmitting(true);
     const direction: TransactionDirection =
       type === "DEPOSIT" ? "CREDIT" : "DEBIT";
     try {
+      await waitForSubmissionDelay(2000);
       await createMutation.mutateAsync({
         account_id: accountQuery.data.id,
         beneficiary_id: type === "TRANSFER" ? Number(beneficiaryId) : null,
@@ -64,6 +59,8 @@ export default function TransactionsPage() {
       setMessage(
         error instanceof Error ? error.message : "Transaction failed.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -73,29 +70,7 @@ export default function TransactionsPage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <Link className="customer-brand-lockup" to="/account">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </Link>
-        <nav className="customer-nav" aria-label="Customer navigation">
-          <Link to="/account">Account</Link>
-          <Link to="/beneficiaries">Beneficiaries</Link>
-          <Link className="customer-nav-active" to="/transactions">
-            Transactions
-          </Link>
-          <Link to="/transactions/history">History</Link>
-          <button
-            className="customer-logout"
-            type="button"
-            onClick={handleLogout}
-          >
-            Sign out
-          </button>
-        </nav>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content transactions-page">
         <div className="customer-welcome">
@@ -109,11 +84,13 @@ export default function TransactionsPage() {
 
         <div className="transaction-account-banner">
           <div>
-            <p className="customer-card-label">Everyday account</p>
+            <p className="customer-card-label">
+              {accountQuery.data?.account_number ?? "Account unavailable"}
+            </p>
             <strong>
-              {accountQuery.data
-                ? `Account #${accountQuery.data.id}`
-                : "Account unavailable"}
+              {accountQuery.data?.sort_code
+                ? `Sort code ${accountQuery.data.sort_code}`
+                : "Sort code unavailable"}
             </strong>
           </div>
           <span className="transaction-balance">
@@ -202,18 +179,24 @@ export default function TransactionsPage() {
                 </p>
               )}
               <button
-                className="auth-primary-action"
+                className="auth-primary-action transaction-submit-button"
                 type="submit"
                 disabled={
+                  isSubmitting ||
                   createMutation.isPending ||
                   (isTransfer && !beneficiariesQuery.data?.length)
                 }
               >
-                {createMutation.isPending
-                  ? "Submitting..."
-                  : isTransfer
-                    ? "Submit transfer"
-                    : `Complete ${type.toLowerCase()}`}
+                {isSubmitting ? (
+                  <>
+                    <span className="transaction-spinner" aria-hidden="true" />
+                    Processing...
+                  </>
+                ) : isTransfer ? (
+                  "Submit transfer"
+                ) : (
+                  `Complete ${type.toLowerCase()}`
+                )}
               </button>
             </form>
           </section>
