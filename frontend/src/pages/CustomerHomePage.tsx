@@ -117,7 +117,6 @@ export default function CustomerHomePage() {
                   </p>
                 </div>
                 <div className="customer-actions">
-                  <span className="customer-status">{statusLabel}</span>
                   {statusLabel === "APPROVED" && (
                     <Link to="/card" className="customer-card-button">
                       View card
