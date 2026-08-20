@@ -64,7 +64,7 @@ export default function CardVisual({ card, cardStatus }: CardVisualProps) {
           </div>
 
           <div className="card-back-footer">
-            <span>Demo Bank</span>
+            <span>Nexa Bank</span>
             <span>Debit</span>
           </div>
         </div>

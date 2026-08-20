@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
-import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 import {
   useCancelTransaction,
   useTransaction,
@@ -22,9 +20,10 @@ function formatType(type: TransactionType) {
 }
 
 export default function TransactionHistoryPage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<TransactionStatus | "">("");
   const [type, setType] = useState<TransactionType | "">("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [offset, setOffset] = useState(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
@@ -32,6 +31,8 @@ export default function TransactionHistoryPage() {
   const filters: TransactionFilters = {
     ...(status ? { status } : {}),
     ...(type ? { transaction_type: type } : {}),
+    ...(startDate ? { created_from: `${startDate}T00:00` } : {}),
+    ...(endDate ? { created_to: `${endDate}T23:59:59` } : {}),
     offset,
     limit: pageSize,
   };
@@ -40,20 +41,18 @@ export default function TransactionHistoryPage() {
   const logsQuery = useTransactionLogs(selectedId);
   const cancelMutation = useCancelTransaction();
 
-  async function handleLogout() {
-    try {
-      await logout();
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
-
   function resetFilters() {
     setStatus("");
     setType("");
+    setStartDate("");
+    setEndDate("");
     setOffset(0);
     setSelectedId(null);
+  }
+
+  function closeTransactionDetails() {
+    setSelectedId(null);
+    setMessage("");
   }
 
   async function cancelSelected() {
@@ -77,33 +76,10 @@ export default function TransactionHistoryPage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <Link className="customer-brand-lockup" to="/account">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </Link>
-        <nav className="customer-nav" aria-label="Customer navigation">
-          <Link to="/account">Account</Link>
-          <Link to="/beneficiaries">Beneficiaries</Link>
-          <Link to="/transactions">Move money</Link>
-          <Link className="customer-nav-active" to="/transactions/history">
-            History
-          </Link>
-          <button
-            className="customer-logout"
-            type="button"
-            onClick={handleLogout}
-          >
-            Sign out
-          </button>
-        </nav>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content transactions-page">
         <div className="customer-welcome">
-          <p className="auth-eyebrow">Activity</p>
           <h1>Transaction history</h1>
           <p>Review your account activity and transaction audit trail.</p>
         </div>
@@ -114,10 +90,34 @@ export default function TransactionHistoryPage() {
         >
           <div className="history-toolbar">
             <div>
-              <p className="customer-card-label">Your activity</p>
               <h2 id="history-title">Transactions</h2>
             </div>
             <div className="history-filters">
+              <div className="history-range-filter">
+                <input
+                  aria-label="Start date"
+                  type="date"
+                  value={startDate}
+                  max={endDate || undefined}
+                  onChange={(event) => {
+                    setStartDate(event.target.value);
+                    setOffset(0);
+                    setSelectedId(null);
+                  }}
+                />
+                <span aria-hidden="true">to</span>
+                <input
+                  aria-label="End date"
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={(event) => {
+                    setEndDate(event.target.value);
+                    setOffset(0);
+                    setSelectedId(null);
+                  }}
+                />
+              </div>
               <select
                 aria-label="Filter by type"
                 value={type}
@@ -242,22 +242,60 @@ export default function TransactionHistoryPage() {
         </section>
 
         {selectedId && (
-          <section
-            className="transaction-panel transaction-detail-panel"
-            aria-labelledby="transaction-detail-title"
+          <div
+            className="transaction-modal-backdrop"
+            role="presentation"
+            onMouseDown={closeTransactionDetails}
           >
-            {selectedQuery.isLoading && (
-              <p role="status">Loading transaction details...</p>
-            )}
-            {selectedQuery.data && (
-              <>
-                <div className="history-toolbar">
-                  <div>
-                    <p className="customer-card-label">Selected transaction</p>
-                    <h2 id="transaction-detail-title">
-                      {formatType(selectedQuery.data.transaction_type)}
-                    </h2>
+            <section
+              className="transaction-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="transaction-detail-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <button
+                className="transaction-modal-close"
+                type="button"
+                aria-label="Close transaction details"
+                onClick={closeTransactionDetails}
+              >
+                ×
+              </button>
+              {selectedQuery.isLoading && (
+                <p role="status">Loading transaction details...</p>
+              )}
+              {selectedQuery.data && (
+                <>
+                  <div className="transaction-modal-header">
+                    <div>
+                      <p className="customer-card-label">Transaction details</p>
+                      <h2 id="transaction-detail-title">
+                        {formatType(selectedQuery.data.transaction_type)}
+                      </h2>
+                    </div>
+                    <span
+                      className={`history-status history-status-${selectedQuery.data.status.toLowerCase()}`}
+                    >
+                      {selectedQuery.data.status}
+                    </span>
                   </div>
+                  <dl className="transaction-detail-grid">
+                    <div>
+                      <dt>Amount</dt>
+                      <dd>£{selectedQuery.data.amount}</dd>
+                    </div>
+                    <div>
+                      <dt>Reference</dt>
+                      <dd>{selectedQuery.data.reference}</dd>
+                    </div>
+                    <div>
+                      <dt>Description</dt>
+                      <dd>
+                        {selectedQuery.data.description || "No description"}
+                      </dd>
+                    </div>
+                  </dl>
                   {selectedQuery.data.status === "PENDING" && (
                     <button
                       className="danger-action"
@@ -270,46 +308,26 @@ export default function TransactionHistoryPage() {
                         : "Cancel transaction"}
                     </button>
                   )}
-                </div>
-                <dl className="transaction-detail-grid">
-                  <div>
-                    <dt>Amount</dt>
-                    <dd>£{selectedQuery.data.amount}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{selectedQuery.data.status}</dd>
-                  </div>
-                  <div>
-                    <dt>Reference</dt>
-                    <dd>{selectedQuery.data.reference}</dd>
-                  </div>
-                  <div>
-                    <dt>Description</dt>
-                    <dd>
-                      {selectedQuery.data.description || "No description"}
-                    </dd>
-                  </div>
-                </dl>
-                {message && (
-                  <p className="transaction-message" role="status">
-                    {message}
-                  </p>
-                )}
-                <div className="history-logs">
-                  <h3>Activity log</h3>
-                  {logsQuery.isLoading && <p role="status">Loading log...</p>}
-                  {logsQuery.data?.map((log) => (
-                    <p key={log.id}>
-                      <strong>{log.action}</strong> ·{" "}
-                      {log.message || log.status} ·{" "}
-                      {new Date(log.created_at).toLocaleString()}
+                  {message && (
+                    <p className="transaction-message" role="status">
+                      {message}
                     </p>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
+                  )}
+                  <div className="history-logs">
+                    <h3>Activity log</h3>
+                    {logsQuery.isLoading && <p role="status">Loading log...</p>}
+                    {logsQuery.data?.map((log) => (
+                      <p key={log.id}>
+                        <strong>{log.action}</strong> ·{" "}
+                        {log.message || log.status} ·{" "}
+                        {new Date(log.created_at).toLocaleString()}
+                      </p>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          </div>
         )}
       </section>
     </main>

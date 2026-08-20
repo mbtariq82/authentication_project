@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import { logout } from "../api/authClient";
 import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 import { useBeneficiaries } from "../hooks/useBeneficiaries";
 import {
   useCreateBeneficiary,
@@ -106,28 +107,7 @@ export default function BeneficiariesPage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <Link className="customer-brand-lockup" to="/account">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </Link>
-        <nav className="customer-nav" aria-label="Customer navigation">
-          <Link to="/account">Account</Link>
-          <Link className="customer-nav-active" to="/beneficiaries">
-            Beneficiaries
-          </Link>
-          <Link to="/transactions">Transactions</Link>
-          <button
-            className="customer-logout"
-            type="button"
-            onClick={handleLogout}
-          >
-            Sign out
-          </button>
-        </nav>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content beneficiaries-page">
         <div className="customer-welcome">

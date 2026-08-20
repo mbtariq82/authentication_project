@@ -19,10 +19,19 @@ function isStrongPassword(password: string): boolean {
 
 const passwordChecks = [
   { label: "12+ characters", test: (value: string) => value.length >= 12 },
-  { label: "One lowercase letter", test: (value: string) => /[a-z]/.test(value) },
-  { label: "One uppercase letter", test: (value: string) => /[A-Z]/.test(value) },
+  {
+    label: "One lowercase letter",
+    test: (value: string) => /[a-z]/.test(value),
+  },
+  {
+    label: "One uppercase letter",
+    test: (value: string) => /[A-Z]/.test(value),
+  },
   { label: "One number", test: (value: string) => /\d/.test(value) },
-  { label: "One special character", test: (value: string) => /[^A-Za-z0-9\s]/.test(value) },
+  {
+    label: "One special character",
+    test: (value: string) => /[^A-Za-z0-9\s]/.test(value),
+  },
 ];
 
 export default function RegisterPage() {
@@ -90,11 +99,15 @@ export default function RegisterPage() {
   }
   return (
     <AuthShell>
-      <form className="auth-form" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+      <form
+        className="auth-form"
+        onSubmit={handleSubmit}
+        aria-busy={isSubmitting}
+      >
         <header className="auth-form-heading">
           <p className="auth-eyebrow">New customer</p>
           <h1>Open your account</h1>
-          <p>Enter your details to get started with Demo Bank.</p>
+          <p>Enter your details to get started with Nexa.</p>
         </header>
 
         <div className="auth-name-row">
@@ -209,7 +222,11 @@ export default function RegisterPage() {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
-          <ul className="auth-password-checklist" id="password-hint" aria-live="polite">
+          <ul
+            className="auth-password-checklist"
+            id="password-hint"
+            aria-live="polite"
+          >
             {passwordChecks.map((check) => {
               const isMet = check.test(password);
 
@@ -245,7 +262,11 @@ export default function RegisterPage() {
               type="button"
               className="auth-password-toggle"
               onClick={() => setShowConfirmPassword((previous) => !previous)}
-              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              aria-label={
+                showConfirmPassword
+                  ? "Hide confirm password"
+                  : "Show confirm password"
+              }
             >
               {showConfirmPassword ? "Hide" : "Show"}
             </button>
@@ -258,7 +279,11 @@ export default function RegisterPage() {
           </p>
         )}
 
-        <button className="auth-primary-action" type="submit" disabled={isSubmitting}>
+        <button
+          className="auth-primary-action"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>
 
