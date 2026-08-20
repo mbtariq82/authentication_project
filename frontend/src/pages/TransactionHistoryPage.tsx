@@ -1,8 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
-import { clearTokens } from "../auth/tokenStorage";
 import CustomerNavigation from "../components/CustomerNavigation";
 import {
   useCancelTransaction,
@@ -23,9 +20,10 @@ function formatType(type: TransactionType) {
 }
 
 export default function TransactionHistoryPage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<TransactionStatus | "">("");
   const [type, setType] = useState<TransactionType | "">("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [offset, setOffset] = useState(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
@@ -33,6 +31,8 @@ export default function TransactionHistoryPage() {
   const filters: TransactionFilters = {
     ...(status ? { status } : {}),
     ...(type ? { transaction_type: type } : {}),
+    ...(startDate ? { created_from: `${startDate}T00:00` } : {}),
+    ...(endDate ? { created_to: `${endDate}T23:59:59` } : {}),
     offset,
     limit: pageSize,
   };
@@ -41,18 +41,11 @@ export default function TransactionHistoryPage() {
   const logsQuery = useTransactionLogs(selectedId);
   const cancelMutation = useCancelTransaction();
 
-  async function handleLogout() {
-    try {
-      await logout();
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
-
   function resetFilters() {
     setStatus("");
     setType("");
+    setStartDate("");
+    setEndDate("");
     setOffset(0);
     setSelectedId(null);
   }
@@ -82,7 +75,6 @@ export default function TransactionHistoryPage() {
 
       <section className="customer-content transactions-page">
         <div className="customer-welcome">
-          <p className="auth-eyebrow">Activity</p>
           <h1>Transaction history</h1>
           <p>Review your account activity and transaction audit trail.</p>
         </div>
@@ -93,10 +85,34 @@ export default function TransactionHistoryPage() {
         >
           <div className="history-toolbar">
             <div>
-              <p className="customer-card-label">Your activity</p>
               <h2 id="history-title">Transactions</h2>
             </div>
             <div className="history-filters">
+              <div className="history-range-filter">
+                <input
+                  aria-label="Start date"
+                  type="date"
+                  value={startDate}
+                  max={endDate || undefined}
+                  onChange={(event) => {
+                    setStartDate(event.target.value);
+                    setOffset(0);
+                    setSelectedId(null);
+                  }}
+                />
+                <span aria-hidden="true">to</span>
+                <input
+                  aria-label="End date"
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={(event) => {
+                    setEndDate(event.target.value);
+                    setOffset(0);
+                    setSelectedId(null);
+                  }}
+                />
+              </div>
               <select
                 aria-label="Filter by type"
                 value={type}
