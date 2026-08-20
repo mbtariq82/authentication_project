@@ -225,3 +225,14 @@ class CardRepository:
         await self.db.refresh(card)
 
         return card
+
+    async def get_by_id(self, card_id: int):
+        result = await self.db.execute(
+            select(CardRow).where(
+                CardRow.id == card_id
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+ 

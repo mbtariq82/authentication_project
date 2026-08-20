@@ -147,19 +147,19 @@ export async function fetchCards(skip = 0, limit = 100): Promise<AdminCard[]> {
 export async function updateCardStatus(
   cardId: number,
   status: CardStatus,
+  reason?: string,
 ): Promise<AdminCard> {
-  const response = await fetchWithAuth(
-    `${API_BASE_URL}/admin/cards/${cardId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-      }),
+  const response = await fetchWithAuth(`${API_BASE_URL}/admin/card/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      card_id: cardId,
+      status: status,
+      reason: reason ?? null,
+    }),
+  });
 
   return handle<AdminCard>(response);
 }
