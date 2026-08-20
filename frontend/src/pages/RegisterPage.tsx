@@ -4,8 +4,25 @@ import { Link, useNavigate } from "react-router";
 import { register } from "../api/authClient";
 import { saveTokens } from "../auth/tokenStorage";
 import AuthShell from "../components/AuthShell";
+import { countries } from "../data/countries";
+import { buildDateOfBirth } from "../utils/dateOfBirth";
 
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+const days = Array.from({ length: 31 }, (_, index) => String(index + 1));
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function isStrongPassword(password: string): boolean {
   return (
@@ -42,7 +59,9 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [dob, setDob] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [postcode, setPostcode] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
@@ -60,6 +79,11 @@ export default function RegisterPage() {
     setError("");
     if (!firstName.trim() || !lastName.trim()) {
       setError("Enter your first and last name.");
+      return;
+    }
+    const dateOfBirth = buildDateOfBirth(dobDay, dobMonth, dobYear);
+    if (!dateOfBirth.isValid) {
+      setError("Enter a valid date of birth that is not in the future.");
       return;
     }
     if (!isStrongPassword(password)) {
@@ -83,11 +107,11 @@ export default function RegisterPage() {
         last_name: lastName,
         phone,
         address,
-        dob,
         postcode,
-        country,
         city,
         profile_image: profileImage,
+        ...(country ? { country } : {}),
+        ...(dateOfBirth.value ? { dob: dateOfBirth.value } : {}),
       });
       saveTokens(tokens);
       navigate("/account", { replace: true });
@@ -172,16 +196,81 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="auth-name-row">
-          <div className="auth-field">
-            <label htmlFor="country">Country</label>
-            <input id="country" type="text" value={country} onChange={(event) => setCountry(event.target.value)} autoComplete="country-name" />
-          </div>
-          <div className="auth-field">
-            <label htmlFor="dob">Date of birth</label>
-            <input id="dob" type="date" value={dob} onChange={(event) => setDob(event.target.value)} autoComplete="bday" />
-          </div>
+        <div className="auth-field">
+          <label htmlFor="country">Country</label>
+          <select
+            id="country"
+            value={country}
+            onChange={(event) => setCountry(event.target.value)}
+            autoComplete="country-name"
+          >
+            <option value="">Select country</option>
+            {countries.map((countryName) => (
+              <option key={countryName} value={countryName}>
+                {countryName}
+              </option>
+            ))}
+          </select>
         </div>
+
+        <fieldset className="auth-date-fieldset" aria-describedby="dob-hint">
+          <legend>Date of birth</legend>
+          <div className="auth-date-grid">
+            <div className="auth-field">
+              <label htmlFor="dobDay">Day</label>
+              <select
+                id="dobDay"
+                value={dobDay}
+                onChange={(event) => setDobDay(event.target.value)}
+                autoComplete="bday-day"
+              >
+                <option value="">Day</option>
+                {days.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="dobMonth">Month</label>
+              <select
+                id="dobMonth"
+                value={dobMonth}
+                onChange={(event) => setDobMonth(event.target.value)}
+                autoComplete="bday-month"
+              >
+                <option value="">Month</option>
+                {months.map((month, index) => (
+                  <option key={month} value={String(index + 1)}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="dobYear">Year</label>
+              <input
+                id="dobYear"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{4}"
+                maxLength={4}
+                placeholder="YYYY"
+                value={dobYear}
+                onChange={(event) =>
+                  setDobYear(event.target.value.replace(/\D/g, "").slice(0, 4))
+                }
+                autoComplete="bday-year"
+              />
+            </div>
+          </div>
+          <p className="auth-hint" id="dob-hint">
+            Type the four-digit year directly, for example 1999.
+          </p>
+        </fieldset>
 
         <div className="auth-field">
           <label htmlFor="profileImage">Profile photo (optional)</label>
