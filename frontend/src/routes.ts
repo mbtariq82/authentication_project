@@ -7,4 +7,5 @@ export const routes = {
   adminDashboard: "/admin/dashboard",
   adminConsultants: "/admin/consultants",
   adminNewConsultant: "/admin/consultants/new",
+  loans: "/my-loans",
 } as const;

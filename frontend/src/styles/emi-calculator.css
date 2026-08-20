@@ -1,0 +1,187 @@
+.emi-calculator-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 5%, rgb(14 165 233 / 12%), transparent 25rem),
+    #f0f5f7;
+  color: #102a43;
+}
+
+.emi-calculator-container {
+  width: min(100% - 3rem, 68rem);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 5rem) 0;
+}
+
+.emi-calculator-header {
+  margin-bottom: 28px;
+}
+
+.emi-calculator-header h1 {
+  margin: 0 0 0.65rem;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.emi-calculator-subtitle {
+  margin: 0;
+  color: #627d98;
+  font-size: 1.05rem;
+}
+
+.emi-calculator-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.emi-calculator-card,
+.emi-result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.emi-calculator-card {
+  padding: 28px;
+}
+
+.emi-calculator-card h2 {
+  margin: 0 0 24px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.emi-calculator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.emi-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.emi-field label {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.emi-field input,
+.emi-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.emi-field input:focus,
+.emi-field select:focus {
+  border-color: var(--navy-700);
+}
+
+.emi-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.emi-input-wrapper:focus-within {
+  border-color: var(--navy-700);
+}
+
+.emi-input-wrapper span {
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.emi-input-wrapper input {
+  border: none;
+  outline: none;
+}
+
+.emi-result-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+}
+
+.emi-result-label {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.emi-result-value {
+  margin-bottom: 28px;
+  color: var(--navy-900);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+}
+
+.emi-result-details {
+  border-top: 1px solid var(--border);
+}
+
+.emi-result-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.emi-result-row strong {
+  color: var(--text);
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+}
+
+.emi-apply-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 10px 16px;
+  border: 1px solid var(--navy-700);
+  border-radius: 6px;
+  background: var(--navy-900);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.emi-apply-button:hover {
+  background: var(--navy-700);
+}
+
+@media (max-width: 700px) {
+  .emi-calculator-container {
+    width: min(100% - 2rem, 68rem);
+    padding: 2.5rem 0 3rem;
+  }
+
+  .emi-calculator-layout {
+    grid-template-columns: 1fr;
+  }
+}

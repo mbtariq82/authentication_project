@@ -1,6 +1,6 @@
 from pydantic import BaseModel,ConfigDict
 from datetime import date
-from enums import UserStatus, Role
+from enums import AccountStatus, UserStatus, Role
 
 
 class UpdateUserStatusCommand(BaseModel):
@@ -8,6 +8,11 @@ class UpdateUserStatusCommand(BaseModel):
     status: UserStatus
     rejection_reason: str | None = None
 
+class UpdateAccountStatus(BaseModel):
+    account_id: int
+    account_status: AccountStatus
+    close_reason: str | None = None
+    
 class UserResponse(BaseModel):
     id: int
     email: str

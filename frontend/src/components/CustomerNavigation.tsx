@@ -116,6 +116,14 @@ export default function CustomerNavigation() {
         >
           History
         </Link>
+        <Link
+          className={
+            location.pathname === routes.loans ? "customer-nav-active" : ""
+          }
+          to={routes.loans}
+        >
+          My Loans
+        </Link>
         <div className="customer-profile-menu" ref={dropdownRef}>
           <button
             className="customer-profile-button"

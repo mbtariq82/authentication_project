@@ -1,0 +1,272 @@
+.loan-repayment-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 5%, rgb(14 165 233 / 12%), transparent 25rem),
+    #f0f5f7;
+  color: #102a43;
+}
+
+.loan-repayment-container {
+  width: min(100% - 3rem, 42rem);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 5rem) 0;
+}
+
+/* ---------- Header ---------- */
+
+.loan-repayment-header {
+  margin-bottom: 28px;
+}
+
+.loan-repayment-header h1 {
+  margin: 0 0 0.65rem;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.loan-repayment-header p:last-child {
+  margin: 0;
+  color: #627d98;
+  font-size: 1.05rem;
+}
+
+/* ---------- Repayment card ---------- */
+
+.loan-repayment-card {
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Loan summary ---------- */
+
+.loan-repayment-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.loan-repayment-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+}
+
+.loan-repayment-summary > div:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.loan-repayment-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.loan-repayment-value {
+  color: var(--text);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+}
+
+/* ---------- Repayment form ---------- */
+
+.loan-repayment-form {
+  padding: 24px;
+}
+
+.loan-repayment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loan-repayment-field label {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.loan-repayment-input-wrapper {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.loan-repayment-input-wrapper span {
+  padding-left: 12px;
+  color: var(--text-muted);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.loan-repayment-input-wrapper input {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px;
+}
+
+.loan-repayment-input-wrapper:focus-within {
+  border-color: var(--navy-700);
+}
+
+.loan-repayment-error {
+  margin: 14px 0 0;
+  color: var(--red);
+  font-size: 12.5px;
+}
+
+.loan-repayment-button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 11px 16px;
+  border: 1px solid var(--navy-700);
+  border-radius: 6px;
+  background: var(--navy-900);
+  color: white;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.loan-repayment-button:hover {
+  background: var(--navy-700);
+}
+
+.loan-repayment-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Loading / error ---------- */
+
+.loan-repayment-loading,
+.loan-repayment-error {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13.5px;
+}
+
+.loan-repayment-error {
+  color: var(--red);
+}
+
+.loan-repayment-back {
+  display: block;
+  width: fit-content;
+  margin: 16px auto 0;
+  color: var(--navy-700);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+/* ---------- Confirmation modal ---------- */
+
+.loan-repayment-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  background: rgb(0 0 0 / 60%);
+}
+
+.loan-repayment-modal {
+  width: min(100%, 500px);
+  padding: 32px;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  background: var(--card);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 25%);
+}
+
+.loan-repayment-modal h2 {
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.loan-repayment-modal p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.loan-repayment-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.loan-repayment-modal-cancel,
+.loan-repayment-modal-confirm {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.loan-repayment-modal-cancel {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.loan-repayment-modal-confirm {
+  background: var(--navy-900);
+  color: #ffffff;
+}
+
+.loan-repayment-modal-cancel:disabled,
+.loan-repayment-modal-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 600px) {
+  .loan-repayment-container {
+    width: min(100% - 2rem, 42rem);
+  }
+
+  .loan-repayment-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .loan-repayment-summary > div:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .loan-repayment-modal {
+    padding: 24px;
+  }
+
+  .loan-repayment-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .loan-repayment-modal-cancel,
+  .loan-repayment-modal-confirm {
+    width: 100%;
+  }
+}

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies.card import get_card_service
 from dependencies.auth import require_admin
 from dependencies.database import get_db
-from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse
+from schemas.admin_schema import UpdateUserStatusCommand, AdminUserResponse,UpdateAccountStatus
 from services.admin_service import AdminUserService, AdminCardService, AdminAccountService
 from services.card_service import CardService
 from schemas.card import AdminCardResponse
@@ -29,6 +29,7 @@ async def update_user_status(
         new_status=data.status,
         rejection_reason=data.rejection_reason,
     )
+
 
 @router.get("/all_users", response_model=list[AdminUserResponse])
 async def get_all_users(
@@ -54,6 +55,37 @@ async def get_all_accounts(
     return await service.list_accounts(
         skip=skip,
         limit=limit,
+    )
+
+
+# @router.patch("/account/status")
+# async def update_account_status(
+#     data: UpdateAccountStatus,
+#     db: AsyncSession = Depends(get_db),card_service: CardService = Depends(get_card_service),
+# ):
+#     service = AdminAccountService(db, card_service=card_service,)
+
+#     return await service.update_status(
+#         account_id=data.account_id,
+#         account_status=data.account_status,
+#         close_reason=data.close_reason,
+#     )
+@router.patch("/account/status")
+async def update_account_status(
+    data: UpdateAccountStatus,
+    db: AsyncSession = Depends(get_db),
+):
+    admin_card_service = AdminCardService(db)
+
+    service = AdminAccountService(
+        db,
+        card_service=admin_card_service,
+    )
+
+    return await service.update_status(
+        account_id=data.account_id,
+        account_status=data.account_status,
+        close_reason=data.close_reason,
     )
 
 @router.get("/all_cards", response_model=list[AdminCardResponse])
