@@ -10,6 +10,10 @@ import BeneficiariesPage from "./pages/BeneficiariesPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import { routes } from "./routes";
+import LoansPage from "./pages/MyLoansPage";
+import LoanRepaymentPage from "./pages/LoanRepaymentPage";
+import LoanApplicationPage from "./pages/LoanApplicationPage";
+import EMICalculatorPage from "./pages/EMICalculatorPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import CardPage from "./pages/CardPage";
 import "./App.css";
@@ -36,6 +40,10 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/bank/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/card" element={<CardPage />} />
+        <Route path="/my-loans" element={<LoansPage />} />
+        <Route path="/repay" element={<LoanRepaymentPage />} />
+        <Route path="/loans/apply" element={<LoanApplicationPage />} />
+        <Route path="/emi-calculator" element={<EMICalculatorPage />} />
       </Routes>
     </QueryClientProvider>
   );

@@ -94,3 +94,14 @@ class InvalidProfileUpdateError(ApplicationError):
 class ProfileImageStorageError(ApplicationError):
     pass
 
+class LoanNotFoundError(ApplicationError):
+    pass
+
+class InvalidLoanStatusError(ApplicationError):
+    pass
+
+class PermissionDeniedError(ApplicationError):
+    pass
+
+class InvalidRepaymentAmountError(ApplicationError):
+    pass

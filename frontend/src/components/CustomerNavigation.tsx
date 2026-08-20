@@ -67,6 +67,16 @@ export default function CustomerNavigation() {
         >
           History
         </Link>
+
+        <Link
+          className={
+            location.pathname === routes.loans ? "customer-nav-active" : ""
+          }
+          to={routes.loans}
+        >
+          My Loans
+        </Link>
+
         <button
           className="customer-logout"
           type="button"
