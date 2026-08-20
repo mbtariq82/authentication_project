@@ -1,3 +1,4 @@
+from uuid import uuid4
 from domain.loan import (
     LoanApplication,
     assess_loan,
@@ -188,7 +189,7 @@ class LoanService:
             transaction_type=TransactionType.WITHDRAWAL,
             direction=TransactionDirection.DEBIT,
             amount=request.amount,
-            reference=f"LOAN-{loan.id}",
+            reference=f"LOAN-{loan.id}-{uuid4().hex}",
             status=TransactionStatus.COMPLETED,
             description=f"Loan repayment for loan {loan.id}",
         )
