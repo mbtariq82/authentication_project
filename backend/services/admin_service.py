@@ -33,7 +33,6 @@ def generate_sort_code() -> str:
         for _ in range(3)
     )
 
-
 class AdminCardService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -59,7 +58,6 @@ class AdminCardService:
         self,
         card_id: int,
         new_status: CardStatus,
-        reason: str | None = None,
     ):
         card = await self.repo.get_by_id(card_id)
 
@@ -73,41 +71,19 @@ class AdminCardService:
         # FREEZE CARD
         # -------------------------
         if new_status == CardStatus.FROZEN:
-            if not reason or not reason.strip():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Freeze reason is required",
-                )
-
             card.status = CardStatus.FROZEN.value
-
-            # If your CardRow has this column:
-            # card.status_reason = reason.strip()
 
         # -------------------------
         # CLOSE CARD
         # -------------------------
         elif new_status == CardStatus.CLOSED:
-            if not reason or not reason.strip():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Close reason is required",
-                )
-
             card.status = CardStatus.CLOSED.value
-
-            # If your CardRow has these columns:
-            # card.status_reason = reason.strip()
-            # card.closed_at = datetime.now(timezone.utc)
 
         # -------------------------
         # UNFREEZE / ACTIVATE CARD
         # -------------------------
         elif new_status == CardStatus.ACTIVE:
             card.status = CardStatus.ACTIVE.value
-
-            # If your CardRow has this column:
-            # card.status_reason = None
 
         # -------------------------
         # INVALID STATUS
@@ -118,13 +94,13 @@ class AdminCardService:
                 detail="Invalid card status",
             )
 
-        # Flush changes
+        # Save changes
         await self.repo.save(card)
 
-        # Permanently save direct card update
+        # Commit direct card status update
         await self.db.commit()
 
-        # Reload latest data
+        # Get latest committed data
         await self.db.refresh(card)
 
         return card
@@ -141,7 +117,7 @@ class AdminCardService:
             account_id,
         )
 
-        # Account may not have a card
+        # Account might not have a card
         if not card:
             return None
 
@@ -150,11 +126,12 @@ class AdminCardService:
         await self.repo.save(card)
 
         # DO NOT commit here.
-        # AdminAccountService will commit account
+        # AdminAccountService commits the account
         # and card changes together.
 
         return card
 
+   
 class AdminAccountService:
     def __init__(
         self,

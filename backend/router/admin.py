@@ -102,5 +102,4 @@ async def update_card_status(
     return await service.update_status(
         card_id=data.card_id,
         new_status=data.status,
-        reason=data.reason,
     )

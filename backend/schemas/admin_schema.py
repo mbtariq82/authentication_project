@@ -18,7 +18,7 @@ class UpdateAccountStatus(BaseModel):
 class UpdateCardStatus(BaseModel):
     card_id: int
     status: CardStatus
-    reason: str | None = None
+
 class UserResponse(BaseModel):
     id: int
     email: str
