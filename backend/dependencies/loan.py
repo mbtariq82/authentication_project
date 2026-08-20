@@ -1,4 +1,5 @@
 from fastapi import Depends
+from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies.database import get_db
@@ -8,7 +9,7 @@ from services.loan_service import LoanService
 from unit_of_work.abstract_loan_unit_of_work import AbstractLoanUnitOfWork
 from unit_of_work.sqlalchemy_loan_unit_of_work import SqlAlchemyLoanUnitOfWork
 
-async def get_loan_uow(session: AsyncSession = Depends(get_db)) -> AbstractLoanUnitOfWork:
+async def get_loan_uow(session: AsyncSession = Depends(get_db)) -> AsyncGenerator[AbstractLoanUnitOfWork, None]:
     async with SqlAlchemyLoanUnitOfWork(session) as uow:
         yield uow
 
