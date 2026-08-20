@@ -13,6 +13,12 @@ type RegisterCommand = {
   password: string;
   first_name: string;
   last_name: string;
+  phone?: string;
+  address?: string;
+  dob?: string;
+  postcode?: string;
+  country?: string;
+  city?: string;
   profile_image?: File | null;
 };
 

@@ -145,6 +145,18 @@ export default function CustomerHomePage() {
                 <dt>Email</dt>
                 <dd>{user.email}</dd>
               </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>{user.phone || "Not provided"}</dd>
+              </div>
+              <div>
+                <dt>Address</dt>
+                <dd>{[user.address, user.city, user.postcode, user.country].filter(Boolean).join(", ") || "Not provided"}</dd>
+              </div>
+              <div>
+                <dt>Date of birth</dt>
+                <dd>{user.dob || "Not provided"}</dd>
+              </div>
             </dl>
           </article>
         </section>

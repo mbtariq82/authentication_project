@@ -20,11 +20,21 @@ from schemas.auth import (
 from services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-REGISTER_FIELDS = ("email", "first_name", "last_name", "password")
+REGISTER_FIELDS = (
+    "email", "first_name", "last_name", "phone", "address", "dob",
+    "postcode", "country", "city", "password",
+)
+REGISTER_REQUIRED_FIELDS = ("email", "first_name", "last_name", "password")
 REGISTER_PROPERTIES = {
     "email": {"type": "string", "format": "email"},
     "first_name": {"type": "string", "maxLength": 100},
     "last_name": {"type": "string", "maxLength": 100},
+    "phone": {"type": "string", "maxLength": 20},
+    "address": {"type": "string", "maxLength": 255},
+    "dob": {"type": "string", "format": "date"},
+    "postcode": {"type": "string", "maxLength": 20},
+    "country": {"type": "string", "maxLength": 100},
+    "city": {"type": "string", "maxLength": 100},
     "password": {
         "type": "string",
         "format": "password",
@@ -39,14 +49,14 @@ REGISTER_REQUEST_BODY = {
             "application/json": {
                 "schema": {
                     "type": "object",
-                    "required": list(REGISTER_FIELDS),
+                    "required": list(REGISTER_REQUIRED_FIELDS),
                     "properties": REGISTER_PROPERTIES,
                 },
             },
             "multipart/form-data": {
                 "schema": {
                     "type": "object",
-                    "required": list(REGISTER_FIELDS),
+                    "required": list(REGISTER_REQUIRED_FIELDS),
                     "properties": {
                         **REGISTER_PROPERTIES,
                         "profile_image": {

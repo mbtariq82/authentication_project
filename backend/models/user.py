@@ -43,7 +43,7 @@ class UserRow(Base):
     address_line = Column(String(255), nullable=True)
 
     city = Column(String(100), nullable=True)
-    county = Column(String(100), nullable=True)
+    country = Column(String(100), nullable=True)
     postcode = Column(String(20), nullable=True)
     mobile = Column(String(20), nullable=True)
 

@@ -11,6 +11,12 @@ export type UserResponse = {
   last_name: string;
   role: UserRole;
   profile_image_url: string | null;
+  phone: string | null;
+  address: string | null;
+  dob: string | null;
+  postcode: string | null;
+  country: string | null;
+  city: string | null;
 };
 
 export async function getUserProfile(): Promise<UserResponse> {
