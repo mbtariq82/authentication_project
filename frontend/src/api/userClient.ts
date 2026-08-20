@@ -1,4 +1,8 @@
-import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
+import {
+  fetchWithAuth,
+  getApiErrorMessage,
+  type ApiErrorResponse,
+} from "./apiClient";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +23,15 @@ export type UserResponse = {
   city: string | null;
 };
 
+function withAbsoluteProfileImageUrl(user: UserResponse): UserResponse {
+  return {
+    ...user,
+    profile_image_url: user.profile_image_url
+      ? new URL(user.profile_image_url, `${API_BASE_URL}/`).toString()
+      : null,
+  };
+}
+
 export async function getUserProfile(): Promise<UserResponse> {
   const response = await fetchWithAuth(
     `${API_BASE_URL}/users/me`,
@@ -35,10 +48,27 @@ export async function getUserProfile(): Promise<UserResponse> {
 
   const user = (await response.json()) as UserResponse;
 
-  return {
-    ...user,
-    profile_image_url: user.profile_image_url
-      ? new URL(user.profile_image_url, `${API_BASE_URL}/`).toString()
-      : null,
-  };
+  return withAbsoluteProfileImageUrl(user);
+}
+
+export async function updateProfileImage(
+  profileImage: File,
+): Promise<UserResponse> {
+  const formData = new FormData();
+  formData.append("profile_image", profileImage);
+
+  const response = await fetchWithAuth(`${API_BASE_URL}/users/me`, {
+    method: "PATCH",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getApiErrorMessage(response, "Failed to update profile photo."),
+    );
+  }
+
+  return withAbsoluteProfileImageUrl(
+    (await response.json()) as UserResponse,
+  );
 }
