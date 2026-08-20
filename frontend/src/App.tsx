@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import LoginPage from "./pages/LoginPage";
 import CustomerHomePage from "./pages/CustomerHomePage";
+import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import RegisterPage from "./pages/RegisterPage";
 import ConsultantsPage from "./pages/Consultants";
@@ -32,7 +33,7 @@ function App() {
           path={routes.transactionHistory}
           element={<TransactionHistoryPage />}
         />
-        <Route path="/profile" element={<Navigate to="/account" replace />} />
+        <Route path={routes.profile} element={<ProfilePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/admin/dashboard" element={<DashboardPage />} />
         <Route path="/admin/consultants" element={<ConsultantsPage />} />

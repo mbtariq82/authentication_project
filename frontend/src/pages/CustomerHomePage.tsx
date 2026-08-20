@@ -60,7 +60,7 @@ export default function CustomerHomePage() {
 
   return (
     <main className="customer-home">
-      <CustomerNavigation />
+      <CustomerNavigation user={user} />
 
       <section className="customer-content">
         <div className="customer-profile-intro">
@@ -89,7 +89,10 @@ export default function CustomerHomePage() {
           <span>No real accounts, payments, or funds are used.</span>
         </aside>
 
-        <section className="customer-grid" aria-label="Account overview">
+        <section
+          className="customer-grid customer-grid-single"
+          aria-label="Account overview"
+        >
           <article className="customer-primary-card">
             {isAccountError ? (
               <div>
@@ -131,34 +134,6 @@ export default function CustomerHomePage() {
             )}
           </article>
 
-          <article className="customer-details-card">
-            <header>
-              <p className="customer-card-label">Your details</p>
-              <h2>Customer profile</h2>
-            </header>
-            <dl>
-              <div>
-                <dt>Name</dt>
-                <dd>{fullName || "Not provided"}</dd>
-              </div>
-              <div>
-                <dt>Email</dt>
-                <dd>{user.email}</dd>
-              </div>
-              <div>
-                <dt>Phone</dt>
-                <dd>{user.phone || "Not provided"}</dd>
-              </div>
-              <div>
-                <dt>Address</dt>
-                <dd>{[user.address, user.city, user.postcode, user.country].filter(Boolean).join(", ") || "Not provided"}</dd>
-              </div>
-              <div>
-                <dt>Date of birth</dt>
-                <dd>{user.dob || "Not provided"}</dd>
-              </div>
-            </dl>
-          </article>
         </section>
       </section>
     </main>

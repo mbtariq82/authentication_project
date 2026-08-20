@@ -6,27 +6,37 @@ import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
 import { routes } from "../routes";
 
-export default function CustomerNavigation() {
+type CustomerNavigationProps = {
+  user?: UserResponse;
+};
+
+export default function CustomerNavigation({
+  user: suppliedUser,
+}: CustomerNavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
+  const [loadedUser, setLoadedUser] = useState<UserResponse | null>(null);
+  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<
+    string | null
+  >(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (suppliedUser) return;
+
     async function loadUser() {
       try {
         const currentUser = await getUserProfile();
-        setUser(currentUser);
+        setLoadedUser(currentUser);
       } catch {
         clearTokens();
         navigate(routes.login, { replace: true });
       }
     }
     void loadUser();
-  }, [navigate]);
+  }, [navigate, suppliedUser]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -54,7 +64,9 @@ export default function CustomerNavigation() {
     }
   }
 
-  const showProfileImage = user?.profile_image_url && !profileImageFailed;
+  const user = suppliedUser ?? loadedUser;
+  const showProfileImage =
+    user?.profile_image_url && user.profile_image_url !== failedProfileImageUrl;
   const initials =
     user &&
     [user.first_name, user.last_name]
@@ -137,7 +149,9 @@ export default function CustomerNavigation() {
                 className="customer-profile-avatar"
                 src={user?.profile_image_url ?? undefined}
                 alt="Profile"
-                onError={() => setProfileImageFailed(true)}
+                onError={() =>
+                  setFailedProfileImageUrl(user?.profile_image_url ?? null)
+                }
               />
             ) : (
               <span className="customer-profile-fallback" aria-hidden="true">
@@ -148,7 +162,7 @@ export default function CustomerNavigation() {
           {isDropdownOpen && (
             <div className="customer-profile-dropdown">
               <Link
-                to="/profile"
+                to={routes.profile}
                 className="dropdown-item"
                 onClick={() => setIsDropdownOpen(false)}
               >
