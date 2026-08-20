@@ -17,7 +17,6 @@ class UserResponse(BaseModel):
     dob: date | None = None
     address_line: str | None = None
     city: str | None = None
-    county: str | None = None
     postcode: str | None = None
     mobile: str | None = None
     rejection_reason: str | None = None
@@ -35,7 +34,6 @@ class AdminUserResponse(BaseModel):
     address_line: str | None = None
     user_status: UserStatus
     city: str | None = None
-    county: str | None = None
     postcode: str | None = None
     mobile: str | None = None
     rejection_reason: str | None = None
