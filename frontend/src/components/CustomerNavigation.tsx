@@ -170,14 +170,6 @@ export default function CustomerNavigation({
               </Link>
               <div className="dropdown-divider"></div>
               <button
-                className="dropdown-item dropdown-item-disabled"
-                type="button"
-                disabled
-              >
-                Settings
-              </button>
-              <div className="dropdown-divider"></div>
-              <button
                 className="dropdown-item dropdown-logout"
                 type="button"
                 onClick={() => void handleLogout()}
