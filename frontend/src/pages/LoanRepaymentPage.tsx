@@ -2,6 +2,7 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 
 import { getUserLoans, repayLoan, type Loan } from "../api/loanClient";
+import LoanNavigation from "../components/LoanNavigation";
 
 import "../styles/loan-repayment.css";
 
@@ -146,18 +147,7 @@ export default function LoanRepaymentPage() {
 
   return (
     <div className="loan-repayment-page">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <Link to="/my-loans" className="customer-back">
-          Back to loans
-        </Link>
-      </header>
+      <LoanNavigation showBackToLoans />
 
       <main className="loan-repayment-container">
         <header className="loan-repayment-header">
