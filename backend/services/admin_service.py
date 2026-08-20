@@ -3,8 +3,9 @@ import string
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
-from enums import UserStatus, AccountStatus
+from enums import UserStatus, AccountStatus, CardStatus
 from models.account import AccountRow
 from repositories.admin_repository import (
     UserRepository,
@@ -43,6 +44,24 @@ class AdminCardService:
         limit: int = 100,
     ):
         return await self.repo.list_cards(skip, limit)
+    
+    async def update_status_by_account(
+        self,
+        account_id: int,
+        new_status: CardStatus,
+    ):
+        card = await self.repo.get_by_account_id(
+            account_id,
+        )
+
+        if not card:
+            return None
+
+        card.status = new_status.value
+
+        await self.repo.save(card)
+
+        return card
 
 
 
@@ -50,7 +69,7 @@ class AdminAccountService:
     def __init__(
         self,
         db: AsyncSession,
-        card_service: CardService,
+        card_service: AdminCardService| None = None,
     ):
         self.db = db
         self.repo = AccountRepository(db)
