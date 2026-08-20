@@ -189,12 +189,12 @@ async def test_create_transfer_classifies_matching_account_as_internal(service_a
         ),
     )
 
-    assert response.status is TransactionStatus.PENDING
+    assert response.status is TransactionStatus.COMPLETED
     assert unit_of_work.transactions.logs[0].metadata == {
         "transfer_kind": "INTERNAL"
     }
-    assert unit_of_work.accounts.credited == []
-    assert unit_of_work.accounts.debited == []
+    assert unit_of_work.accounts.credited == [Decimal("25.00")]
+    assert unit_of_work.accounts.debited == [Decimal("25.00")]
 
 
 @pytest.mark.asyncio

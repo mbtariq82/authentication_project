@@ -8,6 +8,7 @@ from domain.transaction_rules import (
 )
 from enums import TransactionStatus, TransactionType
 from exceptions import (
+    AccountNotFoundError,
     BeneficiaryNotFoundError,
     InvalidTransactionStatusTransitionError,
     SelfTransferError,
@@ -48,6 +49,7 @@ class TransactionService:
             raise TransactionNotFoundError()
 
         transfer_kind: TransferKind | None = None
+        internal_account = None
         if command.transaction_type is TransactionType.TRANSFER:
             if command.beneficiary_id is None:
                 raise BeneficiaryNotFoundError()
@@ -78,6 +80,7 @@ class TransactionService:
                 TransactionType.DEPOSIT,
                 TransactionType.WITHDRAWAL,
             }
+            or transfer_kind is TransferKind.INTERNAL
             else TransactionStatus.PENDING
         )
         transaction = await self.transactions.add(
@@ -106,6 +109,10 @@ class TransactionService:
             await self.accounts.credit(transaction.account_id, effect.credit)
         if effect.debit:
             await self.accounts.debit(transaction.account_id, effect.debit)
+            if transfer_kind is TransferKind.INTERNAL:
+                if internal_account is None or internal_account.id is None:
+                    raise AccountNotFoundError()
+                await self.accounts.credit(internal_account.id, effect.debit)
 
         await self.transactions.add_log(
             TransactionLog(
