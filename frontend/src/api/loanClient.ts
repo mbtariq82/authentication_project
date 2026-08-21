@@ -12,6 +12,7 @@ export type Loan = {
   current_loan_status: LoanStatus;
   interest: number;
   emi: number;
+  accrued_interest: string;
 };
 
 export type LoanListResponse = {
