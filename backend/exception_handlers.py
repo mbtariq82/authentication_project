@@ -26,6 +26,7 @@ from exceptions import (
     PermissionDeniedError,
     ProfileImageStorageError,
     ProfileImageTooLargeError,
+    SelfTransferError,
 )
 
 
