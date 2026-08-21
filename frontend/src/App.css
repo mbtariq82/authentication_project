@@ -867,6 +867,44 @@
   font-weight: 650;
 }
 
+.customer-recent {
+  margin-top: 1.5rem;
+}
+
+.customer-recent .history-row {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.customer-recent-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.customer-recent-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.customer-recent-link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.customer-recent-link:hover {
+  text-decoration: underline;
+}
+
+.customer-recent-empty {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
 .profile-page {
   padding-top: clamp(2.5rem, 5vw, 4rem);
 }
