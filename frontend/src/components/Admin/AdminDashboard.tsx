@@ -59,36 +59,28 @@ export default function AdminDashboard() {
       />
 
       <main className="main">
+        {/* PAGE HEADER */}
         <div className="topbar">
           <div>
             <h1>{title}</h1>
+
             <p className="subtitle">{subtitle}</p>
           </div>
-
-          {activePanel !== "dashboard" && (
-            <div className="search">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-
-              <input type="text" placeholder="Search by name or account no." />
-            </div>
-          )}
         </div>
 
+        {/* DASHBOARD */}
         {activePanel === "dashboard" && <DashboardPanel />}
+
+        {/* CUSTOMERS */}
         {activePanel === "users" && <UsersPanel />}
 
+        {/* ACCOUNTS */}
         {activePanel === "accounts" && <AccountsPanel />}
+
+        {/* LOANS */}
         {activePanel === "loans" && <LoansPanel />}
+
+        {/* CARDS */}
         {activePanel === "cards" && <CardsPanel />}
       </main>
     </div>
