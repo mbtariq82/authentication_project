@@ -151,10 +151,10 @@ type LoanCardProps = {
 };
 
 function LoanCard({ loan }: LoanCardProps) {
-  const formattedAmount = new Intl.NumberFormat("en-GB", {
+  const currencyFormatter = new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
-  }).format(loan.loan_amount);
+  });
 
   return (
     <article className="loan-card">
@@ -173,22 +173,23 @@ function LoanCard({ loan }: LoanCardProps) {
 
       <div className="loan-card-details">
         <div className="loan-detail">
-          <span className="loan-detail-label">Amount</span>
-          <span className="loan-detail-value">{formattedAmount}</span>
+          <span className="loan-detail-label">Loan Amount</span>
+          <span className="loan-detail-value">
+            {currencyFormatter.format(Number(loan.loan_amount))}
+          </span>
         </div>
 
         <div className="loan-detail">
-          <span className="loan-detail-label">Interest</span>
-          <span className="loan-detail-value">{loan.interest}%</span>
+          <span className="loan-detail-label">Accrued Interest</span>
+          <span className="loan-detail-value">
+            {currencyFormatter.format(Number(loan.accrued_interest))}
+          </span>
         </div>
 
         <div className="loan-detail">
           <span className="loan-detail-label">Monthly EMI</span>
           <span className="loan-detail-value">
-            {new Intl.NumberFormat("en-GB", {
-              style: "currency",
-              currency: "GBP",
-            }).format(Number(loan.emi))}
+            {currencyFormatter.format(Number(loan.emi))}
           </span>
         </div>
 

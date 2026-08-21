@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timezone
 from decimal import Decimal
 from uuid import uuid4
 from domain.loan import (
@@ -6,6 +7,7 @@ from domain.loan import (
     assess_loan,
     get_interest_rate,
     calculate_emi,
+    calculate_accrued_interest
 )
 from domain.transaction import Transaction
 from enums import TransactionType, TransactionDirection, TransactionStatus
@@ -101,12 +103,37 @@ class LoanService:
             raise InvalidLoanStatusError()
 
         loan.current_loan_status = status
+        
+        if status == "ACCEPTED":
+            loan.last_interest_calculated_at = datetime.now(timezone.utc)
 
         return LoanApplicationResponse(
             eligible=True,
             status=status,
             loan_id=loan.id,
         )
+
+    def _get_accrued_interest(self, loan: LoanRow) -> Decimal:
+            if (
+                loan.current_loan_status != "ACCEPTED"
+                or loan.last_interest_calculated_at is None
+            ):
+                return Decimal("0.00")
+    
+            now = datetime.now(timezone.utc)
+    
+            days_elapsed = (
+                now.date() - loan.last_interest_calculated_at.date()
+            ).days
+    
+            if days_elapsed <= 0:
+                return Decimal("0.00")
+    
+            return calculate_accrued_interest(
+                loan_amount=loan.loan_amount,
+                interest=loan.interest,
+                days_elapsed=days_elapsed,
+            )
 
     async def get_user_loans(
         self,
@@ -129,6 +156,14 @@ class LoanService:
                             interest=loan.interest,
                             emi=loan.emi,
                             current_loan_status=loan.current_loan_status,
+                            accrued_interest=calculate_accrued_interest(
+                                loan_amount=loan.loan_amount,
+                                interest=loan.interest,
+                                days_elapsed=(
+                                    datetime.now(timezone.utc).date()
+                                    - loan.last_interest_calculated_at.date()
+                                ).days,
+                            ),
                         )
                 for loan in loans
             ]
@@ -177,6 +212,30 @@ class LoanService:
 
         return math.ceil(duration)
 
+    async def _accrue_interest(self, loan: LoanRow) -> None:
+        now = datetime.now(timezone.utc)
+
+        if loan.last_interest_calculated_at is None:
+            loan.last_interest_calculated_at = now
+            return
+
+        last_date = loan.last_interest_calculated_at.date()
+        current_date = now.date()
+
+        days_elapsed = (current_date - last_date).days
+
+        if days_elapsed <= 0:
+            return
+
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=loan.loan_amount,
+            interest=loan.interest,
+            days_elapsed=days_elapsed,
+        )
+
+        loan.loan_amount += accrued_interest
+        loan.last_interest_calculated_at = now
+
     async def repay_loan(
         self,
         request: LoanRepaymentRequest,
@@ -193,6 +252,8 @@ class LoanService:
 
         if loan.current_loan_status != "ACCEPTED":
             raise InvalidLoanStatusError()
+
+        await self._accrue_interest(loan)
 
         if request.amount > loan.loan_amount:
             raise InvalidRepaymentAmountError()

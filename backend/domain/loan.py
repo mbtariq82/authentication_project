@@ -1,5 +1,7 @@
 from decimal import Decimal
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from models.loan import LoanRow
 
 @dataclass
 class LoanApplication:
@@ -53,3 +55,19 @@ def calculate_emi(loan_amount: Decimal, interest: int, duration: int) -> Decimal
     )
 
     return emi.quantize(Decimal("0.01"))
+
+def calculate_accrued_interest(
+    loan_amount: Decimal,
+    interest: int,
+    days_elapsed: int,
+) -> Decimal:
+    if days_elapsed <= 0:
+        return Decimal("0.00")
+
+    daily_interest_rate = Decimal(interest) / Decimal("100") / Decimal("365")
+
+    return (
+        loan_amount
+        * daily_interest_rate
+        * Decimal(days_elapsed)
+    ).quantize(Decimal("0.01"))

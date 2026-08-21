@@ -91,7 +91,10 @@ export default function LoanRepaymentPage() {
       return;
     }
 
-    if (repaymentAmount > loan.loan_amount) {
+    const totalRemainingAmount =
+      Number(loan.loan_amount) + Number(loan.accrued_interest);
+
+    if (repaymentAmount > totalRemainingAmount) {
       setError(
         "Repayment amount cannot be greater than the remaining loan amount.",
       );
@@ -155,8 +158,15 @@ export default function LoanRepaymentPage() {
     currency: "GBP",
   });
 
-  const formattedAmount = currencyFormatter.format(loan.loan_amount);
+  const remainingAmount = Number(loan.loan_amount);
+  const accruedInterest = Number(loan.accrued_interest);
   const formattedEmi = currencyFormatter.format(loan.emi);
+  const formattedAccruedInterest = currencyFormatter.format(
+    Number(loan.accrued_interest),
+  );
+  const formattedTotalAmount = currencyFormatter.format(
+    remainingAmount + accruedInterest,
+  );
 
   return (
     <div className="loan-repayment-page">
@@ -178,7 +188,16 @@ export default function LoanRepaymentPage() {
 
             <div>
               <span className="loan-repayment-label">Remaining amount</span>
-              <span className="loan-repayment-value">{formattedAmount}</span>
+              <span className="loan-repayment-value">
+                {formattedTotalAmount}
+              </span>
+            </div>
+
+            <div>
+              <span className="loan-repayment-label">Accrued interest</span>
+              <span className="loan-repayment-value">
+                {formattedAccruedInterest}
+              </span>
             </div>
 
             <div>
