@@ -17,6 +17,8 @@ from schemas.loan import (
 )
 from services.loan_service import LoanService
 
+from enums import TransactionType, TransactionStatus, TransactionDirection
+
 
 @pytest.fixture
 def uow():
@@ -415,8 +417,13 @@ class TestRepayLoan:
         transaction = uow.transaction.add.call_args.args[0]
 
         assert transaction.account_id == 100
+        assert transaction.transaction_type == TransactionType.WITHDRAWAL
+        assert transaction.direction == TransactionDirection.DEBIT
         assert transaction.amount == Decimal("2500")
-        assert transaction.reference == "LOAN-10"
+        assert transaction.reference.startswith("LOAN-10-")
+        assert len(transaction.reference) == len("LOAN-10-") + 32
+        assert transaction.status == TransactionStatus.COMPLETED
+        assert transaction.description == "Loan repayment for loan 10"
 
     @pytest.mark.asyncio
     async def test_repay_loan_fully(
@@ -451,6 +458,24 @@ class TestRepayLoan:
         assert response.repayment_amount == Decimal("5000")
         assert response.remaining_amount == Decimal("0")
         assert response.status == "PAID"
+
+        uow.account.debit.assert_awaited_once_with(
+            account_id=100,
+            amount=Decimal("5000"),
+        )
+
+        uow.transaction.add.assert_awaited_once()
+
+        transaction = uow.transaction.add.call_args.args[0]
+
+        assert transaction.account_id == 100
+        assert transaction.transaction_type == TransactionType.WITHDRAWAL
+        assert transaction.direction == TransactionDirection.DEBIT
+        assert transaction.amount == Decimal("5000")
+        assert transaction.reference.startswith("LOAN-10-")
+        assert len(transaction.reference) == len("LOAN-10-") + 32
+        assert transaction.status == TransactionStatus.COMPLETED
+        assert transaction.description == "Loan repayment for loan 10"
 
     @pytest.mark.asyncio
     async def test_repay_loan_raises_when_loan_not_found(
@@ -536,6 +561,7 @@ class TestRepayLoan:
             )
 
         uow.account.debit.assert_not_awaited()
+        uow.transaction.add.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_repay_loan_raises_when_amount_exceeds_remaining_loan(
