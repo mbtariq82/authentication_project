@@ -22,6 +22,7 @@ from exceptions import (
     InsufficientFundsError,
     InvalidTransactionRuleError,
     InvalidTransactionStatusTransitionError,
+    SelfTransferError,
     TransactionNotFoundError,
     PermissionDeniedError,
     ProfileImageStorageError,
