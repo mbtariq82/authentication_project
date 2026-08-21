@@ -23,7 +23,7 @@ const NAV_ITEMS: {
 }[] = [
   {
     key: "users",
-    label: "Users",
+    label: "Customers",
     icon: (
       <svg
         width="16"
@@ -76,9 +76,7 @@ const NAV_ITEMS: {
         strokeWidth="1.8"
       >
         <rect x="2" y="6" width="20" height="12" rx="2" />
-
         <circle cx="12" cy="12" r="2" />
-
         <path d="M6 12h.01M18 12h.01" />
       </svg>
     ),
@@ -97,9 +95,7 @@ const NAV_ITEMS: {
         strokeWidth="1.8"
       >
         <rect x="2" y="5" width="20" height="14" rx="3" />
-
         <path d="M2 10h20" />
-
         <circle cx="16" cy="15" r="1.5" />
       </svg>
     ),
@@ -118,6 +114,10 @@ export default function Sidebar({
   const [showSettings, setShowSettings] = useState(false);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<
+    string | null
+  >(null);
 
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -140,8 +140,7 @@ export default function Sidebar({
   }, []);
 
   // ==============================
-  // CLOSE SETTINGS WHEN CLICKING
-  // OUTSIDE
+  // CLOSE SETTINGS ON OUTSIDE CLICK
   // ==============================
 
   useEffect(() => {
@@ -188,10 +187,26 @@ export default function Sidebar({
   function handleProfile() {
     setShowSettings(false);
 
-    // Replace with routes.profile
-    // if you already have that route.
-    navigate("/profile");
+    navigate(routes.profile);
   }
+
+  // ==============================
+  // PROFILE IMAGE / INITIALS
+  // ==============================
+
+  const showProfileImage =
+    Boolean(user?.profile_image_url) &&
+    user?.profile_image_url !== failedProfileImageUrl;
+
+  const initials = user
+    ? [user.first_name, user.last_name]
+        .filter(Boolean)
+        .map((name) => name[0])
+        .join("")
+        .toUpperCase() ||
+      user.email?.[0]?.toUpperCase() ||
+      "U"
+    : "";
 
   return (
     <aside className="sidebar">
@@ -199,13 +214,15 @@ export default function Sidebar({
           BRAND
       ========================== */}
 
-      <div className="brand">
-        <div className="brand-mark">MB</div>
+      <div className="admin-brand">
+        <div className="auth-brand-mark admin-brand-logo" aria-hidden="true">
+          N
+        </div>
 
-        <div>
-          <div className="brand-text">Meridian Bank</div>
+        <div className="admin-brand-copy">
+          <div className="admin-brand-name">Nexa Bank</div>
 
-          <div className="brand-sub">Admin Console</div>
+          <div className="admin-brand-sub">Admin Console</div>
         </div>
       </div>
 
@@ -214,8 +231,6 @@ export default function Sidebar({
       ========================== */}
 
       <nav className="nav-list" aria-label="Admin navigation">
-        {/* DASHBOARD */}
-
         <button
           className={`nav-item ${activePanel === "dashboard" ? "active" : ""}`}
           onClick={() => onSelectPanel("dashboard")}
@@ -230,18 +245,13 @@ export default function Sidebar({
             strokeWidth="1.8"
           >
             <rect x="3" y="3" width="7" height="7" rx="1" />
-
             <rect x="14" y="3" width="7" height="7" rx="1" />
-
             <rect x="3" y="14" width="7" height="7" rx="1" />
-
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
 
           <span>Dashboard</span>
         </button>
-
-        {/* CUSTOMER MANAGEMENT */}
 
         <div className="nav-label">Customer Management</div>
 
@@ -268,29 +278,37 @@ export default function Sidebar({
       ========================== */}
 
       <div className="sidebar-footer">
-        {/* AVATAR */}
+        {/* PROFILE IMAGE */}
 
-        <div className="avatar">
-          {user
-            ? `${user.first_name?.charAt(0) ?? ""}${
-                user.last_name?.charAt(0) ?? ""
-              }`
-            : ""}
+        <div className="admin-profile-avatar-wrapper">
+          {showProfileImage ? (
+            <img
+              className="admin-profile-avatar"
+              src={user?.profile_image_url ?? undefined}
+              alt="Admin profile"
+              onError={() =>
+                setFailedProfileImageUrl(user?.profile_image_url ?? null)
+              }
+            />
+          ) : (
+            <div className="admin-profile-fallback">{initials}</div>
+          )}
         </div>
 
-        {/* ADMIN INFORMATION */}
+        {/* ADMIN INFO */}
 
         <div className="admin-info">
-          <div className="admin-name">
+          <div
+            className="admin-name"
+            title={user ? `${user.first_name} ${user.last_name}` : ""}
+          >
             {user ? `${user.first_name} ${user.last_name}` : "Loading..."}
           </div>
 
           <div className="admin-role">{user?.role ?? ""}</div>
         </div>
 
-        {/* ======================
-            SETTINGS
-        ====================== */}
+        {/* SETTINGS */}
 
         <div className="admin-settings" ref={settingsRef}>
           <button
@@ -300,8 +318,6 @@ export default function Sidebar({
             aria-expanded={showSettings}
             onClick={() => setShowSettings((previous) => !previous)}
           >
-            {/* GEAR ICON */}
-
             <svg
               width="22"
               height="22"
@@ -318,36 +334,17 @@ export default function Sidebar({
             </svg>
           </button>
 
-          {/* SETTINGS DROPDOWN */}
-
           {showSettings && (
             <div className="settings-menu">
-              {/* PROFILE */}
-
-              <button
+              {/* <button
                 type="button"
                 className="settings-menu-item"
                 onClick={handleProfile}
               >
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="8" r="4" />
+                Profile
+              </button> */}
 
-                  <path d="M4 21a8 8 0 0 1 16 0" />
-                </svg>
-
-                <span>Profile</span>
-              </button>
-
-              <div className="settings-menu-divider" />
-
-              {/* LOGOUT */}
+              {/* <div className="settings-menu-divider" /> */}
 
               <button
                 type="button"
@@ -355,24 +352,7 @@ export default function Sidebar({
                 onClick={() => void handleLogout()}
                 disabled={isLoggingOut}
               >
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-
-                  <polyline points="16 17 21 12 16 7" />
-
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-
-                <span>{isLoggingOut ? "Signing out..." : "Logout"}</span>
+                {isLoggingOut ? "Signing out..." : "Logout"}
               </button>
             </div>
           )}
