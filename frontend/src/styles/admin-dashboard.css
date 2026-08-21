@@ -1075,3 +1075,31 @@ tbody td {
 .customer-detail-profile-status {
   margin-top: 8px;
 }
+
+/* Status heading */
+.cards-table th:nth-child(3) {
+  width: 15%;
+  text-align: left;
+}
+
+/* Status values only */
+.cards-table td:nth-child(3) {
+  width: 15%;
+  padding-left: 5px;
+}
+
+/* Actions */
+.cards-table th:nth-child(4),
+.cards-table td:nth-child(4) {
+  width: 23%;
+  padding-left: 25px;
+}
+
+.cards-table .actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Users table */
