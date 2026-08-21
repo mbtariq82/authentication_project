@@ -607,6 +607,62 @@
   margin: 0.25rem 0;
   background: rgb(148 163 184 / 18%);
 }
+.card-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(11, 21, 38, 0.45);
+  z-index: 50;
+}
+
+.card-modal {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 35px rgba(11, 21, 38, 0.16);
+}
+
+.card-modal h2 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.card-modal p {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.card-modal input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+}
+
+.card-modal input:focus {
+  border-color: var(--navy-700);
+}
+
+.card-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 .customer-content {
   width: min(100% - 3rem, 68rem);
   margin: 0 auto;
@@ -696,6 +752,30 @@
 .customer-card-button:hover {
   background: var(--navy-700);
 }
+
+.customer-card-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgb(148 163 184 / 12%);
+  color: #94a3b8;
+}
+
+.customer-card-button.danger {
+  background: rgb(248 113 113 / 16%);
+  color: #fca5a5;
+}
+
+.customer-card-button.danger:hover {
+  background: rgb(248 113 113 / 26%);
+}
+
+.customer-card-button.danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgb(148 163 184 / 12%);
+  color: #94a3b8;
+}
+
 .customer-card-label {
   margin: 0 0 0.75rem;
   color: #0284c7;
@@ -755,7 +835,7 @@
   padding: 0.75rem 1rem;
   border-radius: 0.65rem;
   border: 1px solid rgb(251 191 36 / 35%);
-  background: rgb(251 191 36 / 12%);
+  background: rgb(251 191 3 6 / 12%);
   color: #fcd34d;
   font-size: 0.85rem;
   font-weight: 600;
@@ -785,6 +865,44 @@
   overflow-wrap: anywhere;
   color: #243b53;
   font-weight: 650;
+}
+
+.customer-recent {
+  margin-top: 1.5rem;
+}
+
+.customer-recent .history-row {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.customer-recent-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.customer-recent-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.customer-recent-link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.customer-recent-link:hover {
+  text-decoration: underline;
+}
+
+.customer-recent-empty {
+  color: var(--color-muted);
+  font-size: 0.85rem;
 }
 
 .profile-page {
@@ -1821,31 +1939,4 @@
   .add-consultant-empty {
     padding: 22px;
   }
-}
-
-.profile-back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  margin-left: 1030px;
-  margin-top: 24px;
-  margin-bottom: 24px;
-
-  padding: 10px 14px;
-
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-
-  background: #ffffff;
-  color: #334155;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-.profile-back-button:hover {
-  background: #f1f5f9;
 }

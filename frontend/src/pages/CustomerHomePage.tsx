@@ -4,18 +4,27 @@ import { Link, useNavigate } from "react-router";
 import { getUserProfile, type UserResponse } from "../api/userClient";
 import { clearTokens } from "../auth/tokenStorage";
 import { useAccount } from "../hooks/useAccount";
+import { useAccountMutations } from "../hooks/useAccountMutations";
 import CustomerNavigation from "../components/CustomerNavigation";
+import FreezeAccountModal from "../components/Account/FreezeAccountModal";
+import CloseAccountModal from "../components/Account/CloseAccountModal";
+import RecentTransactions from "../components/Account/RecentTransactions";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserResponse | null>(null);
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
 
   const {
     data: account,
     isLoading: isAccountLoading,
     isError: isAccountError,
   } = useAccount();
+
+  const { freeze, unfreeze, close } = useAccountMutations();
+
+  const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
 
   useEffect(() => {
     async function loadCurrentUser() {
@@ -40,14 +49,6 @@ export default function CustomerHomePage() {
   }
 
   const displayName = user.first_name || "Customer";
-  const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
-  const initials =
-    [user.first_name, user.last_name]
-      .filter(Boolean)
-      .map((name) => name[0])
-      .join("")
-      .toUpperCase() || user.email[0].toUpperCase();
-  const showProfileImage = user.profile_image_url && !profileImageFailed;
 
   const balanceDisplay =
     account != null
@@ -56,7 +57,10 @@ export default function CustomerHomePage() {
           currency: "GBP",
         }).format(Number(account.balance))
       : null;
-  const statusLabel = account?.account_status ?? "Pending";
+  const statusLabel = account?.account_status ?? "PENDING";
+  const isApproved = statusLabel === "APPROVED";
+  const isFrozen = statusLabel === "FROZEN";
+  const balanceIsZero = account != null && Number(account.balance) === 0;
 
   return (
     <main className="customer-home">
@@ -64,19 +68,6 @@ export default function CustomerHomePage() {
 
       <section className="customer-content">
         <div className="customer-profile-intro">
-          {showProfileImage ? (
-            <img
-              className="customer-profile-image"
-              src={user.profile_image_url ?? undefined}
-              alt={`${fullName || displayName}'s profile`}
-              onError={() => setProfileImageFailed(true)}
-            />
-          ) : (
-            <span className="customer-profile-fallback" aria-hidden="true">
-              {initials}
-            </span>
-          )}
-
           <div className="customer-welcome">
             <p className="auth-eyebrow">Customer Account</p>
             <h1>Welcome, {displayName}</h1>
@@ -90,11 +81,9 @@ export default function CustomerHomePage() {
           <article className="customer-primary-card">
             {isAccountError ? (
               <div>
-                <p className="customer-card-label">Error</p>
-                <h2>Account unavailable</h2>
+                <h2>Account Unavailable</h2>
                 <p>
-                  We couldn't load your account details right now. Please try
-                  again shortly.
+                  Sorry, we couldn't find your account. Please try again later.
                 </p>
               </div>
             ) : isAccountLoading || !account ? (
@@ -104,10 +93,11 @@ export default function CustomerHomePage() {
               </div>
             ) : statusLabel === "PENDING" ? (
               <div>
-                <p className="customer-card-label">Everyday account</p>
+                <p className="customer-card-label">Account Not Verified</p>
                 <p>
-                  This account is not yet verified. Please allow a few days
-                  while we get your account verified.
+                  Your account is pending and still in progress of being
+                  verified. Please wait until the bank administrator has
+                  verified your account.
                 </p>
               </div>
             ) : statusLabel === "CLOSED" ? (
@@ -139,16 +129,92 @@ export default function CustomerHomePage() {
                   </p>
                 </div>
                 <div className="customer-actions">
-                  {(statusLabel === "APPROVED" || statusLabel === "FROZEN") && (
+                  {(isApproved || isFrozen) && (
                     <Link to="/card" className="customer-card-button">
                       View card
                     </Link>
                   )}
+
+                  {isApproved && (
+                    <button
+                      type="button"
+                      className="customer-card-button"
+                      onClick={() => setShowFreezeModal(true)}
+                    >
+                      Freeze account
+                    </button>
+                  )}
+
+                  {isFrozen && (
+                    <button
+                      type="button"
+                      className="customer-card-button"
+                      onClick={() => unfreeze.mutate()}
+                      disabled={unfreeze.isPending}
+                    >
+                      {unfreeze.isPending ? "Unfreezing…" : "Unfreeze account"}
+                    </button>
+                  )}
+
+                  {isApproved && (
+                    <button
+                      type="button"
+                      className="customer-card-button danger"
+                      onClick={() => setShowCloseModal(true)}
+                      disabled={!balanceIsZero}
+                      title={
+                        balanceIsZero
+                          ? undefined
+                          : "You must empty your balance before closing."
+                      }
+                    >
+                      Close account
+                    </button>
+                  )}
                 </div>
               </>
             )}
+            {showFreezeModal && (
+              <FreezeAccountModal
+                freezing={freeze.isPending}
+                error={freeze.isError ? (freeze.error as Error).message : null}
+                onConfirm={() =>
+                  freeze.mutate(undefined, {
+                    onSuccess: () => setShowFreezeModal(false),
+                  })
+                }
+                onClose={() => {
+                  freeze.reset();
+                  setShowFreezeModal(false);
+                }}
+              />
+            )}
+
+            {showCloseModal && (
+              <CloseAccountModal
+                reason={closeReason}
+                closing={close.isPending}
+                error={close.isError ? (close.error as Error).message : null}
+                onReasonChange={setCloseReason}
+                onConfirm={() =>
+                  close.mutate(closeReason.trim(), {
+                    onSuccess: () => {
+                      setShowCloseModal(false);
+                      setCloseReason("");
+                    },
+                  })
+                }
+                onClose={() => {
+                  close.reset();
+                  setShowCloseModal(false);
+                  setCloseReason("");
+                }}
+              />
+            )}
           </article>
         </section>
+
+        <RecentTransactions />
       </section>
     </main>
   );
