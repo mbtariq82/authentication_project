@@ -169,13 +169,15 @@ nav.nav-list {
   flex-shrink: 0;
 }
 .admin-name {
-  font-size: 13px;
-  color: white;
+  color: #ffffff;
+  font-size: 16px;
   font-weight: 500;
-}
-.admin-role {
-  font-size: 11px;
-  color: var(--slate-300);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  width: 100%;
 }
 
 /* ---------- Main ---------- */
@@ -629,6 +631,13 @@ tbody td {
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+}
+.admin-role {
+  color: #ffffff;
+  font-size: 14px;
+  margin-top: 2px;
+
+  white-space: nowrap;
 }
 
 .admin-modal {

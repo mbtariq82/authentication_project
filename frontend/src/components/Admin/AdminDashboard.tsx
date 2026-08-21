@@ -13,26 +13,27 @@ import "../../styles/admin-dashboard.css";
 const PANEL_TITLES: Record<PanelKey, { title: string; subtitle: string }> = {
   dashboard: {
     title: "Dashboard",
-    subtitle: "Overview of users and banking activity",
+    subtitle: "Overview of customers and banking activity",
   },
+
   users: {
-    title: "User review",
-    subtitle: "Approve or reject new customer registrations",
+    title: "Customer review",
+    subtitle: "Review and manage customer registrations",
   },
 
   accounts: {
     title: "Account review",
-    subtitle: "Approved, rejected, pending, or closed customer accounts",
+    subtitle: "Review and manage customer accounts",
   },
 
   loans: {
     title: "Loan review",
-    subtitle: "Approve, reject, or cancel loan applications",
+    subtitle: "Review and manage customer loan applications",
   },
 
   cards: {
     title: "Card review",
-    subtitle: "Freeze or cancel issued debit and credit cards",
+    subtitle: "Review and manage customer cards",
   },
 };
 

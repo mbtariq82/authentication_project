@@ -175,7 +175,7 @@ export default function UsersPanel() {
       ========================== */}
 
       <div className="panel-header">
-        <div className="panel-title">User applications</div>
+        <div className="panel-title">Customer applications</div>
 
         <div className="tabs">
           {FILTERS.map((f) => (
@@ -217,6 +217,7 @@ export default function UsersPanel() {
                 <tr>
                   <th>Customer</th>
                   <th>Email</th>
+                  <th>City</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -252,6 +253,8 @@ export default function UsersPanel() {
                       {/* EMAIL */}
 
                       <td>{user.email}</td>
+
+                      <td>{user.city ?? "—"}</td>
 
                       {/* ROLE */}
 
@@ -342,7 +345,7 @@ export default function UsersPanel() {
         <div className="modal-overlay">
           <div className="admin-modal">
             <div className="modal-header">
-              <h2>User Details</h2>
+              <h2>Customer Details</h2>
 
               <button
                 type="button"

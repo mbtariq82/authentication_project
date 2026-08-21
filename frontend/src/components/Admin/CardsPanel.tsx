@@ -164,6 +164,7 @@ export default function CardsPanel() {
                 <tr>
                   <th>Customer</th>
                   <th>Card number</th>
+                  <th>CVC</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -204,6 +205,8 @@ export default function CardsPanel() {
                       {/* CARD NUMBER */}
 
                       <td className="mono-value">{card.card_number ?? "—"}</td>
+
+                      <td className="mono-value">{card.cvc ?? "—"}</td>
 
                       {/* STATUS */}
 

@@ -23,7 +23,7 @@ const NAV_ITEMS: {
 }[] = [
   {
     key: "users",
-    label: "Users",
+    label: "Customers",
     icon: (
       <svg
         width="16"
@@ -298,7 +298,10 @@ export default function Sidebar({
         {/* ADMIN INFO */}
 
         <div className="admin-info">
-          <div className="admin-name">
+          <div
+            className="admin-name"
+            title={user ? `${user.first_name} ${user.last_name}` : ""}
+          >
             {user ? `${user.first_name} ${user.last_name}` : "Loading..."}
           </div>
 
