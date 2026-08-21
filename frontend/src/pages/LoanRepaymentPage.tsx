@@ -17,7 +17,9 @@ export default function LoanRepaymentPage() {
   const [loading, setLoading] = useState(true);
   const [repaying, setRepaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [showWarning, setShowWarning] = useState(false);
+  const [showOverpaymentWarning, setShowOverpaymentWarning] = useState(false);
 
   useEffect(() => {
     const loadLoan = async () => {
@@ -96,18 +98,29 @@ export default function LoanRepaymentPage() {
       return;
     }
 
-    // Show a warning if the repayment is below the EMI.
     if (repaymentAmount < loan.emi) {
       setShowWarning(true);
       return;
     }
 
-    // EMI or greater — proceed normally.
-    submitRepayment();
+    if (repaymentAmount > loan.emi) {
+      setShowOverpaymentWarning(true);
+      return;
+    }
+
+    // Exactly the EMI.
+    void submitRepayment();
   }
 
-  async function acknowledgeAndRepay() {
-    setShowWarning(false);
+  async function acknowledgeAndRepay(
+    warningType: "underpayment" | "overpayment",
+  ) {
+    if (warningType === "underpayment") {
+      setShowWarning(false);
+    } else {
+      setShowOverpaymentWarning(false);
+    }
+
     await submitRepayment();
   }
 
@@ -224,6 +237,7 @@ export default function LoanRepaymentPage() {
         </section>
       </main>
 
+      {/* Underpayment warning */}
       {showWarning && (
         <div className="loan-repayment-modal-backdrop" role="presentation">
           <div
@@ -240,9 +254,9 @@ export default function LoanRepaymentPage() {
             </p>
 
             <p>
-              Making repayments below this amount could potentially increase the
-              total interest you pay and may result in changes to your future
-              repayment amount.
+              Making a repayment below your expected monthly amount may increase
+              the remaining duration of your loan and could result in you paying
+              more interest over the life of the loan.
             </p>
 
             <p>Are you sure you want to continue with this repayment?</p>
@@ -260,7 +274,58 @@ export default function LoanRepaymentPage() {
               <button
                 type="button"
                 className="loan-repayment-modal-confirm"
-                onClick={acknowledgeAndRepay}
+                onClick={() => void acknowledgeAndRepay("underpayment")}
+                disabled={repaying}
+              >
+                {repaying ? "Processing..." : "Acknowledge & make payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Overpayment warning */}
+      {showOverpaymentWarning && (
+        <div className="loan-repayment-modal-backdrop" role="presentation">
+          <div
+            className="loan-repayment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="overpayment-warning-title"
+          >
+            <h2 id="overpayment-warning-title">Larger repayment</h2>
+
+            <p>
+              You are paying more than your expected monthly repayment of{" "}
+              <strong>{formattedEmi}</strong>.
+            </p>
+
+            <p>
+              This additional repayment will reduce the remaining balance of
+              your loan and shorten the remaining loan duration.
+            </p>
+
+            <p>
+              Your monthly repayment amount will remain the same, allowing you
+              to pay off the loan sooner.
+            </p>
+
+            <p>Would you like to continue with this repayment?</p>
+
+            <div className="loan-repayment-modal-actions">
+              <button
+                type="button"
+                className="loan-repayment-modal-cancel"
+                onClick={() => setShowOverpaymentWarning(false)}
+                disabled={repaying}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="loan-repayment-modal-confirm"
+                onClick={() => void acknowledgeAndRepay("overpayment")}
                 disabled={repaying}
               >
                 {repaying ? "Processing..." : "Acknowledge & make payment"}
