@@ -14,6 +14,19 @@ const FILTERS: {
 ];
 
 export default function UsersPanel() {
+  // ==========================
+  // PAGINATION
+  // ==========================
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const skip = (page - 1) * pageSize;
+
+  // ==========================
+  // USERS
+  // ==========================
+
   const [users, setUsers] = useState<AdminUser[]>([]);
 
   const [filter, setFilter] = useState<UserStatus | "all">("all");
@@ -35,12 +48,17 @@ export default function UsersPanel() {
 
   const [rejectionReason, setRejectionReason] = useState("");
 
+  // ==========================
+  // LOAD USERS
+  // ==========================
+
   async function loadUsers() {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchUsers();
+      const data = await fetchUsers(skip, pageSize);
+
       setUsers(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load users");
@@ -50,19 +68,22 @@ export default function UsersPanel() {
   }
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    void loadUsers();
+  }, [page, pageSize]);
+
+  // ==========================
+  // APPROVE USER
+  // ==========================
 
   async function handleApprove(userId: number) {
     setActingOn(userId);
     setError(null);
 
     try {
-      const updated = await updateUserStatus(userId, "APPROVED");
+      await updateUserStatus(userId, "APPROVED");
 
-      setUsers((prev) =>
-        prev.map((user) => (user.id === userId ? updated : user)),
-      );
+      // Reload the current page
+      await loadUsers();
 
       setEditingUser(null);
     } catch (err) {
@@ -72,12 +93,20 @@ export default function UsersPanel() {
     }
   }
 
+  // ==========================
+  // OPEN REJECT MODAL
+  // ==========================
+
   function openRejectModal(user: AdminUser) {
     setRejectingUser(user);
     setEditingUser(null);
     setRejectionReason("");
     setError(null);
   }
+
+  // ==========================
+  // REJECT USER
+  // ==========================
 
   async function handleReject() {
     if (!rejectingUser) {
@@ -93,15 +122,14 @@ export default function UsersPanel() {
     setError(null);
 
     try {
-      const updated = await updateUserStatus(
+      await updateUserStatus(
         rejectingUser.id,
         "REJECTED",
         rejectionReason.trim(),
       );
 
-      setUsers((prev) =>
-        prev.map((user) => (user.id === rejectingUser.id ? updated : user)),
-      );
+      // Reload current page
+      await loadUsers();
 
       setRejectingUser(null);
       setRejectionReason("");
@@ -112,14 +140,39 @@ export default function UsersPanel() {
     }
   }
 
+  // ==========================
+  // FILTER
+  // ==========================
+
   const visibleUsers =
     filter === "all"
       ? users
       : users.filter((user) => user.user_status === filter);
 
+  // ==========================
+  // PAGINATION FUNCTIONS
+  // ==========================
+
+  function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setPageSize(Number(event.target.value));
+
+    // Reset to first page
+    setPage(1);
+  }
+
+  function handlePrevious() {
+    setPage((previous) => Math.max(1, previous - 1));
+  }
+
+  function handleNext() {
+    setPage((previous) => previous + 1);
+  }
+
   return (
     <div className="panel">
-      {/* HEADER */}
+      {/* ==========================
+          HEADER
+      ========================== */}
 
       <div className="panel-header">
         <div className="panel-title">User applications</div>
@@ -138,15 +191,21 @@ export default function UsersPanel() {
         </div>
       </div>
 
-      {/* LOADING */}
+      {/* ==========================
+          LOADING
+      ========================== */}
 
       {loading && <div className="panel-loading">Loading users...</div>}
 
-      {/* ERROR */}
+      {/* ==========================
+          ERROR
+      ========================== */}
 
       {error && <div className="panel-error">{error}</div>}
 
-      {/* USERS TABLE */}
+      {/* ==========================
+          USERS TABLE
+      ========================== */}
 
       {!loading && (
         <>
@@ -208,8 +267,6 @@ export default function UsersPanel() {
 
                       <td>
                         <div className="actions">
-                          {/* DETAIL */}
-
                           <button
                             className="btn detail-btn"
                             type="button"
@@ -217,8 +274,6 @@ export default function UsersPanel() {
                           >
                             👁 Detail
                           </button>
-
-                          {/* EDIT */}
 
                           <button
                             className="btn edit-btn"
@@ -239,8 +294,42 @@ export default function UsersPanel() {
             </table>
           )}
 
-          <div className="panel-footer">
-            Showing {visibleUsers.length} of {users.length} users
+          {/* ==========================
+              PAGINATION
+          ========================== */}
+
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
+
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+              </select>
+            </div>
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={users.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -383,7 +472,7 @@ export default function UsersPanel() {
               </p>
             </div>
 
-            {/* PENDING USER ACTIONS */}
+            {/* PENDING USER */}
 
             {editingUser.user_status === "PENDING" && (
               <div className="modal-actions">

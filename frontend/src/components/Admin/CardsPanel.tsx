@@ -14,6 +14,19 @@ const FILTERS: {
 ];
 
 export default function CardsPanel() {
+  // ==========================
+  // PAGINATION
+  // ==========================
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const skip = (page - 1) * pageSize;
+
+  // ==========================
+  // CARDS
+  // ==========================
+
   const [cards, setCards] = useState<AdminCard[]>([]);
 
   const [filter, setFilter] = useState<CardStatus | "all">("all");
@@ -30,12 +43,17 @@ export default function CardsPanel() {
   // Edit modal
   const [editingCard, setEditingCard] = useState<AdminCard | null>(null);
 
+  // ==========================
+  // LOAD CARDS
+  // ==========================
+
   async function load() {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchCards();
+      const data = await fetchCards(skip, pageSize);
+
       setCards(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load cards");
@@ -45,26 +63,22 @@ export default function CardsPanel() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [page, pageSize]);
+
+  // ==========================
+  // UPDATE STATUS
+  // ==========================
 
   async function handleAction(cardId: number, status: CardStatus) {
     setActingOn(cardId);
     setError(null);
 
     try {
-      const updated = await updateCardStatus(cardId, status);
+      await updateCardStatus(cardId, status);
 
-      setCards((prev) =>
-        prev.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                ...updated,
-              }
-            : card,
-        ),
-      );
+      // Reload current page
+      await load();
 
       setEditingCard(null);
     } catch (err) {
@@ -74,12 +88,36 @@ export default function CardsPanel() {
     }
   }
 
+  // ==========================
+  // FILTER
+  // ==========================
+
   const visible =
     filter === "all" ? cards : cards.filter((card) => card.status === filter);
 
+  // ==========================
+  // PAGINATION
+  // ==========================
+
+  function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setPageSize(Number(event.target.value));
+
+    setPage(1);
+  }
+
+  function handlePrevious() {
+    setPage((previous) => Math.max(1, previous - 1));
+  }
+
+  function handleNext() {
+    setPage((previous) => previous + 1);
+  }
+
   return (
     <div className="panel">
-      {/* HEADER */}
+      {/* ==========================
+          HEADER
+      ========================== */}
 
       <div className="panel-header">
         <div className="panel-title">Issued cards</div>
@@ -89,7 +127,9 @@ export default function CardsPanel() {
             <button
               key={f.key}
               className={`tab ${filter === f.key ? "active" : ""}`}
-              onClick={() => setFilter(f.key)}
+              onClick={() => {
+                setFilter(f.key);
+              }}
               type="button"
             >
               {f.label}
@@ -98,15 +138,21 @@ export default function CardsPanel() {
         </div>
       </div>
 
-      {/* LOADING */}
+      {/* ==========================
+          LOADING
+      ========================== */}
 
       {loading && <div className="panel-loading">Loading cards...</div>}
 
-      {/* ERROR */}
+      {/* ==========================
+          ERROR
+      ========================== */}
 
       {error && <div className="panel-error">{error}</div>}
 
-      {/* TABLE */}
+      {/* ==========================
+          TABLE
+      ========================== */}
 
       {!loading && !error && (
         <>
@@ -196,8 +242,42 @@ export default function CardsPanel() {
             </table>
           )}
 
-          <div className="panel-footer">
-            Showing {visible.length} of {cards.length} cards
+          {/* ==========================
+              PAGINATION
+          ========================== */}
+
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
+
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+              </select>
+            </div>
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={cards.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -224,6 +304,7 @@ export default function CardsPanel() {
             <div className="user-details-grid">
               <div>
                 <strong>Customer</strong>
+
                 <p>
                   {selectedCard.first_name} {selectedCard.last_name}
                 </p>
@@ -231,31 +312,37 @@ export default function CardsPanel() {
 
               <div>
                 <strong>Email</strong>
+
                 <p>{selectedCard.email ?? "—"}</p>
               </div>
 
               <div>
                 <strong>Card ID</strong>
+
                 <p>{selectedCard.id}</p>
               </div>
 
               <div>
                 <strong>Account ID</strong>
+
                 <p>{selectedCard.account_id}</p>
               </div>
 
               <div>
                 <strong>Card Number</strong>
+
                 <p>{selectedCard.card_number ?? "—"}</p>
               </div>
 
               <div>
                 <strong>Status</strong>
+
                 <p>{selectedCard.status}</p>
               </div>
 
               <div>
                 <strong>Expiry Date</strong>
+
                 <p>
                   {selectedCard.expiry_date
                     ? new Date(selectedCard.expiry_date).toLocaleDateString()
@@ -265,6 +352,7 @@ export default function CardsPanel() {
 
               <div>
                 <strong>Created At</strong>
+
                 <p>
                   {selectedCard.created_at
                     ? new Date(selectedCard.created_at).toLocaleString()
@@ -275,6 +363,7 @@ export default function CardsPanel() {
               {selectedCard.user_id !== undefined && (
                 <div>
                   <strong>User ID</strong>
+
                   <p>{selectedCard.user_id}</p>
                 </div>
               )}
@@ -327,7 +416,9 @@ export default function CardsPanel() {
               </p>
             </div>
 
-            {/* ACTIVE */}
+            {/* ==========================
+                ACTIVE
+            ========================== */}
 
             {editingCard.status === "ACTIVE" && (
               <div className="modal-actions">
@@ -346,12 +437,14 @@ export default function CardsPanel() {
                   disabled={actingOn === editingCard.id}
                   onClick={() => handleAction(editingCard.id, "CLOSED")}
                 >
-                  Close
+                  {actingOn === editingCard.id ? "Closing..." : "Close"}
                 </button>
               </div>
             )}
 
-            {/* FROZEN */}
+            {/* ==========================
+                FROZEN
+            ========================== */}
 
             {editingCard.status === "FROZEN" && (
               <div className="modal-actions">
@@ -370,11 +463,14 @@ export default function CardsPanel() {
                   disabled={actingOn === editingCard.id}
                   onClick={() => handleAction(editingCard.id, "CLOSED")}
                 >
-                  Close
+                  {actingOn === editingCard.id ? "Closing..." : "Close"}
                 </button>
               </div>
             )}
-            {/* CLOSED */}
+
+            {/* ==========================
+                CLOSED
+            ========================== */}
 
             {editingCard.status === "CLOSED" && (
               <div className="modal-message">This card is closed.</div>

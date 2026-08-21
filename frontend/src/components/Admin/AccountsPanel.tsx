@@ -17,6 +17,19 @@ const FILTERS: {
 ];
 
 export default function AccountsPanel() {
+  // ==========================
+  // PAGINATION
+  // ==========================
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const skip = (page - 1) * pageSize;
+
+  // ==========================
+  // ACCOUNTS
+  // ==========================
+
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
 
   const [filter, setFilter] = useState<AccountStatus | "all">("all");
@@ -37,7 +50,7 @@ export default function AccountsPanel() {
     null,
   );
 
-  // Status selected from Edit modal
+  // Selected action inside Edit modal
   const [pendingStatus, setPendingStatus] = useState<AccountStatus | null>(
     null,
   );
@@ -45,12 +58,16 @@ export default function AccountsPanel() {
   // Reason for freeze / close
   const [actionReason, setActionReason] = useState("");
 
+  // ==========================
+  // LOAD ACCOUNTS
+  // ==========================
+
   async function load() {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchAccounts();
+      const data = await fetchAccounts(skip, pageSize);
 
       setAccounts(data);
     } catch (err) {
@@ -60,9 +77,14 @@ export default function AccountsPanel() {
     }
   }
 
+  // Reload whenever page or page size changes
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [page, pageSize]);
+
+  // ==========================
+  // UPDATE ACCOUNT STATUS
+  // ==========================
 
   async function handleAction(
     accountId: number,
@@ -73,20 +95,14 @@ export default function AccountsPanel() {
     setError(null);
 
     try {
-      const updated = await updateAccountStatus(accountId, status, reason);
+      await updateAccountStatus(accountId, status, reason);
 
-      setAccounts((prev) =>
-        prev.map((account) =>
-          account.id === accountId
-            ? {
-                ...account,
-                ...updated,
-              }
-            : account,
-        ),
-      );
+      // Fetch latest account data from backend
+      await load();
 
+      // Close edit modal
       setEditingAccount(null);
+
       setPendingStatus(null);
       setActionReason("");
     } catch (err) {
@@ -95,6 +111,10 @@ export default function AccountsPanel() {
       setActingOn(null);
     }
   }
+
+  // ==========================
+  // EDIT MODAL
+  // ==========================
 
   function openEditModal(account: AdminAccount) {
     setEditingAccount(account);
@@ -106,21 +126,45 @@ export default function AccountsPanel() {
 
   function closeEditModal() {
     setEditingAccount(null);
+
     setPendingStatus(null);
     setActionReason("");
     setError(null);
   }
+
+  // ==========================
+  // FILTER
+  // ==========================
 
   const visible =
     filter === "all"
       ? accounts
       : accounts.filter((account) => account.account_status === filter);
 
+  // ==========================
+  // PAGINATION
+  // ==========================
+
+  function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setPageSize(Number(event.target.value));
+
+    // Go back to first page
+    setPage(1);
+  }
+
+  function handlePrevious() {
+    setPage((previous) => Math.max(1, previous - 1));
+  }
+
+  function handleNext() {
+    setPage((previous) => previous + 1);
+  }
+
   return (
     <div className="panel">
-      {/* =========================
+      {/* ==========================
           HEADER
-      ========================= */}
+      ========================== */}
 
       <div className="panel-header">
         <div className="panel-title">Account applications</div>
@@ -130,7 +174,9 @@ export default function AccountsPanel() {
             <button
               key={f.key}
               className={`tab ${filter === f.key ? "active" : ""}`}
-              onClick={() => setFilter(f.key)}
+              onClick={() => {
+                setFilter(f.key);
+              }}
               type="button"
             >
               {f.label}
@@ -139,21 +185,21 @@ export default function AccountsPanel() {
         </div>
       </div>
 
-      {/* =========================
+      {/* ==========================
           LOADING
-      ========================= */}
+      ========================== */}
 
       {loading && <div className="panel-loading">Loading accounts...</div>}
 
-      {/* =========================
+      {/* ==========================
           ERROR
-      ========================= */}
+      ========================== */}
 
       {error && <div className="panel-error">{error}</div>}
 
-      {/* =========================
+      {/* ==========================
           TABLE
-      ========================= */}
+      ========================== */}
 
       {!loading && !error && (
         <>
@@ -164,15 +210,10 @@ export default function AccountsPanel() {
               <thead>
                 <tr>
                   <th>Customer</th>
-
                   <th>Account no.</th>
-
                   <th>Type</th>
-
                   <th>Status</th>
-
                   <th>Opened</th>
-
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -215,7 +256,7 @@ export default function AccountsPanel() {
                         {account.account_number ?? "— pending —"}
                       </td>
 
-                      {/* ACCOUNT TYPE */}
+                      {/* TYPE */}
 
                       <td
                         style={{
@@ -231,7 +272,7 @@ export default function AccountsPanel() {
                         <StatusBadge status={account.account_status} />
                       </td>
 
-                      {/* CREATED DATE */}
+                      {/* CREATED */}
 
                       <td>
                         {account.created_at
@@ -243,8 +284,6 @@ export default function AccountsPanel() {
 
                       <td>
                         <div className="actions">
-                          {/* DETAIL */}
-
                           <button
                             className="btn detail-btn"
                             type="button"
@@ -252,8 +291,6 @@ export default function AccountsPanel() {
                           >
                             👁 Detail
                           </button>
-
-                          {/* EDIT */}
 
                           <button
                             className="btn edit-btn"
@@ -271,15 +308,51 @@ export default function AccountsPanel() {
             </table>
           )}
 
-          <div className="panel-footer">
-            Showing {visible.length} of {accounts.length} accounts
+          {/* ==========================
+              PAGINATION
+          ========================== */}
+
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
+
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={10}>10</option>
+
+                <option value={20}>20</option>
+
+                <option value={30}>30</option>
+              </select>
+            </div>
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={accounts.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
 
-      {/* ==================================
+      {/* ==========================
           ACCOUNT DETAIL MODAL
-      ================================== */}
+      ========================== */}
 
       {selectedAccount && (
         <div className="modal-overlay">
@@ -297,8 +370,6 @@ export default function AccountsPanel() {
             </div>
 
             <div className="user-details-grid">
-              {/* CUSTOMER */}
-
               <div>
                 <strong>Customer</strong>
 
@@ -307,15 +378,11 @@ export default function AccountsPanel() {
                 </p>
               </div>
 
-              {/* EMAIL */}
-
               <div>
                 <strong>Email</strong>
 
                 <p>{selectedAccount.email ?? "—"}</p>
               </div>
-
-              {/* USER ID */}
 
               <div>
                 <strong>User ID</strong>
@@ -323,15 +390,11 @@ export default function AccountsPanel() {
                 <p>{selectedAccount.user_id}</p>
               </div>
 
-              {/* ACCOUNT ID */}
-
               <div>
                 <strong>Account ID</strong>
 
                 <p>{selectedAccount.id}</p>
               </div>
-
-              {/* ACCOUNT NUMBER */}
 
               <div>
                 <strong>Account Number</strong>
@@ -339,15 +402,11 @@ export default function AccountsPanel() {
                 <p>{selectedAccount.account_number ?? "—"}</p>
               </div>
 
-              {/* SORT CODE */}
-
               <div>
                 <strong>Sort Code</strong>
 
                 <p>{selectedAccount.sort_code ?? "—"}</p>
               </div>
-
-              {/* TYPE */}
 
               <div>
                 <strong>Account Type</strong>
@@ -355,31 +414,23 @@ export default function AccountsPanel() {
                 <p>{selectedAccount.account_type}</p>
               </div>
 
-              {/* BRANCH */}
-
               <div>
                 <strong>Branch</strong>
 
                 <p>{selectedAccount.branch ?? "—"}</p>
               </div>
 
-              {/* BALANCE */}
-
               <div>
                 <strong>Balance</strong>
 
-                <p>{selectedAccount.balance ?? "0"}</p>
+                <p>£{Number(selectedAccount.balance ?? 0).toLocaleString()}</p>
               </div>
-
-              {/* STATUS */}
 
               <div>
                 <strong>Status</strong>
 
                 <p>{selectedAccount.account_status}</p>
               </div>
-
-              {/* CREATED */}
 
               <div>
                 <strong>Opened</strong>
@@ -391,8 +442,6 @@ export default function AccountsPanel() {
                 </p>
               </div>
 
-              {/* UPDATED */}
-
               <div>
                 <strong>Updated</strong>
 
@@ -403,8 +452,6 @@ export default function AccountsPanel() {
                 </p>
               </div>
 
-              {/* CLOSE REASON */}
-
               {selectedAccount.close_reason && (
                 <div>
                   <strong>Status Reason</strong>
@@ -412,8 +459,6 @@ export default function AccountsPanel() {
                   <p>{selectedAccount.close_reason}</p>
                 </div>
               )}
-
-              {/* CLOSED AT */}
 
               {selectedAccount.closed_at && (
                 <div>
@@ -437,9 +482,9 @@ export default function AccountsPanel() {
         </div>
       )}
 
-      {/* ==================================
+      {/* ==========================
           EDIT ACCOUNT MODAL
-      ================================== */}
+      ========================== */}
 
       {editingAccount && (
         <div className="modal-overlay">
@@ -456,7 +501,7 @@ export default function AccountsPanel() {
               </button>
             </div>
 
-            {/* ACCOUNT INFORMATION */}
+            {/* ACCOUNT INFO */}
 
             <div className="edit-user-info">
               <p>
@@ -474,9 +519,9 @@ export default function AccountsPanel() {
               </p>
             </div>
 
-            {/* ==================================
-                PENDING ACCOUNT
-            ================================== */}
+            {/* ==========================
+                PENDING
+            ========================== */}
 
             {editingAccount.account_status === "PENDING" && (
               <div className="modal-actions">
@@ -495,26 +540,23 @@ export default function AccountsPanel() {
                   disabled={actingOn === editingAccount.id}
                   onClick={() => handleAction(editingAccount.id, "REJECTED")}
                 >
-                  Reject
+                  {actingOn === editingAccount.id ? "Rejecting..." : "Reject"}
                 </button>
               </div>
             )}
 
-            {/* ==================================
-                APPROVED ACCOUNT
-            ================================== */}
+            {/* ==========================
+                APPROVED
+            ========================== */}
 
             {editingAccount.account_status === "APPROVED" && (
               <>
-                {/* INITIAL BUTTONS */}
-
                 {!pendingStatus && (
                   <div className="modal-actions">
-                    {/* FREEZE */}
-
                     <button
                       className="btn freeze"
                       type="button"
+                      disabled={actingOn === editingAccount.id}
                       onClick={() => {
                         setPendingStatus("FROZEN");
 
@@ -526,11 +568,10 @@ export default function AccountsPanel() {
                       Freeze
                     </button>
 
-                    {/* CLOSE */}
-
                     <button
                       className="btn reject"
                       type="button"
+                      disabled={actingOn === editingAccount.id}
                       onClick={() => {
                         setPendingStatus("CLOSED");
 
@@ -543,8 +584,6 @@ export default function AccountsPanel() {
                     </button>
                   </div>
                 )}
-
-                {/* REASON FORM */}
 
                 {(pendingStatus === "FROZEN" || pendingStatus === "CLOSED") && (
                   <div className="reason-section">
@@ -569,8 +608,6 @@ export default function AccountsPanel() {
                     />
 
                     <div className="modal-actions">
-                      {/* BACK */}
-
                       <button
                         className="btn"
                         type="button"
@@ -584,8 +621,6 @@ export default function AccountsPanel() {
                       >
                         Back
                       </button>
-
-                      {/* CONFIRM */}
 
                       <button
                         className={
@@ -617,18 +652,14 @@ export default function AccountsPanel() {
               </>
             )}
 
-            {/* ==================================
-                FROZEN ACCOUNT
-            ================================== */}
+            {/* ==========================
+                FROZEN
+            ========================== */}
 
             {editingAccount.account_status === "FROZEN" && (
               <>
-                {/* INITIAL BUTTONS */}
-
                 {!pendingStatus && (
                   <div className="modal-actions">
-                    {/* UNFREEZE */}
-
                     <button
                       className="btn approve"
                       type="button"
@@ -642,11 +673,10 @@ export default function AccountsPanel() {
                         : "Unfreeze"}
                     </button>
 
-                    {/* CLOSE */}
-
                     <button
                       className="btn reject"
                       type="button"
+                      disabled={actingOn === editingAccount.id}
                       onClick={() => {
                         setPendingStatus("CLOSED");
 
@@ -659,8 +689,6 @@ export default function AccountsPanel() {
                     </button>
                   </div>
                 )}
-
-                {/* CLOSE REASON */}
 
                 {pendingStatus === "CLOSED" && (
                   <div className="reason-section">
@@ -677,8 +705,6 @@ export default function AccountsPanel() {
                     />
 
                     <div className="modal-actions">
-                      {/* BACK */}
-
                       <button
                         className="btn"
                         type="button"
@@ -692,8 +718,6 @@ export default function AccountsPanel() {
                       >
                         Back
                       </button>
-
-                      {/* CONFIRM CLOSE */}
 
                       <button
                         className="btn reject"
@@ -719,21 +743,22 @@ export default function AccountsPanel() {
               </>
             )}
 
-            {/* ==================================
+            {/* ==========================
                 REJECTED
-            ================================== */}
+            ========================== */}
 
             {editingAccount.account_status === "REJECTED" && (
               <div className="modal-message">This account is rejected.</div>
             )}
 
-            {/* ==================================
+            {/* ==========================
                 CLOSED
-            ================================== */}
+            ========================== */}
 
             {editingAccount.account_status === "CLOSED" && (
               <div className="modal-message">
-                This account is closed.
+                <p>This account is closed.</p>
+
                 {editingAccount.close_reason && (
                   <p>
                     <strong>Reason:</strong> {editingAccount.close_reason}
