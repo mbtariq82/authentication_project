@@ -42,9 +42,15 @@ class AdminUserResponse(BaseModel):
     first_name: str
     last_name: str
     role: Role
+
+    profile_image_key: str | None = None
+
+
     dob: date | None = None
     address_line: str | None = None
     user_status: UserStatus
+    country: str | None = None
+
     city: str | None = None
     postcode: str | None = None
     mobile: str | None = None

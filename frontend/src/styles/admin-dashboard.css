@@ -1013,3 +1013,65 @@ tbody td {
   font-size: 15px;
   font-weight: 700;
 }
+
+.customer-detail-profile {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-detail-profile-image,
+.customer-detail-profile-fallback {
+  width: 82px;
+  height: 82px;
+
+  flex: 0 0 82px;
+
+  border-radius: 50%;
+}
+
+.customer-detail-profile-image {
+  object-fit: cover;
+
+  border: 3px solid #ffffff;
+
+  box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.customer-detail-profile-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e8edf3;
+  color: #344b68;
+
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.customer-detail-profile-info {
+  min-width: 0;
+}
+
+.customer-detail-profile-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.customer-detail-profile-email {
+  margin-top: 4px;
+
+  font-size: 14px;
+  color: #64748b;
+}
+
+.customer-detail-profile-status {
+  margin-top: 8px;
+}

@@ -74,7 +74,9 @@ export interface AdminUser {
   dob?: string;
   address_line?: string;
   city?: string;
-  county?: string;
+  country?: string;
+  profile_image_key?: string | null;
+
   postcode?: string;
   mobile?: string;
   rejection_reason?: string | null;

@@ -217,7 +217,7 @@ export default function UsersPanel() {
                 <tr>
                   <th>Customer</th>
                   <th>Email</th>
-                  <th>City</th>
+                  <th>Country</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -254,7 +254,7 @@ export default function UsersPanel() {
 
                       <td>{user.email}</td>
 
-                      <td>{user.city ?? "—"}</td>
+                      <td>{user.country ?? "—"}</td>
 
                       {/* ROLE */}
 
@@ -410,13 +410,18 @@ export default function UsersPanel() {
               <div>
                 <strong>County</strong>
 
-                <p>{selectedUser.county ?? "—"}</p>
+                <p>{selectedUser.country ?? "—"}</p>
               </div>
 
               <div>
                 <strong>Postcode</strong>
 
                 <p>{selectedUser.postcode ?? "—"}</p>
+              </div>
+              <div>
+                <strong>Image key</strong>
+
+                <p>{selectedUser.profile_image_key ?? "—"}</p>
               </div>
 
               {selectedUser.rejection_reason && (
