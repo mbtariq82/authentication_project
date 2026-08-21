@@ -113,7 +113,7 @@ export default function CustomerHomePage() {
               </div>
             ) : statusLabel === "CLOSED" ? (
               <div>
-                <p className="customer-card-label">Closed Account</p>
+                <p className="customer-card-label">Error</p>
                 <h2>Account closed</h2>
                 <p>
                   This account is closed. Please contact the bank administrator
@@ -122,6 +122,12 @@ export default function CustomerHomePage() {
               </div>
             ) : (
               <>
+                {statusLabel === "FROZEN" && (
+                  <div className="customer-frozen-notice" role="alert">
+                    This account is frozen. Transfers won't be accepted until
+                    it's unfrozen.
+                  </div>
+                )}
                 <div>
                   <p className="customer-card-label">
                     {account.account_number ??
@@ -135,7 +141,7 @@ export default function CustomerHomePage() {
                   </p>
                 </div>
                 <div className="customer-actions">
-                  {statusLabel === "APPROVED" && (
+                  {(statusLabel === "APPROVED" || statusLabel === "FROZEN") && (
                     <Link to="/card" className="customer-card-button">
                       View card
                     </Link>
