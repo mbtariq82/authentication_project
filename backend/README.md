@@ -1,3 +1,17 @@
+## Kafka registration events
+
+The local Compose stack includes a single Kafka broker. FastAPI publishes a
+versioned `identity.user_registered` event after a successful password or
+first-time Google registration commit.
+
+Start the backend dependencies with:
+
+```powershell
+docker compose -f backend/compose.yaml up --build
+```
+
+The broker is available to backend services at `kafka:9092`. The topic is
+`identity.user-events`; it is created automatically for local development.
 ## TO DO:
 - consultant unit of work
 

@@ -12,6 +12,7 @@ from exceptions import (
     InvalidAccessTokenError,
     PermissionDeniedError,
 )
+from messaging.kafka_producer import EventPublisher, KafkaEventPublisher
 from schemas.user import UserResponse
 from security import decode_token, oauth2_scheme
 from services.auth_service import AuthService
@@ -21,13 +22,29 @@ from storage.abstract_profile_image_storage import AbstractProfileImageStorage
 from unit_of_work.sqlalchemy_auth_unit_of_work import SqlAlchemyAuthUnitOfWork
 
 
+_kafka_event_publisher: KafkaEventPublisher | None = None
+
+
+def create_kafka_event_publisher() -> KafkaEventPublisher:
+    global _kafka_event_publisher
+    _kafka_event_publisher = KafkaEventPublisher()
+    return _kafka_event_publisher
+
+
+async def get_kafka_event_publisher() -> EventPublisher:
+    if _kafka_event_publisher is None:
+        raise RuntimeError("Kafka event publisher has not been started")
+    return _kafka_event_publisher
+
+
 def get_auth_service(
     image_storage: AbstractProfileImageStorage = Depends(
         get_profile_image_storage
     ),
+    event_publisher: EventPublisher = Depends(get_kafka_event_publisher),
 ) -> AuthService:
     unit_of_work = SqlAlchemyAuthUnitOfWork(async_session_factory)
-    return AuthService(unit_of_work, image_storage)
+    return AuthService(unit_of_work, image_storage, event_publisher)
 
 
 async def get_current_user(

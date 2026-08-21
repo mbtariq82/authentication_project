@@ -28,6 +28,10 @@ AWS_REGION = os.getenv("AWS_REGION", "eu-west-2")
 PROFILE_IMAGE_URL_EXPIRY_SECONDS = int(
     os.getenv("PROFILE_IMAGE_URL_EXPIRY_SECONDS", "3600")
 )
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+KAFKA_USER_EVENTS_TOPIC = os.getenv(
+    "KAFKA_USER_EVENTS_TOPIC", "identity.user-events"
+)
 
 if DATABASE_URL is None:
     raise RuntimeError("DATABASE_URL environment variable is not set")

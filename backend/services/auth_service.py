@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timezone
-
+from uuid import uuid4
 from jose import JWTError
 
 from domain.user import User
@@ -30,6 +30,12 @@ from exceptions import (
 )
 from storage.abstract_profile_image_storage import AbstractProfileImageStorage
 from unit_of_work.abstract_auth_unit_of_work import AbstractAuthUnitOfWork
+from events.user_registered import (
+    RegistrationMethod,
+    UserRegisteredDataV1,
+    UserRegisteredV1,
+)
+from messaging.kafka_producer import EventPublisher
 
 
 logger = logging.getLogger(__name__)
@@ -40,9 +46,11 @@ class AuthService:
         self,
         uow: AbstractAuthUnitOfWork,
         image_storage: AbstractProfileImageStorage,
+        event_publisher: EventPublisher,
     ) -> None:
         self.uow = uow
         self.image_storage = image_storage
+        self.event_publisher = event_publisher
 
     async def register(
         self,
@@ -50,7 +58,6 @@ class AuthService:
         profile_image: bytes | None = None,
     ) -> TokenResponse:
         image_key: str | None = None
-
         try:
             async with self.uow:
                 existing_user = await self.uow.users.get_by_email(command.email)
@@ -89,6 +96,9 @@ class AuthService:
 
                 token_response = await self._issue_tokens(new_user)
                 await self.uow.commit()
+                await self._publish_user_registered(
+                    new_user.id, RegistrationMethod.PASSWORD
+                )
                 return token_response
         except Exception:
             if image_key is not None:
@@ -150,9 +160,9 @@ class AuthService:
         if not google_identity.email_verified:
             raise GoogleEmailNotVerifiedError()
         async with self.uow:
-            user = await self.uow.users.get_by_google_subject(
-                google_identity.subject
-            )
+            created_user = False
+            # find an existing user
+            user = await self.uow.users.get_by_google_subject(google_identity.subject)
             if not user:
                 user = await self.uow.users.get_by_email(email)
             if not user:
@@ -164,6 +174,8 @@ class AuthService:
                     google_subject=google_identity.subject,
                 )
                 user = await self.uow.users.add(user)
+                created_user = True
+            # user found but no google login details
             elif user.google_subject is None:
                 user.link_google_identity(google_identity.subject)
                 user = await self.uow.users.save(user)
@@ -171,7 +183,29 @@ class AuthService:
                 raise GoogleAccountConflictError()
             token_response = await self._issue_tokens(user)
             await self.uow.commit()
+            if created_user:
+                await self._publish_user_registered(
+                    user.id, RegistrationMethod.GOOGLE
+                )
             return token_response
+
+    async def _publish_user_registered(
+        self,
+        user_id: int | None,
+        registration_method: RegistrationMethod,
+    ) -> None:
+        if user_id is None:
+            raise RuntimeError("A persisted user must have an ID")
+        await self.event_publisher.publish(
+            UserRegisteredV1(
+                correlation_id=uuid4(),
+                data=UserRegisteredDataV1(
+                    user_id=user_id,
+                    registration_method=registration_method,
+                ),
+            ),
+            key=str(user_id),
+        )
 
     async def _issue_tokens(self, user: User) -> TokenResponse:
         access_token = create_access_token(subject=str(user.id))

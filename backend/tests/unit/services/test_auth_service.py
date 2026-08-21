@@ -70,6 +70,14 @@ class FakeProfileImageStorage:
         return f"https://images.example/{key}"
 
 
+class FakeEventPublisher:
+    def __init__(self) -> None:
+        self.published: list[tuple[object, str]] = []
+
+    async def publish(self, event: object, key: str) -> None:
+        self.published.append((event, key))
+
+
 def make_png() -> bytes:
     output = BytesIO()
     Image.new("RGB", (1600, 1200), color="blue").save(output, format="PNG")
@@ -99,7 +107,11 @@ def stub_token_issuance(service: AuthService) -> None:
 async def test_registration_stores_normalized_profile_image():
     uow = FakeAuthUnitOfWork()
     storage = FakeProfileImageStorage()
-    service = AuthService(uow=uow, image_storage=storage)
+    service = AuthService(
+        uow=uow,
+        image_storage=storage,
+        event_publisher=FakeEventPublisher(),
+    )
     stub_token_issuance(service)
 
     response = await service.register(
@@ -126,7 +138,11 @@ async def test_registration_stores_normalized_profile_image():
 async def test_registration_deletes_uploaded_image_if_commit_fails():
     uow = FakeAuthUnitOfWork(fail_commit=True)
     storage = FakeProfileImageStorage()
-    service = AuthService(uow=uow, image_storage=storage)
+    service = AuthService(
+        uow=uow,
+        image_storage=storage,
+        event_publisher=FakeEventPublisher(),
+    )
     stub_token_issuance(service)
 
     with pytest.raises(RuntimeError, match="commit failed"):
