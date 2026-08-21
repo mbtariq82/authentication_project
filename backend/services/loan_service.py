@@ -1,3 +1,5 @@
+import math
+from decimal import Decimal
 from uuid import uuid4
 from domain.loan import (
     LoanApplication,
@@ -151,6 +153,30 @@ class LoanService:
             ]
         )
 
+    def calculate_duration(
+        self,
+        loan_amount: Decimal,
+        interest: int,
+        emi: Decimal,
+    ) -> int:
+        monthly_rate = (
+            Decimal(interest) / Decimal("100") / Decimal("12")
+        )
+
+        if monthly_rate == 0:
+            return math.ceil(loan_amount / emi)
+
+        duration = (
+            -math.log(
+                1 - (
+                    float(loan_amount * monthly_rate / emi)
+                )
+            )
+            / math.log(1 + float(monthly_rate))
+        )
+
+        return math.ceil(duration)
+
     async def repay_loan(
         self,
         request: LoanRepaymentRequest,
@@ -183,6 +209,14 @@ class LoanService:
 
         if loan.loan_amount == 0:
             loan.current_loan_status = "PAID"
+            loan.duration = 0
+
+        else:
+            loan.duration = self.calculate_duration(
+                loan_amount=loan.loan_amount,
+                interest=loan.interest,
+                emi=loan.emi,
+            )
 
         transaction = Transaction(
             account_id=user_context.account.id,

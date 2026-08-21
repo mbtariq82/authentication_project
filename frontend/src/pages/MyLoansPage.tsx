@@ -17,7 +17,14 @@ export default function LoansPage() {
         const response = await getUserLoans();
         setLoans(response.loans);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load loans.");
+        const message =
+          err instanceof Error ? err.message : "Failed to load loans.";
+
+        if (message === "Account not found") {
+          setError("ACCOUNT_NOT_APPROVED");
+        } else {
+          setError(message);
+        }
       } finally {
         setLoading(false);
       }
@@ -57,8 +64,31 @@ export default function LoansPage() {
           <p className="loans-page-subtitle">View and manage your loans.</p>
         </header>
 
-        {error && <div className="loans-error">{error}</div>}
+        {error === "ACCOUNT_NOT_APPROVED" && (
+          <div className="loan-account-pending">
+            <div className="loan-account-pending-icon" aria-hidden="true">
+              ✓
+            </div>
 
+            <div className="loan-account-pending-content">
+              <h2>Your account is still being set up</h2>
+
+              <p>
+                We're currently preparing your account. Once your account has
+                been approved, you'll be able to view your loans and submit
+                applications.
+              </p>
+
+              <p>Please check back later.</p>
+            </div>
+          </div>
+        )}
+
+        {error && error !== "ACCOUNT_NOT_APPROVED" && (
+          <div className="loans-error" role="alert">
+            {error}
+          </div>
+        )}
         {!error && loans.length === 0 && (
           <div className="loan-empty-card">
             <h2>No current loans</h2>
