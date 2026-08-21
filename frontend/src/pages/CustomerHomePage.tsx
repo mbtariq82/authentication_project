@@ -90,7 +90,7 @@ export default function CustomerHomePage() {
           <article className="customer-primary-card">
             {isAccountError ? (
               <div>
-                <p className="customer-card-label">Everyday account</p>
+                <p className="customer-card-label">Error</p>
                 <h2>Account unavailable</h2>
                 <p>
                   We couldn't load your account details right now. Please try
@@ -105,14 +105,27 @@ export default function CustomerHomePage() {
             ) : statusLabel === "PENDING" ? (
               <div>
                 <p className="customer-card-label">Everyday account</p>
-                <h2>Account pending verification</h2>
                 <p>
                   This account is not yet verified. Please allow a few days
                   while we get your account verified.
                 </p>
               </div>
+            ) : statusLabel === "CLOSED" ? (
+              <div>
+                <p className="customer-card-label">Account Closed</p>
+                <p>
+                  This account is closed. Please contact the bank administrator
+                  if you need assistance.
+                </p>
+              </div>
             ) : (
               <>
+                {statusLabel === "FROZEN" && (
+                  <div className="customer-frozen-notice" role="alert">
+                    This account is frozen. Transfers won't be accepted until
+                    it's unfrozen.
+                  </div>
+                )}
                 <div>
                   <p className="customer-card-label">
                     {account.account_number ??
@@ -126,7 +139,7 @@ export default function CustomerHomePage() {
                   </p>
                 </div>
                 <div className="customer-actions">
-                  {statusLabel === "APPROVED" && (
+                  {(statusLabel === "APPROVED" || statusLabel === "FROZEN") && (
                     <Link to="/card" className="customer-card-button">
                       View card
                     </Link>
