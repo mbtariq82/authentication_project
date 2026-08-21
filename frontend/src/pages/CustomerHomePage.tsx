@@ -8,6 +8,7 @@ import { useAccountMutations } from "../hooks/useAccountMutations";
 import CustomerNavigation from "../components/CustomerNavigation";
 import FreezeAccountModal from "../components/Account/FreezeAccountModal";
 import CloseAccountModal from "../components/Account/CloseAccountModal";
+import RecentTransactions from "../components/Account/RecentTransactions";
 
 export default function CustomerHomePage() {
   const navigate = useNavigate();
@@ -212,6 +213,8 @@ export default function CustomerHomePage() {
             )}
           </article>
         </section>
+
+        <RecentTransactions />
       </section>
     </main>
   );
