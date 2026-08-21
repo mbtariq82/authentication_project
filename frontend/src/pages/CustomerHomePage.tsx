@@ -90,7 +90,7 @@ export default function CustomerHomePage() {
           <article className="customer-primary-card">
             {isAccountError ? (
               <div>
-                <p className="customer-card-label">Everyday account</p>
+                <p className="customer-card-label">Error</p>
                 <h2>Account unavailable</h2>
                 <p>
                   We couldn't load your account details right now. Please try
@@ -109,6 +109,15 @@ export default function CustomerHomePage() {
                 <p>
                   This account is not yet verified. Please allow a few days
                   while we get your account verified.
+                </p>
+              </div>
+            ) : statusLabel === "CLOSED" ? (
+              <div>
+                <p className="customer-card-label">Closed Account</p>
+                <h2>Account closed</h2>
+                <p>
+                  This account is closed. Please contact the bank administrator
+                  if you need assistance.
                 </p>
               </div>
             ) : (
