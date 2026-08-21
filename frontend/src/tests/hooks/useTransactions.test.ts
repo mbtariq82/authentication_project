@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { transactionQueryKeys } from "./useTransactions";
+import { transactionQueryKeys } from "../../hooks/useTransactions";
 
 describe("transaction query keys", () => {
   it("keeps filters isolated between transaction lists", () => {

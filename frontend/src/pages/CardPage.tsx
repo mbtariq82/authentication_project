@@ -12,8 +12,8 @@ import CustomerNavigation from "../components/CustomerNavigation";
 import CardVisual from "../components/Card/CardVisual";
 import CardDetails from "../components/Card/CardDetails";
 import CardActions from "../components/Card/CardActions";
-import PasswordModel from "../components/Card/PasswordModel";
-import OrderCardModel from "../components/Card/OrderCardModel";
+import PasswordModal from "../components/Card/PasswordModal";
+import OrderCardModal from "../components/Card/OrderCardModal";
 
 import "../styles/card-page.css";
 
@@ -190,7 +190,7 @@ export default function CardPage() {
         </div>
 
         {showPasswordPrompt && (
-          <PasswordModel
+          <PasswordModal
             password={password}
             passwordError={passwordError}
             unmasking={unmasking}
@@ -205,7 +205,7 @@ export default function CardPage() {
         )}
 
         {showOrderConfirmation && (
-          <OrderCardModel
+          <OrderCardModal
             ordering={ordering}
             onConfirm={handleCreateCard}
             onClose={() => setShowOrderConfirmation(false)}
