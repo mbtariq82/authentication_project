@@ -184,11 +184,11 @@ export default function Sidebar({
   // PROFILE
   // ==============================
 
-  function handleProfile() {
-    setShowSettings(false);
+  // function handleProfile() {
+  //   setShowSettings(false);
 
-    navigate(routes.profile);
-  }
+  //   navigate(routes.profile);
+  // }
 
   // ==============================
   // PROFILE IMAGE / INITIALS
