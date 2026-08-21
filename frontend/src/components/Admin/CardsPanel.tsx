@@ -159,7 +159,7 @@ export default function CardsPanel() {
           {visible.length === 0 ? (
             <div className="panel-empty">No cards match this filter.</div>
           ) : (
-            <table>
+            <table className="cards-table">
               <thead>
                 <tr>
                   <th>Customer</th>
