@@ -10,6 +10,7 @@ import {
 import type { Account } from "../types/account";
 import type {
   CreateTransactionRequest,
+  Transaction,
   TransactionFilters,
 } from "../types/transaction";
 
@@ -57,7 +58,12 @@ export function useCreateTransaction() {
   return useMutation({
     mutationFn: (request: CreateTransactionRequest) =>
       createTransaction(request),
-    onSuccess: (_result, request) => {
+    onSuccess: (result: Transaction, request) => {
+      if (result.status !== "COMPLETED") {
+        queryClient.invalidateQueries({ queryKey: transactionQueryKeys.all });
+        return;
+      }
+
       queryClient.setQueryData(
         ["account", "me"],
         (current: Account | undefined) => {

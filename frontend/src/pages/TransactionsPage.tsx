@@ -39,7 +39,7 @@ export default function TransactionsPage() {
       type === "DEPOSIT" ? "CREDIT" : "DEBIT";
     try {
       await waitForSubmissionDelay(2000);
-      await createMutation.mutateAsync({
+      const transaction = await createMutation.mutateAsync({
         account_id: accountQuery.data.id,
         beneficiary_id: type === "TRANSFER" ? Number(beneficiaryId) : null,
         transaction_type: type,
@@ -48,9 +48,11 @@ export default function TransactionsPage() {
         description: description || null,
       });
       setMessage(
-        type === "TRANSFER"
-          ? "Transfer submitted and is awaiting processing."
-          : `${type[0]}${type.slice(1).toLowerCase()} completed successfully.`,
+        transaction.status === "COMPLETED"
+          ? type === "TRANSFER"
+            ? "Internal transfer completed successfully."
+            : `${type[0]}${type.slice(1).toLowerCase()} completed successfully.`
+          : "Transfer submitted and is awaiting processing.",
       );
       setAmount("");
       setBeneficiaryId("");

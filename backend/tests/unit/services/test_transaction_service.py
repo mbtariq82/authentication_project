@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import cast
 
 import pytest
 
@@ -10,9 +11,11 @@ from enums import TransactionDirection, TransactionStatus, TransactionType
 from exceptions import (
     InsufficientFundsError,
     InvalidTransactionStatusTransitionError,
+    SelfTransferError,
 )
 from schemas.transaction import TransactionCreate, TransactionFilter
 from services.transaction_service import TransactionService
+from unit_of_work.abstract_transaction_unit_of_work import AbstractTransactionUnitOfWork
 
 
 class FakeTransactionUnitOfWork:
@@ -29,6 +32,8 @@ class FakeTransactionUnitOfWork:
 class FakeAccountRepository:
     def __init__(self, account: Account):
         self.account = account
+        self.internal_account: Account | None = None
+        self.recipient_lookups: list[tuple[str, str]] = []
         self.credited: list[Decimal] = []
         self.debited: list[Decimal] = []
 
@@ -36,6 +41,14 @@ class FakeAccountRepository:
         if self.account.id == account_id and self.account.user_id == user_id:
             return self.account
         return None
+
+    async def get_by_account_number_and_sort_code(
+        self,
+        account_number: str,
+        sort_code: str,
+    ):
+        self.recipient_lookups.append((account_number, sort_code))
+        return self.internal_account
 
     async def credit(self, account_id: int, amount: Decimal):
         self.credited.append(amount)
@@ -110,9 +123,18 @@ class FakeTransactionRepository:
 
 @pytest.fixture
 def service_and_uow():
-    account = Account(user_id=1, id=1, balance=Decimal("100.00"))
+    account = Account(
+        user_id=1,
+        id=1,
+        account_number="87654321",
+        sort_code="010203",
+        balance=Decimal("100.00"),
+    )
     unit_of_work = FakeTransactionUnitOfWork(account)
-    return TransactionService(unit_of_work), unit_of_work
+    return (
+        TransactionService(cast(AbstractTransactionUnitOfWork, unit_of_work)),
+        unit_of_work,
+    )
 
 
 @pytest.mark.asyncio
@@ -151,6 +173,103 @@ async def test_create_transfer_stays_pending_without_balance_change(service_and_
     assert response.status is TransactionStatus.PENDING
     assert unit_of_work.accounts.credited == []
     assert unit_of_work.accounts.debited == []
+    assert unit_of_work.accounts.recipient_lookups == [("12345678", "010203")]
+    assert unit_of_work.transactions.logs[0].metadata == {
+        "transfer_kind": "UK_LOCAL"
+    }
+
+
+@pytest.mark.asyncio
+async def test_create_transfer_classifies_matching_account_as_internal(service_and_uow):
+    service, unit_of_work = service_and_uow
+    unit_of_work.accounts.internal_account = Account(
+        user_id=2,
+        id=2,
+        account_number="12345678",
+        sort_code="010203",
+    )
+
+    response = await service.create(
+        1,
+        TransactionCreate(
+            account_id=1,
+            beneficiary_id=2,
+            transaction_type=TransactionType.TRANSFER,
+            direction=TransactionDirection.DEBIT,
+            amount=Decimal("25.00"),
+        ),
+    )
+
+    assert response.status is TransactionStatus.COMPLETED
+    assert unit_of_work.transactions.logs[0].metadata == {
+        "transfer_kind": "INTERNAL"
+    }
+    assert unit_of_work.accounts.credited == [Decimal("25.00")]
+    assert unit_of_work.accounts.debited == [Decimal("25.00")]
+    assert len(unit_of_work.transactions.items) == 2
+    sender_transaction, recipient_transaction = unit_of_work.transactions.items
+    assert recipient_transaction.direction is TransactionDirection.CREDIT
+    assert recipient_transaction.status is TransactionStatus.COMPLETED
+    assert recipient_transaction.account_id == 2
+    assert recipient_transaction.amount == Decimal("25.00")
+    assert recipient_transaction.description == "Incoming transfer from account 87654321"
+    assert (
+        recipient_transaction.transfer_reference
+        == sender_transaction.transfer_reference
+    )
+    assert len(unit_of_work.transactions.logs) == 2
+    assert unit_of_work.transactions.logs[1].action == "RECEIVE"
+
+
+@pytest.mark.asyncio
+async def test_create_transfer_rejects_sender_as_internal_beneficiary(service_and_uow):
+    service, unit_of_work = service_and_uow
+    unit_of_work.accounts.internal_account = unit_of_work.accounts.account
+
+    with pytest.raises(SelfTransferError):
+        await service.create(
+            1,
+            TransactionCreate(
+                account_id=1,
+                beneficiary_id=2,
+                transaction_type=TransactionType.TRANSFER,
+                direction=TransactionDirection.DEBIT,
+                amount=Decimal("25.00"),
+            ),
+        )
+
+    assert unit_of_work.transactions.items == []
+    assert unit_of_work.accounts.credited == []
+    assert unit_of_work.accounts.debited == []
+
+
+@pytest.mark.asyncio
+async def test_internal_transfer_with_insufficient_funds_does_not_credit_recipient(
+    service_and_uow,
+):
+    service, unit_of_work = service_and_uow
+    unit_of_work.accounts.internal_account = Account(
+        user_id=2,
+        id=2,
+        account_number="12345678",
+        sort_code="010203",
+    )
+
+    with pytest.raises(InsufficientFundsError):
+        await service.create(
+            1,
+            TransactionCreate(
+                account_id=1,
+                beneficiary_id=2,
+                transaction_type=TransactionType.TRANSFER,
+                direction=TransactionDirection.DEBIT,
+                amount=Decimal("125.00"),
+            ),
+        )
+
+    assert unit_of_work.accounts.debited == []
+    assert unit_of_work.accounts.credited == []
+    assert unit_of_work.commits == 0
 
 
 @pytest.mark.asyncio
