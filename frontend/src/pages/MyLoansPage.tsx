@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { getUserLoans, type Loan } from "../api/loanClient";
 
 import "../styles/loan-page.css";
+import LoanNavigation from "../components/LoanNavigation";
 
 export default function LoansPage() {
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -47,26 +48,7 @@ export default function LoansPage() {
 
   return (
     <div className="loans-page">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <div className="customer-header-actions">
-          <Link to="/emi-calculator" className="customer-back">
-            EMI Calculator
-          </Link>
-          <Link to="/loans/apply" className="customer-apply-loan">
-            Apply for a loan
-          </Link>
-          <Link to="/account" className="customer-back">
-            Back to account
-          </Link>
-        </div>
-      </header>
+      <LoanNavigation showEmiCalculator showApplyForLoan showBackToAccount />
 
       <main className="loans-page-container">
         <header className="loans-page-header">

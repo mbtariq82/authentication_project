@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { logout } from "../api/authClient";
@@ -8,19 +8,29 @@ import { routes } from "../routes";
 
 type CustomerNavigationProps = {
   user?: UserResponse;
+
+  showEmiCalculator?: boolean;
+  showApplyForLoan?: boolean;
+  showBackToLoans?: boolean;
+  showBackToAccount?: boolean;
 };
 
-export default function CustomerNavigation({
+export default function LoanNavigation({
   user: suppliedUser,
+  showEmiCalculator = false,
+  showApplyForLoan = false,
+  showBackToLoans = false,
+  showBackToAccount = false,
 }: CustomerNavigationProps) {
-  const location = useLocation();
   const navigate = useNavigate();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loadedUser, setLoadedUser] = useState<UserResponse | null>(null);
   const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<
     string | null
   >(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +45,7 @@ export default function CustomerNavigation({
         navigate(routes.login, { replace: true });
       }
     }
+
     void loadUser();
   }, [navigate, suppliedUser]);
 
@@ -47,8 +58,10 @@ export default function CustomerNavigation({
         setIsDropdownOpen(false);
       }
     }
+
     if (isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }
@@ -65,8 +78,10 @@ export default function CustomerNavigation({
   }
 
   const user = suppliedUser ?? loadedUser;
+
   const showProfileImage =
     user?.profile_image_url && user.profile_image_url !== failedProfileImageUrl;
+
   const initials =
     user &&
     [user.first_name, user.last_name]
@@ -87,55 +102,19 @@ export default function CustomerNavigation({
         <span className="auth-brand-mark" aria-hidden="true">
           N
         </span>
+
         <span>Nexa Bank</span>
       </Link>
+
       <nav className="customer-nav" aria-label="Customer navigation">
-        <Link
-          className={
-            location.pathname === routes.account ? "customer-nav-active" : ""
-          }
-          to={routes.account}
-        >
-          Account
-        </Link>
-        <Link
-          className={
-            location.pathname === routes.beneficiaries
-              ? "customer-nav-active"
-              : ""
-          }
-          to={routes.beneficiaries}
-        >
-          Beneficiaries
-        </Link>
-        <Link
-          className={
-            location.pathname === routes.transactions
-              ? "customer-nav-active"
-              : ""
-          }
-          to={routes.transactions}
-        >
-          Move money
-        </Link>
-        <Link
-          className={
-            location.pathname === routes.transactionHistory
-              ? "customer-nav-active"
-              : ""
-          }
-          to={routes.transactionHistory}
-        >
-          History
-        </Link>
-        <Link
-          className={
-            location.pathname === routes.loans ? "customer-nav-active" : ""
-          }
-          to={routes.loans}
-        >
-          My Loans
-        </Link>
+        {showEmiCalculator && <Link to="/emi-calculator">EMI Calculator</Link>}
+
+        {showApplyForLoan && <Link to="/loans/apply">Apply for a loan</Link>}
+
+        {showBackToLoans && <Link to="/my-loans">Back to loans</Link>}
+
+        {showBackToAccount && <Link to="/account">Back to account</Link>}
+
         <div className="customer-profile-menu" ref={dropdownRef}>
           <button
             className="customer-profile-button"
@@ -159,6 +138,7 @@ export default function CustomerNavigation({
               </span>
             )}
           </button>
+
           {isDropdownOpen && (
             <div className="customer-profile-dropdown">
               <Link
@@ -168,7 +148,19 @@ export default function CustomerNavigation({
               >
                 Profile
               </Link>
-              <div className="dropdown-divider"></div>
+
+              <div className="dropdown-divider" />
+
+              <button
+                className="dropdown-item dropdown-item-disabled"
+                type="button"
+                disabled
+              >
+                Settings
+              </button>
+
+              <div className="dropdown-divider" />
+
               <button
                 className="dropdown-item dropdown-logout"
                 type="button"

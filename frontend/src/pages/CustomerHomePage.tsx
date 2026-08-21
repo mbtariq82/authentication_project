@@ -60,7 +60,7 @@ export default function CustomerHomePage() {
 
   return (
     <main className="customer-home">
-      <CustomerNavigation />
+      <CustomerNavigation user={user} />
 
       <section className="customer-content">
         <div className="customer-profile-intro">
@@ -78,18 +78,15 @@ export default function CustomerHomePage() {
           )}
 
           <div className="customer-welcome">
-            <p className="auth-eyebrow">Customer account</p>
+            <p className="auth-eyebrow">Customer Account</p>
             <h1>Welcome, {displayName}</h1>
-            <p>Your secure Demo Bank sign-in is active.</p>
           </div>
         </div>
 
-        <aside className="customer-demo-notice">
-          <strong>Demo environment</strong>
-          <span>No real accounts, payments, or funds are used.</span>
-        </aside>
-
-        <section className="customer-grid" aria-label="Account overview">
+        <section
+          className="customer-grid customer-grid-single"
+          aria-label="Account overview"
+        >
           <article className="customer-primary-card">
             {isAccountError ? (
               <div>
@@ -105,22 +102,30 @@ export default function CustomerHomePage() {
                 <p className="customer-card-label">Everyday account</p>
                 <h2>Loading account…</h2>
               </div>
+            ) : statusLabel === "PENDING" ? (
+              <div>
+                <p className="customer-card-label">Everyday account</p>
+                <h2>Account pending verification</h2>
+                <p>
+                  This account is not yet verified. Please allow a few days
+                  while we get your account verified.
+                </p>
+              </div>
             ) : (
               <>
                 <div>
-                  <p className="customer-card-label">Everyday account</p>
+                  <p className="customer-card-label">
+                    {account.account_number ??
+                      "Account number pending assignment"}
+                  </p>
                   <h2>{balanceDisplay}</h2>
                   <p>
-                    {account.account_number
-                      ? `Account number ${account.account_number}`
-                      : "Account number pending assignment"}
                     {account.sort_code
-                      ? ` · Sort code ${account.sort_code}`
-                      : ""}
+                      ? `Sort code ${account.sort_code}`
+                      : "Sort code pending assignment"}
                   </p>
                 </div>
                 <div className="customer-actions">
-                  <span className="customer-status">{statusLabel}</span>
                   {statusLabel === "APPROVED" && (
                     <Link to="/card" className="customer-card-button">
                       View card
@@ -129,23 +134,6 @@ export default function CustomerHomePage() {
                 </div>
               </>
             )}
-          </article>
-
-          <article className="customer-details-card">
-            <header>
-              <p className="customer-card-label">Your details</p>
-              <h2>Customer profile</h2>
-            </header>
-            <dl>
-              <div>
-                <dt>Name</dt>
-                <dd>{fullName || "Not provided"}</dd>
-              </div>
-              <div>
-                <dt>Email</dt>
-                <dd>{user.email}</dd>
-              </div>
-            </dl>
           </article>
         </section>
       </section>

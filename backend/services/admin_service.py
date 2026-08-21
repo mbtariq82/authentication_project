@@ -9,7 +9,7 @@ from enums import UserStatus, AccountStatus, CardStatus
 from models.account import AccountRow
 from repositories.admin_repository import (
     UserRepository,
-    AccountRepository, CardRepository
+    AccountRepository, CardRepository, LoanRepository
 )
 
 import secrets
@@ -28,23 +28,83 @@ def generate_account_number(user_id: int) -> str:
 
 
 def generate_sort_code() -> str:
-    return "-".join(
-        "".join(random.choices(string.digits, k=2))
-        for _ in range(3)
-    )
-
+    return "20-10-30"
 
 class AdminCardService:
     def __init__(self, db: AsyncSession):
+        self.db = db
         self.repo = CardRepository(db)
 
+    # ---------------------------------
+    # GET ALL CARDS
+    # ---------------------------------
     async def list_cards(
         self,
         skip: int = 0,
         limit: int = 100,
     ):
-        return await self.repo.list_cards(skip, limit)
-    
+        return await self.repo.list_cards(
+            skip=skip,
+            limit=limit,
+        )
+
+    # ---------------------------------
+    # UPDATE CARD STATUS DIRECTLY
+    # ---------------------------------
+    async def update_status(
+        self,
+        card_id: int,
+        new_status: CardStatus,
+    ):
+        card = await self.repo.get_by_id(card_id)
+
+        if not card:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Card not found",
+            )
+
+        # -------------------------
+        # FREEZE CARD
+        # -------------------------
+        if new_status == CardStatus.FROZEN:
+            card.status = CardStatus.FROZEN.value
+
+        # -------------------------
+        # CLOSE CARD
+        # -------------------------
+        elif new_status == CardStatus.CLOSED:
+            card.status = CardStatus.CLOSED.value
+
+        # -------------------------
+        # UNFREEZE / ACTIVATE CARD
+        # -------------------------
+        elif new_status == CardStatus.ACTIVE:
+            card.status = CardStatus.ACTIVE.value
+
+        # -------------------------
+        # INVALID STATUS
+        # -------------------------
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid card status",
+            )
+
+        # Save changes
+        await self.repo.save(card)
+
+        # Commit direct card status update
+        await self.db.commit()
+
+        # Get latest committed data
+        await self.db.refresh(card)
+
+        return card
+
+    # ---------------------------------
+    # UPDATE CARD WHEN ACCOUNT CHANGES
+    # ---------------------------------
     async def update_status_by_account(
         self,
         account_id: int,
@@ -54,6 +114,7 @@ class AdminCardService:
             account_id,
         )
 
+        # Account might not have a card
         if not card:
             return None
 
@@ -61,10 +122,13 @@ class AdminCardService:
 
         await self.repo.save(card)
 
+        # DO NOT commit here.
+        # AdminAccountService commits the account
+        # and card changes together.
+
         return card
 
-
-
+   
 class AdminAccountService:
     def __init__(
         self,
@@ -273,3 +337,16 @@ class AdminUserService:
     ):
         return await self.user_repo.list_users(skip, limit)
 
+class AdminLoanService:
+    def __init__(self, db: AsyncSession):
+        self.repo = LoanRepository(db)
+
+    async def list_loans(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return await self.repo.list_loans(
+            skip=skip,
+            limit=limit,
+        )

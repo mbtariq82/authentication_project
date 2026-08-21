@@ -110,6 +110,12 @@ class UserService:
             last_name=user.last_name,
             role=user.role,
             profile_image_url=profile_image_url,
+            phone=user.phone,
+            address=user.address,
+            dob=user.dob,
+            postcode=user.postcode,
+            country=user.country,
+            city=user.city,
         )
 
     async def _cache_response(self, response: UserResponse) -> None:

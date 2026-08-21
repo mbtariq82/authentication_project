@@ -56,29 +56,29 @@ export default function DashboardPanel() {
       {/* Summary cards */}
       <div className="dashboard-stats">
         <div className="stat-card">
-          <div className="stat-label">Total Users</div>
+          <div className="stat-label">Total Customers</div>
           <div className="stat-value">{totalUsers}</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Pending Users</div>
+          <div className="stat-label">Pending Customers</div>
           <div className="stat-value">{pendingUsers.length}</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Approved Users</div>
+          <div className="stat-label">Approved Customers</div>
           <div className="stat-value">{approvedUsers.length}</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Rejected Users</div>
+          <div className="stat-label">Rejected Customers</div>
           <div className="stat-value">{rejectedUsers.length}</div>
         </div>
       </div>
 
       {/* Chart */}
       <div className="dashboard-chart-card">
-        <h3>User Status Overview</h3>
+        <h3>Customer Status Overview</h3>
 
         <div className="status-chart">
           <div className="chart-row">
@@ -132,9 +132,9 @@ export default function DashboardPanel() {
       <div className="panel new-users-panel">
         <div className="panel-header">
           <div>
-            <div className="panel-title">New Users</div>
+            <div className="panel-title">New Customers</div>
             <div className="dashboard-description">
-              Users waiting for approval
+              Customers waiting for approval
             </div>
           </div>
 
@@ -144,7 +144,9 @@ export default function DashboardPanel() {
         </div>
 
         {pendingUsers.length === 0 ? (
-          <div className="panel-empty">No new users waiting for approval.</div>
+          <div className="panel-empty">
+            No new customers waiting for approval.
+          </div>
         ) : (
           <table>
             <thead>

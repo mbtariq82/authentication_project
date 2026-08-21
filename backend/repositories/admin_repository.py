@@ -2,7 +2,7 @@ from unittest import result
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from models.loan import LoanRow
 from models.user import UserRow
 from models.account import AccountRow
 from models.card import CardRow
@@ -225,3 +225,64 @@ class CardRepository:
         await self.db.refresh(card)
 
         return card
+
+    async def get_by_id(self, card_id: int):
+        result = await self.db.execute(
+            select(CardRow).where(
+                CardRow.id == card_id
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+
+
+
+class LoanRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def list_loans(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        stmt = (
+            select(
+                LoanRow,
+                AccountRow,
+                UserRow,
+            )
+            .join(
+                AccountRow,
+                LoanRow.account_id == AccountRow.id,
+            )
+            .join(
+                UserRow,
+                AccountRow.user_id == UserRow.id,
+            )
+            .offset(skip)
+            .limit(limit)
+        )
+
+        result = await self.db.execute(stmt)
+
+        rows = result.all()
+
+        return [
+            {
+                "id": loan.id,
+                "loan_type": loan.loan_type,
+                "loan_amount": loan.loan_amount,
+                "duration": loan.duration,
+                "interest": loan.interest,
+                "emi": loan.emi,
+                "current_loan_status": loan.current_loan_status,
+
+                "user_id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            }
+            for loan, account, user in rows
+        ]

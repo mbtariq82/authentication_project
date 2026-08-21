@@ -1,3 +1,4 @@
+from typing import Any
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -23,7 +24,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         self.session = session
 
     @staticmethod
-    def _to_domain(row: AccountRow) -> Account:
+    def _to_domain(row: Any) -> Account:
         return Account(
             id=row.id,
             user_id=row.user_id,
@@ -58,7 +59,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         result = await self.session.execute(
             select(AccountRow).where(AccountRow.user_id == user_id)
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def get_by_id_for_user(
@@ -72,7 +73,23 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
                 AccountRow.user_id == user_id,
             )
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
+
+    async def get_by_account_number_and_sort_code(
+        self,
+        account_number: str,
+        sort_code: str,
+    ) -> Account | None:
+        result = await self.session.execute(
+            select(AccountRow).where(
+                AccountRow.account_number == account_number,
+                AccountRow.sort_code == sort_code,
+                AccountRow.account_status == AccountStatus.APPROVED.value,
+                AccountRow.is_deleted.is_(False),
+            )
+        )
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def get_by_id_for_update(self, account_id: int) -> Account | None:
@@ -81,7 +98,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
     async def credit(self, account_id: int, amount: Decimal) -> Account:
@@ -93,7 +110,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
 
@@ -111,7 +128,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
         if row.balance < amount:
@@ -128,7 +145,7 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
             .where(AccountRow.id == account_id)
             .with_for_update()
         )
-        row = result.scalar_one_or_none()
+        row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
 
@@ -136,6 +153,21 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         row.account_status = AccountStatus.CLOSED.value
         row.close_reason = close_reason
         row.closed_at = datetime.now(timezone.utc)
+        await self.session.flush()
+        await self.session.refresh(row)
+        return self._to_domain(row)
+
+    async def set_status(self, account_id: int, account_status: str) -> Account:
+        result = await self.session.execute(
+            select(AccountRow)
+            .where(AccountRow.id == account_id)
+            .with_for_update()
+        )
+        row: Any = result.scalar_one_or_none()
+        if row is None:
+            raise AccountNotFoundError()
+
+        row.account_status = account_status
         await self.session.flush()
         await self.session.refresh(row)
         return self._to_domain(row)

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
 
 import {
   getUserCard,
@@ -8,6 +7,7 @@ import {
   toggleCardStatus,
   type CardDetailsResponse,
 } from "../api/cardClient";
+import CustomerNavigation from "../components/CustomerNavigation";
 
 import CardVisual from "../components/Card/CardVisual";
 import CardDetails from "../components/Card/CardDetails";
@@ -153,18 +153,7 @@ export default function CardPage() {
 
   return (
     <div className="card-page">
-      <header className="customer-header">
-        <div className="customer-brand-lockup">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </div>
-
-        <Link to="/account" className="customer-back">
-          Back to account
-        </Link>
-      </header>
+      <CustomerNavigation />
 
       <main className="card-page-container">
         <div className="card-content-layout">

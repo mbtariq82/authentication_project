@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 from enums import Role
 
@@ -13,6 +14,12 @@ class User:
     hashed_password: str | None = None
     google_subject: str | None = None
     profile_image_key: str | None = None
+    phone: str | None = None
+    address: str | None = None
+    dob: date | None = None
+    postcode: str | None = None
+    country: str | None = None
+    city: str | None = None
 
     @classmethod
     def register_with_password(

@@ -3,12 +3,15 @@ from uuid import uuid4
 from domain.transaction import Transaction, TransactionLog
 from domain.transaction_rules import (
     balance_effect,
+    TransferKind,
     validate_status_transition,
 )
-from enums import TransactionStatus, TransactionType
+from enums import TransactionDirection, TransactionStatus, TransactionType
 from exceptions import (
+    AccountNotFoundError,
     BeneficiaryNotFoundError,
     InvalidTransactionStatusTransitionError,
+    SelfTransferError,
     TransactionNotFoundError,
 )
 from schemas.transaction import (
@@ -45,7 +48,11 @@ class TransactionService:
         if account is None:
             raise TransactionNotFoundError()
 
+        transfer_kind: TransferKind | None = None
+        internal_account = None
         if command.transaction_type is TransactionType.TRANSFER:
+            if command.beneficiary_id is None:
+                raise BeneficiaryNotFoundError()
             beneficiary = await self.beneficiaries.get_by_id(
                 command.beneficiary_id,
                 user_id,
@@ -53,14 +60,33 @@ class TransactionService:
             if beneficiary is None or not beneficiary.is_active:
                 raise BeneficiaryNotFoundError()
 
+            internal_account = (
+                await self.accounts.get_by_account_number_and_sort_code(
+                    beneficiary.account_number,
+                    beneficiary.sort_code,
+                )
+            )
+            if internal_account is not None and internal_account.id == account.id:
+                raise SelfTransferError()
+            transfer_kind = (
+                TransferKind.INTERNAL
+                if internal_account is not None
+                else TransferKind.UK_LOCAL
+            )
+
         status = (
             TransactionStatus.COMPLETED
             if command.transaction_type in {
                 TransactionType.DEPOSIT,
                 TransactionType.WITHDRAWAL,
             }
+            or transfer_kind is TransferKind.INTERNAL
             else TransactionStatus.PENDING
         )
+        transfer_reference = command.transfer_reference
+        if transfer_kind is TransferKind.INTERNAL and transfer_reference is None:
+            transfer_reference = self._new_reference()
+
         transaction = await self.transactions.add(
             Transaction(
                 account_id=command.account_id,
@@ -70,10 +96,12 @@ class TransactionService:
                 amount=command.amount,
                 status=status,
                 reference=self._new_reference(),
-                transfer_reference=command.transfer_reference,
+                transfer_reference=transfer_reference,
                 description=command.description,
             )
         )
+        if transaction.id is None:
+            raise TransactionNotFoundError()
 
         effect = balance_effect(
             transaction.transaction_type,
@@ -85,6 +113,29 @@ class TransactionService:
             await self.accounts.credit(transaction.account_id, effect.credit)
         if effect.debit:
             await self.accounts.debit(transaction.account_id, effect.debit)
+            if transfer_kind is TransferKind.INTERNAL:
+                if internal_account is None or internal_account.id is None:
+                    raise AccountNotFoundError()
+                await self.accounts.credit(internal_account.id, effect.debit)
+
+                recipient_transaction = await self.transactions.add(
+                    Transaction(
+                        account_id=internal_account.id,
+                        transaction_type=TransactionType.TRANSFER,
+                        direction=TransactionDirection.CREDIT,
+                        amount=transaction.amount,
+                        status=TransactionStatus.COMPLETED,
+                        reference=self._new_reference(),
+                        transfer_reference=transaction.transfer_reference,
+                        description=(
+                            "Incoming transfer from account "
+                            f"{account.account_number}"
+                        ),
+                    )
+                )
+                if recipient_transaction.id is None:
+                    raise TransactionNotFoundError()
+                recipient_transaction_id = recipient_transaction.id
 
         await self.transactions.add_log(
             TransactionLog(
@@ -93,8 +144,26 @@ class TransactionService:
                 action="CREATE",
                 status=transaction.status.value,
                 message="Transaction created",
+                metadata=(
+                    {"transfer_kind": transfer_kind.value}
+                    if transfer_kind is not None
+                    else None
+                ),
             )
         )
+        if transfer_kind is TransferKind.INTERNAL:
+            if internal_account is None or internal_account.id is None:
+                raise AccountNotFoundError()
+            await self.transactions.add_log(
+                TransactionLog(
+                    transaction_id=recipient_transaction_id,
+                    user_id=internal_account.user_id,
+                    action="RECEIVE",
+                    status=TransactionStatus.COMPLETED.value,
+                    message="Internal transfer received",
+                    metadata={"transfer_kind": TransferKind.INTERNAL.value},
+                )
+            )
         await self.unit_of_work.commit()
         return transaction_response(transaction)
 
@@ -185,6 +254,7 @@ class TransactionService:
                 created_at=entry.created_at,
             )
             for entry in entries
+            if entry.id is not None and entry.created_at is not None
         ]
 
     @staticmethod
@@ -193,6 +263,12 @@ class TransactionService:
 
 
 def transaction_response(transaction: Transaction) -> TransactionResponse:
+    if (
+        transaction.id is None
+        or transaction.created_at is None
+        or transaction.updated_at is None
+    ):
+        raise TransactionNotFoundError()
     return TransactionResponse(
         id=transaction.id,
         account_id=transaction.account_id,

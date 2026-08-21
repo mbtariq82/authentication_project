@@ -3,9 +3,11 @@ from fastapi.responses import JSONResponse
 
 from exceptions import (
     AccountAlreadyExistsError,
+    AccountAlreadyFrozenError,
     AccountNotFoundError,
     AccountAlreadyClosedError,
     AccountBalanceNotZeroError,
+    AccountNotFrozenError,
     EmailAlreadyRegisteredError,
     BeneficiaryNotFoundError,
     InvalidBeneficiaryUpdateError,
@@ -24,6 +26,7 @@ from exceptions import (
     PermissionDeniedError,
     ProfileImageStorageError,
     ProfileImageTooLargeError,
+    SelfTransferError,
 )
 
 
@@ -140,6 +143,16 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": "Beneficiary not found"},
         )
 
+    @app.exception_handler(SelfTransferError)
+    async def self_transfer_handler(
+        request: Request,
+        error: SelfTransferError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "You cannot transfer money to your own account"},
+        )
+
     @app.exception_handler(InvalidBeneficiaryUpdateError)
     async def invalid_beneficiary_update_handler(
         request: Request,
@@ -235,6 +248,20 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "Account is already closed"},
+        )
+
+    @app.exception_handler(AccountAlreadyFrozenError)
+    async def account_already_frozen_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is already frozen"},
+        )
+
+    @app.exception_handler(AccountNotFrozenError)
+    async def account_not_frozen_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is not frozen"},
         )
 
     @app.exception_handler(AccountBalanceNotZeroError)

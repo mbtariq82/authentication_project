@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
 
-import { logout } from "../api/authClient";
-import { clearTokens } from "../auth/tokenStorage";
+import CustomerNavigation from "../components/CustomerNavigation";
 import { useBeneficiaries } from "../hooks/useBeneficiaries";
 import {
   useCreateBeneficiary,
@@ -23,7 +21,6 @@ const emptyForm: CreateBeneficiaryRequest = {
 };
 
 export default function BeneficiariesPage() {
-  const navigate = useNavigate();
   const beneficiariesQuery = useBeneficiaries();
   const createMutation = useCreateBeneficiary();
   const updateMutation = useUpdateBeneficiary();
@@ -32,15 +29,6 @@ export default function BeneficiariesPage() {
   const [form, setForm] = useState<CreateBeneficiaryRequest>(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
-
-  async function handleLogout() {
-    try {
-      await logout();
-    } finally {
-      clearTokens();
-      navigate("/login", { replace: true });
-    }
-  }
 
   function updateField(field: keyof CreateBeneficiaryRequest, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -106,28 +94,7 @@ export default function BeneficiariesPage() {
 
   return (
     <main className="customer-home">
-      <header className="customer-header">
-        <Link className="customer-brand-lockup" to="/account">
-          <span className="auth-brand-mark" aria-hidden="true">
-            D
-          </span>
-          <span>Demo Bank</span>
-        </Link>
-        <nav className="customer-nav" aria-label="Customer navigation">
-          <Link to="/account">Account</Link>
-          <Link className="customer-nav-active" to="/beneficiaries">
-            Beneficiaries
-          </Link>
-          <Link to="/transactions">Transactions</Link>
-          <button
-            className="customer-logout"
-            type="button"
-            onClick={handleLogout}
-          >
-            Sign out
-          </button>
-        </nav>
-      </header>
+      <CustomerNavigation />
 
       <section className="customer-content beneficiaries-page">
         <div className="customer-welcome">

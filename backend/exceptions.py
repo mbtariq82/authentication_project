@@ -10,6 +10,12 @@ class AccountAlreadyClosedError(ApplicationError):
 class AccountBalanceNotZeroError(ApplicationError):
     pass
 
+class AccountAlreadyFrozenError(ApplicationError):
+    pass
+
+class AccountNotFrozenError(ApplicationError):
+    pass
+
 class EmailAlreadyRegisteredError(ApplicationError):
     pass
 
@@ -64,6 +70,10 @@ class TransactionNotFoundError(ApplicationError):
 
 
 class BeneficiaryNotFoundError(ApplicationError):
+    pass
+
+
+class SelfTransferError(ApplicationError):
     pass
 
 

@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, Field, field_validator
 
 from schemas.common import EmailCommand
@@ -6,9 +8,18 @@ from schemas.common import EmailCommand
 class RegisterCommand(EmailCommand):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
+    phone: str | None = Field(default=None, max_length=20)
+    address: str | None = Field(default=None, max_length=255)
+    dob: date | None = None
+    postcode: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=100)
+    city: str | None = Field(default=None, max_length=100)
     password: str = Field(min_length=12, max_length=72)
 
-    @field_validator("first_name", "last_name", mode="before")
+    @field_validator(
+        "first_name", "last_name", "phone", "address", "postcode",
+        "country", "city", mode="before",
+    )
     @classmethod
     def normalize_name(cls, name: object) -> object:
         if isinstance(name, str):
