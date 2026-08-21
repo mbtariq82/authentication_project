@@ -105,7 +105,6 @@ export default function CustomerHomePage() {
             ) : statusLabel === "PENDING" ? (
               <div>
                 <p className="customer-card-label">Everyday account</p>
-                <h2>Account pending verification</h2>
                 <p>
                   This account is not yet verified. Please allow a few days
                   while we get your account verified.
@@ -113,8 +112,7 @@ export default function CustomerHomePage() {
               </div>
             ) : statusLabel === "CLOSED" ? (
               <div>
-                <p className="customer-card-label">Error</p>
-                <h2>Account closed</h2>
+                <p className="customer-card-label">Account Closed</p>
                 <p>
                   This account is closed. Please contact the bank administrator
                   if you need assistance.
