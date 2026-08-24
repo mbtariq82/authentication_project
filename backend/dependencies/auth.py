@@ -1,5 +1,8 @@
+from typing import cast
+
 from fastapi import Depends
 from jose import JWTError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from database import async_session_factory
 from dependencies.accounts import get_account_service
@@ -26,7 +29,11 @@ def get_auth_service(
         get_profile_image_storage
     ),
 ) -> AuthService:
-    unit_of_work = SqlAlchemyAuthUnitOfWork(async_session_factory)
+    session_factory = cast(
+        async_sessionmaker[AsyncSession],
+        async_session_factory,
+    )
+    unit_of_work = SqlAlchemyAuthUnitOfWork(session_factory)
     return AuthService(unit_of_work, image_storage)
 
 
@@ -36,7 +43,10 @@ async def get_current_user(
 ) -> UserResponse:
     try:
         payload = decode_token(access_token)
-        user_id = int(payload.get("sub"))
+        subject = payload.get("sub")
+        if not isinstance(subject, str):
+            raise InvalidAccessTokenError()
+        user_id = int(subject)
     except (JWTError, TypeError, ValueError) as exc:
         raise InvalidAccessTokenError() from exc
     if payload.get("type") != "access":

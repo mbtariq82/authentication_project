@@ -1,8 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Protocol
 
-from domain.account import Account
-from domain.user import User
+class AuthenticatedUser(Protocol):
+    id: int
+    email: str
+
+
+class AuthenticatedAccount(Protocol):
+    id: int
+
 
 @dataclass(slots=True)
 class Card:
@@ -16,5 +23,5 @@ class Card:
 
 @dataclass(slots=True)
 class AuthenticatedUserContext:
-    user: User
-    account: Account
+    user: AuthenticatedUser
+    account: AuthenticatedAccount
