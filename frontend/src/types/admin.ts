@@ -84,3 +84,19 @@ export interface AdminUser {
   user_status: UserStatus;
 }
 export type CardStatus = "ACTIVE" | "FROZEN" | "CLOSED";
+
+export interface AdminSearchResult {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  country?: string | null;
+
+  role: string;
+  user_status: string;
+
+  account_id?: number | null;
+  account_number?: string | null;
+  account_type?: string | null;
+  account_status?: string | null;
+}

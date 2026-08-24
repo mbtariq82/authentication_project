@@ -10,7 +10,7 @@ import type {
 } from "../types/admin";
 
 import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
-
+import type { AdminSearchResult } from "../types/admin";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 async function handle<T>(response: Response): Promise<T> {
@@ -160,4 +160,13 @@ export async function updateCardStatus(
   });
 
   return handle<AdminCard>(response);
+}
+
+// SEARCH
+export async function searchAdmin(query: string): Promise<AdminSearchResult[]> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/search?q=${encodeURIComponent(query)}`,
+  );
+
+  return handle<AdminSearchResult[]>(response);
 }
