@@ -2,41 +2,53 @@ import type { ReactNode } from "react";
 
 type AuthShellProps = {
   children: ReactNode;
+  variant?: "default" | "registration";
 };
 
-export default function AuthShell({ children }: AuthShellProps) {
+export default function AuthShell({
+  children,
+  variant = "default",
+}: AuthShellProps) {
+  const shellClassName =
+    variant === "default"
+      ? "auth-shell"
+      : `auth-shell auth-shell--${variant}`;
+  const showBrandPanel = variant !== "registration";
+
   return (
     <main className="auth-page">
-      <section className="auth-shell" aria-label="Nexa customer access">
-        <aside className="auth-brand-panel">
-          <div className="auth-brand-lockup">
-            <span className="auth-brand-mark" aria-hidden="true">
-              N
-            </span>
-            <span>Nexa Bank</span>
-          </div>
-
-          <div className="auth-brand-content">
-            <div className="auth-brand-copy">
-              <p className="auth-eyebrow">Banking made uncomplicated</p>
-              <h2>Your money, clearly managed.</h2>
-              <p>A secure demonstration of simple, modern everyday banking.</p>
+      <section className={shellClassName} aria-label="Nexa customer access">
+        {showBrandPanel && (
+          <aside className="auth-brand-panel">
+            <div className="auth-brand-lockup">
+              <span className="auth-brand-mark" aria-hidden="true">
+                N
+              </span>
+              <span>Nexa Bank</span>
             </div>
 
-            <ul className="auth-benefits" aria-label="Account benefits">
-              <li>Protected account access</li>
-              <li>Clear balances and activity</li>
-              <li>Available whenever you need it</li>
-              <li>Instant transaction alerts</li>
-              <li>Easy card and payment controls</li>
-              <li>Personalised spending insights</li>
-              <li>Secure digital transfers</li>
-              <li>24/7 online support</li>
-            </ul>
-          </div>
+            <div className="auth-brand-content">
+              <div className="auth-brand-copy">
+                <p className="auth-eyebrow">Banking made uncomplicated</p>
+                <h2>Your money, clearly managed.</h2>
+                <p>A secure demonstration of simple, modern everyday banking.</p>
+              </div>
 
-          <p className="demo-notice">Demo environment · No real funds</p>
-        </aside>
+              <ul className="auth-benefits" aria-label="Account benefits">
+                <li>Protected account access</li>
+                <li>Clear balances and activity</li>
+                <li>Available whenever you need it</li>
+                <li>Instant transaction alerts</li>
+                <li>Easy card and payment controls</li>
+                <li>Personalised spending insights</li>
+                <li>Secure digital transfers</li>
+                <li>24/7 online support</li>
+              </ul>
+            </div>
+
+            <p className="demo-notice">Demo environment · No real funds</p>
+          </aside>
+        )}
 
         <div className="auth-card">{children}</div>
       </section>
