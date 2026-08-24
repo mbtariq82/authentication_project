@@ -118,6 +118,7 @@ class TestLoanResponse:
             interest=5,
             emi=Decimal("10985.50"),
             current_loan_status="ACTIVE",
+            accrued_interest=Decimal("125.50"),
         )
 
         assert response.id == 1
@@ -127,6 +128,8 @@ class TestLoanResponse:
         assert response.interest == 5
         assert response.emi == Decimal("10985.50")
         assert response.current_loan_status == "ACTIVE"
+        assert response.accrued_interest == Decimal("125.50")
+        
 
 
 class TestLoanListResponse:
@@ -140,6 +143,7 @@ class TestLoanListResponse:
             interest=5,
             emi=Decimal("10985.50"),
             current_loan_status="ACTIVE",
+            accrued_interest=Decimal("125.50"),
         )
 
         response = LoanListResponse(loans=[loan])

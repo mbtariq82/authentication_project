@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -67,11 +68,13 @@ def make_loan(
     loan.id = loan_id
     loan.account_id = account_id
     loan.loan_amount = loan_amount
+    loan.accrued_interest = Decimal("0.00")
     loan.duration = duration
     loan.loan_type = loan_type
     loan.interest = interest
     loan.emi = emi
     loan.current_loan_status = status
+    loan.last_interest_calculated_at = datetime.now(timezone.utc)
 
     return loan
 

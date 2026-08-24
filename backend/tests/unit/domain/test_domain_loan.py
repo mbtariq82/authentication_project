@@ -2,7 +2,13 @@ from decimal import Decimal
 
 import pytest
 
-from domain.loan import *
+from domain.loan import (
+    LoanApplication,
+    assess_loan,
+    get_interest_rate,
+    calculate_emi,
+    calculate_accrued_interest,
+)
 
 
 class TestLoanApplication:
@@ -15,6 +21,7 @@ class TestLoanApplication:
             monthly_expenses=Decimal("2000"),
             interest=5,
             duration=120,
+            accrued_interest=Decimal("0.00"),
         )
 
         assert application.loan_type == "House"
@@ -35,6 +42,7 @@ class TestAssessLoan:
             monthly_expenses=Decimal("2000"),
             interest=5,
             duration=12,
+            accrued_interest=Decimal("0.00"),
         )
 
         assert assess_loan(application) is True
@@ -47,6 +55,7 @@ class TestAssessLoan:
             monthly_expenses=Decimal("2000"),
             interest=5,
             duration=12,
+            accrued_interest=Decimal("0.00"),
         )
 
         assert assess_loan(application) is False
@@ -59,11 +68,14 @@ class TestAssessLoan:
             monthly_expenses=Decimal("2500"),
             interest=5,
             duration=12,
+            accrued_interest=Decimal("0.00"),
         )
 
         assert assess_loan(application) is False
 
-    def test_loan_is_rejected_when_repayment_exceeds_30_percent_of_disposable_income(self):
+    def test_loan_is_rejected_when_repayment_exceeds_30_percent_of_disposable_income(
+        self,
+    ):
         application = LoanApplication(
             loan_type="House",
             loan_amount=Decimal("10000"),
@@ -71,11 +83,8 @@ class TestAssessLoan:
             monthly_expenses=Decimal("2000"),
             interest=5,
             duration=10,
+            accrued_interest=Decimal("0.00"),
         )
-
-        # Disposable income = 1000
-        # Maximum repayment = 1000 * 0.30 = 300
-        # Monthly repayment = 10000 / 10 = 1000
         assert assess_loan(application) is False
 
     def test_loan_is_approved_when_repayment_is_exactly_30_percent(self):
@@ -86,11 +95,9 @@ class TestAssessLoan:
             monthly_expenses=Decimal("1000"),
             interest=5,
             duration=10,
+            accrued_interest=Decimal("0.00"),
         )
 
-        # Disposable income = 1000
-        # 30% = 300
-        # Monthly repayment = 300
         assert assess_loan(application) is True
 
 
@@ -160,3 +167,103 @@ class TestCalculateEmi:
 
         assert emi > Decimal("0")
         assert emi == Decimal("2651.64")
+
+
+class TestCalculateAccruedInterest:
+
+    def test_calculates_accrued_interest(self):
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=30,
+        )
+
+        # 10000 * (5 / 100 / 365) * 30
+        expected = (
+            Decimal("10000")
+            * (Decimal("5") / Decimal("100") / Decimal("365"))
+            * Decimal("30")
+        ).quantize(Decimal("0.01"))
+
+        assert accrued_interest == expected
+
+    def test_calculates_zero_interest(self):
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=0,
+            days_elapsed=30,
+        )
+
+        assert accrued_interest == Decimal("0.00")
+
+    def test_zero_days_returns_zero(self):
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=0,
+        )
+
+        assert accrued_interest == Decimal("0.00")
+
+    def test_negative_days_returns_zero(self):
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=-10,
+        )
+
+        assert accrued_interest == Decimal("0.00")
+
+    def test_accrued_interest_is_rounded_to_two_decimal_places(self):
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=1,
+        )
+
+        assert accrued_interest.as_tuple().exponent == -2
+
+    def test_accrued_interest_increases_with_elapsed_days(self):
+        one_day = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=1,
+        )
+
+        thirty_days = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=30,
+        )
+
+        assert thirty_days > one_day
+
+    def test_accrued_interest_increases_with_loan_amount(self):
+        smaller_loan = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=30,
+        )
+
+        larger_loan = calculate_accrued_interest(
+            loan_amount=Decimal("20000"),
+            interest=5,
+            days_elapsed=30,
+        )
+
+        assert larger_loan > smaller_loan
+
+    def test_accrued_interest_increases_with_interest_rate(self):
+        lower_rate = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=5,
+            days_elapsed=30,
+        )
+
+        higher_rate = calculate_accrued_interest(
+            loan_amount=Decimal("10000"),
+            interest=10,
+            days_elapsed=30,
+        )
+
+        assert higher_rate > lower_rate
