@@ -20,6 +20,12 @@ export default function LoanRepaymentPage() {
 
   const [showWarning, setShowWarning] = useState(false);
   const [showOverpaymentWarning, setShowOverpaymentWarning] = useState(false);
+  const [repaymentBreakdown, setRepaymentBreakdown] = useState<{
+    interest: number;
+    principal: number;
+  } | null>(null);
+  const [showRepaymentConfirmation, setShowRepaymentConfirmation] =
+    useState(false);
 
   useEffect(() => {
     const loadLoan = async () => {
@@ -91,8 +97,10 @@ export default function LoanRepaymentPage() {
       return;
     }
 
-    const totalRemainingAmount =
-      Number(loan.loan_amount) + Number(loan.accrued_interest);
+    const remainingPrincipal = Number(loan.loan_amount);
+    const accruedInterest = Number(loan.accrued_interest);
+
+    const totalRemainingAmount = remainingPrincipal + accruedInterest;
 
     if (repaymentAmount > totalRemainingAmount) {
       setError(
@@ -100,19 +108,26 @@ export default function LoanRepaymentPage() {
       );
       return;
     }
+    const interestPayment = Math.min(repaymentAmount, accruedInterest);
 
-    if (repaymentAmount < loan.emi) {
+    const principalPayment = repaymentAmount - interestPayment;
+
+    setRepaymentBreakdown({
+      interest: interestPayment,
+      principal: principalPayment,
+    });
+
+    if (repaymentAmount < Number(loan.emi)) {
       setShowWarning(true);
       return;
     }
 
-    if (repaymentAmount > loan.emi) {
+    if (repaymentAmount > Number(loan.emi)) {
       setShowOverpaymentWarning(true);
       return;
     }
 
-    // Exactly the EMI.
-    void submitRepayment();
+    setShowRepaymentConfirmation(true);
   }
 
   async function acknowledgeAndRepay(
@@ -158,14 +173,14 @@ export default function LoanRepaymentPage() {
     currency: "GBP",
   });
 
-  const remainingAmount = Number(loan.loan_amount);
+  const remainingPrincipal = Number(loan.loan_amount);
   const accruedInterest = Number(loan.accrued_interest);
-  const formattedEmi = currencyFormatter.format(loan.emi);
+  const formattedEmi = currencyFormatter.format(Number(loan.emi));
   const formattedAccruedInterest = currencyFormatter.format(
     Number(loan.accrued_interest),
   );
   const formattedTotalAmount = currencyFormatter.format(
-    remainingAmount + accruedInterest,
+    remainingPrincipal + accruedInterest,
   );
 
   return (
@@ -278,6 +293,24 @@ export default function LoanRepaymentPage() {
               more interest over the life of the loan.
             </p>
 
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
+
             <p>Are you sure you want to continue with this repayment?</p>
 
             <div className="loan-repayment-modal-actions">
@@ -329,6 +362,24 @@ export default function LoanRepaymentPage() {
               to pay off the loan sooner.
             </p>
 
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
+
             <p>Would you like to continue with this repayment?</p>
 
             <div className="loan-repayment-modal-actions">
@@ -348,6 +399,68 @@ export default function LoanRepaymentPage() {
                 disabled={repaying}
               >
                 {repaying ? "Processing..." : "Acknowledge & make payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exact EMI confirmation */}
+      {showRepaymentConfirmation && (
+        <div className="loan-repayment-modal-backdrop" role="presentation">
+          <div
+            className="loan-repayment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repayment-confirmation-title"
+          >
+            <h2 id="repayment-confirmation-title">Confirm repayment</h2>
+
+            <p>
+              You are making your expected monthly repayment of{" "}
+              <strong>{formattedEmi}</strong>.
+            </p>
+
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            <p>Would you like to continue with this repayment?</p>
+
+            <div className="loan-repayment-modal-actions">
+              <button
+                type="button"
+                className="loan-repayment-modal-cancel"
+                onClick={() => setShowRepaymentConfirmation(false)}
+                disabled={repaying}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="loan-repayment-modal-confirm"
+                onClick={() => {
+                  setShowRepaymentConfirmation(false);
+                  void submitRepayment();
+                }}
+                disabled={repaying}
+              >
+                {repaying ? "Processing..." : "Confirm repayment"}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ from models.loan import LoanRow
 class LoanApplication:
     loan_type: str
     loan_amount: Decimal
+    accrued_interest: Decimal
     monthly_income: Decimal
     monthly_expenses: Decimal
     interest: int
