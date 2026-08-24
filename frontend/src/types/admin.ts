@@ -61,7 +61,13 @@ export interface AdminCard {
   email: string;
 }
 
-export type PanelKey = "dashboard" | "users" | "accounts" | "loans" | "cards";
+export type PanelKey =
+  | "dashboard"
+  | "users"
+  | "accounts"
+  | "loans"
+  | "cards"
+  | "aiAssistant";
 
 export type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -84,3 +90,12 @@ export interface AdminUser {
   user_status: UserStatus;
 }
 export type CardStatus = "ACTIVE" | "FROZEN" | "CLOSED";
+
+// AI ASSISTANT
+
+export interface AdminAgentAskResponse {
+  question: string;
+  sql_query: string;
+  rows: Record<string, unknown>[];
+  answer: string;
+}
