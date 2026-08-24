@@ -2,6 +2,7 @@ from fastapi import Depends, Request
 from redis.asyncio import Redis
 
 from dependencies.redis import get_redis
+from rate_limiting.chat_rate_limiter import PublicChatRateLimiter
 from rate_limiting.login_rate_limiter import LoginRateLimiter
 
 
@@ -11,6 +12,16 @@ def get_login_rate_limiter(
     return LoginRateLimiter(
         redis=redis,
         max_attempts=3,
+        window_seconds=60,
+    )
+
+
+def get_public_chat_rate_limiter(
+    redis: Redis = Depends(get_redis),
+) -> PublicChatRateLimiter:
+    return PublicChatRateLimiter(
+        redis=redis,
+        max_requests=10,
         window_seconds=60,
     )
 

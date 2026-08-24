@@ -4,7 +4,7 @@ import glob
 from functools import lru_cache
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
@@ -18,7 +18,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from dependencies.auth import get_current_user
+from dependencies.rate_limiting import get_public_chat_rate_limiter
 from domain.user import User
+from rate_limiting.chat_rate_limiter import PublicChatRateLimiter
 from schemas.ai_chatbot_schema import ChatRequest, ChatResponse, PublicChatRequest
 
 
@@ -274,10 +276,17 @@ def _search_found_nothing(messages: list) -> bool:
     response_model=ChatResponse,
     status_code=status.HTTP_200_OK,
 )
-async def public_chat(data: PublicChatRequest):
+async def public_chat(
+    data: PublicChatRequest,
+    request: Request,
+    rate_limiter: PublicChatRateLimiter = Depends(get_public_chat_rate_limiter),
+):
     """Public banking agent endpoint without user authentication."""
 
     try:
+        client_ip = request.client.host if request.client else "unknown"
+        await rate_limiter.check(f"{client_ip}:{data.guest_session_id}")
+
         agent = get_agent()
         config: RunnableConfig = {
             "configurable": {"thread_id": f"guest:{data.guest_session_id}"}
@@ -305,7 +314,7 @@ async def public_chat(data: PublicChatRequest):
         print(f"Agent configuration error: {exc}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
+            detail="Unable to process chatbot request.",
         )
 
     except Exception as exc:
