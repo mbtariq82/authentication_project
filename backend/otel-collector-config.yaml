@@ -8,16 +8,29 @@ processors:
   batch: {}
 
 exporters:
-  debug:
-    verbosity: basic
+  otlp_grpc/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    enable_open_metrics: true
+    resource_to_telemetry_conversion:
+      enabled: true
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [otlp_grpc/tempo]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/loki]

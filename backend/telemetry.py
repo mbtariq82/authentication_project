@@ -1,8 +1,13 @@
+import logging
 import os
 from dataclasses import dataclass
 
 from fastapi import FastAPI
 from opentelemetry import metrics, trace
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.http._log_exporter import (
+    OTLPLogExporter,
+)
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
     OTLPMetricExporter,
 )
@@ -13,6 +18,8 @@ from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import (
     PeriodicExportingMetricReader,
 )
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -27,14 +34,41 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 class TelemetryProviders:
     tracer_provider: TracerProvider
     meter_provider: MeterProvider
+    logger_provider: LoggerProvider | None = None
+    log_handler: LoggingHandler | None = None
 
     def shutdown(self) -> None:
         """Flush buffered telemetry and stop exporter workers."""
+        if self.log_handler is not None:
+            logging.getLogger().removeHandler(self.log_handler)
+            logging.getLogger("uvicorn.error").removeHandler(
+                self.log_handler
+            )
+            logging.getLogger("uvicorn.access").removeHandler(
+                self.log_handler
+            )
+        if self.logger_provider is not None:
+            self.logger_provider.shutdown()
         self.meter_provider.shutdown()
         self.tracer_provider.shutdown()
 
 
 _providers: TelemetryProviders | None = None
+
+
+def _log_server_request(span, scope: dict) -> None:
+    """Write a request log while its OpenTelemetry span is active."""
+    if span is None or not span.is_recording():
+        return
+
+    span_context = span.get_span_context()
+    logging.getLogger("uvicorn.error").info(
+        "request_started method=%s path=%s trace_id=%032x span_id=%016x",
+        scope.get("method", ""),
+        scope.get("path", ""),
+        span_context.trace_id,
+        span_context.span_id,
+    )
 
 
 def configure_telemetry() -> TelemetryProviders:
@@ -76,9 +110,29 @@ def configure_telemetry() -> TelemetryProviders:
     )
     metrics.set_meter_provider(meter_provider)
 
+    logger_provider = None
+    log_handler = None
+    if os.getenv("OTEL_LOGS_EXPORTER", "none").lower() == "otlp":
+        logger_provider = LoggerProvider(resource=resource)
+        logger_provider.add_log_record_processor(
+            BatchLogRecordProcessor(OTLPLogExporter())
+        )
+        set_logger_provider(logger_provider)
+
+        log_handler = LoggingHandler(
+            level=logging.INFO,
+            logger_provider=logger_provider,
+        )
+        logging.getLogger().setLevel(logging.INFO)
+        logging.getLogger().addHandler(log_handler)
+        logging.getLogger("uvicorn.error").addHandler(log_handler)
+        logging.getLogger("uvicorn.access").addHandler(log_handler)
+
     _providers = TelemetryProviders(
         tracer_provider=tracer_provider,
         meter_provider=meter_provider,
+        logger_provider=logger_provider,
+        log_handler=log_handler,
     )
     return _providers
 
@@ -94,6 +148,7 @@ def instrument_application(
         app,
         tracer_provider=providers.tracer_provider,
         meter_provider=providers.meter_provider,
+        server_request_hook=_log_server_request,
         excluded_urls=r".*/health",
         exclude_spans=["receive", "send"],
     )
