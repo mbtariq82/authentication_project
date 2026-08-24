@@ -193,7 +193,7 @@ def search_banking_documents(query: str) -> str:
 def get_agent():
     llm = ChatOpenAI(
         model="gpt-4o",
-        temperature=0,
+        temperature=0, # deterministic answers for factual questions
     )
 
     checkpointer = MemorySaver()
