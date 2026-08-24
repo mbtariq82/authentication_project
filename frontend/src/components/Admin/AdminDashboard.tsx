@@ -7,6 +7,7 @@ import AccountsPanel from "./AccountsPanel";
 import LoansPanel from "./LoansPanel";
 import CardsPanel from "./CardsPanel";
 import UsersPanel from "./UsersPanel";
+import AdminAiPanel from "./AdminAiPanel";
 
 import "../../styles/admin-dashboard.css";
 
@@ -14,6 +15,11 @@ const PANEL_TITLES: Record<PanelKey, { title: string; subtitle: string }> = {
   dashboard: {
     title: "Dashboard",
     subtitle: "Overview of customers and banking activity",
+  },
+
+  aiAssistant: {
+    title: "AI assistant",
+    subtitle: "Ask questions about customers, accounts, loans, and cards",
   },
 
   users: {
@@ -42,6 +48,7 @@ export default function AdminDashboard() {
 
   const pendingCounts: Record<PanelKey, number> = {
     dashboard: 0,
+    aiAssistant: 0,
     users: 0,
     accounts: 0,
     loans: 0,
@@ -70,6 +77,9 @@ export default function AdminDashboard() {
 
         {/* DASHBOARD */}
         {activePanel === "dashboard" && <DashboardPanel />}
+
+        {/* AI ASSISTANT */}
+        {activePanel === "aiAssistant" && <AdminAiPanel />}
 
         {/* CUSTOMERS */}
         {activePanel === "users" && <UsersPanel />}
