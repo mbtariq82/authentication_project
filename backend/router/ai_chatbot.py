@@ -1,3 +1,4 @@
+import glob
 import os
 import glob
 from functools import lru_cache
@@ -7,7 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -139,28 +141,20 @@ def get_retriever():
         raise RuntimeError("OPENAI_API_KEY is not configured.")
 
     pdf_dir = "llm_document"
-
-    if not os.path.isdir(pdf_dir):
-        raise RuntimeError(f"Document directory not found: {pdf_dir}")
-
     pdf_paths = sorted(glob.glob(os.path.join(pdf_dir, "*.pdf")))
 
     if not pdf_paths:
-        raise RuntimeError(f"No PDF files found in directory: {pdf_dir}")
+        raise RuntimeError(f"No PDF files found in: {pdf_dir}")
 
     pdf_documents = []
     for pdf_path in pdf_paths:
         try:
             pdf_documents.extend(PyPDFLoader(pdf_path).load())
         except Exception as exc:
-            # Skip a single bad/corrupt PDF rather than failing the
-            # whole knowledge base build; log it so it's noticed.
             print(f"Skipping unreadable PDF '{pdf_path}': {exc}")
 
     if not pdf_documents:
-        raise RuntimeError(
-            f"No content could be loaded from any PDF in: {pdf_dir}"
-        )
+        raise RuntimeError("No content could be loaded from any PDF document.")
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -177,7 +171,7 @@ def get_retriever():
     vectorstore = Chroma.from_documents(
         documents=document_chunks,
         embedding=embeddings,
-        collection_name="bank_registration_documents",
+        collection_name="bank_documents",
     )
 
     return vectorstore.as_retriever(
@@ -189,12 +183,11 @@ def get_retriever():
 @tool
 def search_banking_documents(query: str) -> str:
     """
-    Search the bank's document knowledge base (which may span
-    multiple PDFs, e.g. cards, fees, terms, account policies) for
-    information relevant to the query. Use this whenever the user
-    asks a factual question about banking products, cards, fees,
-    policies, or procedures. Returns the top matching passages
-    along with their source file and page metadata.
+    Search the bank's document knowledge base
+    for information relevant to the query. Use this whenever the
+    user asks a factual question about banking products, cards,
+    fees, policies, or procedures. Returns the top matching
+    passages along with their source page metadata.
     """
 
     retriever = get_retriever()
@@ -299,7 +292,9 @@ async def customer_chat(
 
         # thread_id scopes memory per user; swap for a session id
         # if you want separate memory per conversation/tab instead.
-        config = {"configurable": {"thread_id": str(current_user.id)}}
+        config: RunnableConfig = {
+            "configurable": {"thread_id": str(current_user.id)}
+        }
 
         result = agent.invoke(
             {"messages": [HumanMessage(content=data.message)]},
