@@ -255,3 +255,5 @@ node_modules/
 crash.log
 secrets.tfvars
 *.tfvars
+
+docs/
