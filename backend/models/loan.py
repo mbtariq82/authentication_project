@@ -9,6 +9,7 @@ class LoanRow(Base):
     account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
     loan_amount = Column(Numeric(12, 2), nullable=True)
+    accrued_interest = Column(Numeric(12, 2), nullable=True, default=0)
     last_interest_calculated_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     duration = Column(Integer, nullable=True)
     current_loan_status = Column(String(50), nullable=True)
