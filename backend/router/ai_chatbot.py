@@ -1,7 +1,6 @@
 import glob
 import os
 from functools import lru_cache
-from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -19,7 +18,7 @@ from langgraph.prebuilt import create_react_agent
 
 from dependencies.auth import get_current_user
 from domain.user import User
-from schemas.ai_chatbot_schema import ChatRequest, ChatResponse
+from schemas.ai_chatbot_schema import ChatRequest, ChatResponse, PublicChatRequest
 
 
 # ---------------------------------------------------------
@@ -225,13 +224,13 @@ def get_agent():
     response_model=ChatResponse,
     status_code=status.HTTP_200_OK,
 )
-async def public_chat(data: ChatRequest):
+async def public_chat(data: PublicChatRequest):
     """Public banking agent endpoint without user authentication."""
 
     try:
         agent = get_agent()
         config: RunnableConfig = {
-            "configurable": {"thread_id": f"public:{uuid4()}"}
+            "configurable": {"thread_id": f"guest:{data.guest_session_id}"}
         }
 
         result = agent.invoke(
