@@ -260,6 +260,9 @@ async def public_chat(
 
         return ChatResponse(answer=answer)
 
+    except HTTPException:
+        raise
+
     except RuntimeError as exc:
         print(f"Agent configuration error: {exc}")
         raise HTTPException(
