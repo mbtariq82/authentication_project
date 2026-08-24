@@ -40,6 +40,7 @@ class LoanResponse(BaseModel):
     interest: int
     emi: Decimal
     current_loan_status: str
+    accrued_interest: Decimal
 
 class LoanListResponse(BaseModel):
     loans: list[LoanResponse]

@@ -17,7 +17,15 @@ export default function LoanRepaymentPage() {
   const [loading, setLoading] = useState(true);
   const [repaying, setRepaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [showWarning, setShowWarning] = useState(false);
+  const [showOverpaymentWarning, setShowOverpaymentWarning] = useState(false);
+  const [repaymentBreakdown, setRepaymentBreakdown] = useState<{
+    interest: number;
+    principal: number;
+  } | null>(null);
+  const [showRepaymentConfirmation, setShowRepaymentConfirmation] =
+    useState(false);
 
   useEffect(() => {
     const loadLoan = async () => {
@@ -89,25 +97,48 @@ export default function LoanRepaymentPage() {
       return;
     }
 
-    if (repaymentAmount > loan.loan_amount) {
+    const remainingPrincipal = Number(loan.loan_amount);
+    const accruedInterest = Number(loan.accrued_interest);
+
+    const totalRemainingAmount = remainingPrincipal + accruedInterest;
+
+    if (repaymentAmount > totalRemainingAmount) {
       setError(
         "Repayment amount cannot be greater than the remaining loan amount.",
       );
       return;
     }
+    const interestPayment = Math.min(repaymentAmount, accruedInterest);
 
-    // Show a warning if the repayment is below the EMI.
-    if (repaymentAmount < loan.emi) {
+    const principalPayment = repaymentAmount - interestPayment;
+
+    setRepaymentBreakdown({
+      interest: interestPayment,
+      principal: principalPayment,
+    });
+
+    if (repaymentAmount < Number(loan.emi)) {
       setShowWarning(true);
       return;
     }
 
-    // EMI or greater — proceed normally.
-    submitRepayment();
+    if (repaymentAmount > Number(loan.emi)) {
+      setShowOverpaymentWarning(true);
+      return;
+    }
+
+    setShowRepaymentConfirmation(true);
   }
 
-  async function acknowledgeAndRepay() {
-    setShowWarning(false);
+  async function acknowledgeAndRepay(
+    warningType: "underpayment" | "overpayment",
+  ) {
+    if (warningType === "underpayment") {
+      setShowWarning(false);
+    } else {
+      setShowOverpaymentWarning(false);
+    }
+
     await submitRepayment();
   }
 
@@ -142,8 +173,15 @@ export default function LoanRepaymentPage() {
     currency: "GBP",
   });
 
-  const formattedAmount = currencyFormatter.format(loan.loan_amount);
-  const formattedEmi = currencyFormatter.format(loan.emi);
+  const remainingPrincipal = Number(loan.loan_amount);
+  const accruedInterest = Number(loan.accrued_interest);
+  const formattedEmi = currencyFormatter.format(Number(loan.emi));
+  const formattedAccruedInterest = currencyFormatter.format(
+    Number(loan.accrued_interest),
+  );
+  const formattedTotalAmount = currencyFormatter.format(
+    remainingPrincipal + accruedInterest,
+  );
 
   return (
     <div className="loan-repayment-page">
@@ -165,7 +203,16 @@ export default function LoanRepaymentPage() {
 
             <div>
               <span className="loan-repayment-label">Remaining amount</span>
-              <span className="loan-repayment-value">{formattedAmount}</span>
+              <span className="loan-repayment-value">
+                {formattedTotalAmount}
+              </span>
+            </div>
+
+            <div>
+              <span className="loan-repayment-label">Accrued interest</span>
+              <span className="loan-repayment-value">
+                {formattedAccruedInterest}
+              </span>
             </div>
 
             <div>
@@ -224,6 +271,7 @@ export default function LoanRepaymentPage() {
         </section>
       </main>
 
+      {/* Underpayment warning */}
       {showWarning && (
         <div className="loan-repayment-modal-backdrop" role="presentation">
           <div
@@ -240,10 +288,28 @@ export default function LoanRepaymentPage() {
             </p>
 
             <p>
-              Making repayments below this amount could potentially increase the
-              total interest you pay and may result in changes to your future
-              repayment amount.
+              Making a repayment below your expected monthly amount may increase
+              the remaining duration of your loan and could result in you paying
+              more interest over the life of the loan.
             </p>
+
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
 
             <p>Are you sure you want to continue with this repayment?</p>
 
@@ -260,10 +326,141 @@ export default function LoanRepaymentPage() {
               <button
                 type="button"
                 className="loan-repayment-modal-confirm"
-                onClick={acknowledgeAndRepay}
+                onClick={() => void acknowledgeAndRepay("underpayment")}
                 disabled={repaying}
               >
                 {repaying ? "Processing..." : "Acknowledge & make payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Overpayment warning */}
+      {showOverpaymentWarning && (
+        <div className="loan-repayment-modal-backdrop" role="presentation">
+          <div
+            className="loan-repayment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="overpayment-warning-title"
+          >
+            <h2 id="overpayment-warning-title">Larger repayment</h2>
+
+            <p>
+              You are paying more than your expected monthly repayment of{" "}
+              <strong>{formattedEmi}</strong>.
+            </p>
+
+            <p>
+              This additional repayment will reduce the remaining balance of
+              your loan and shorten the remaining loan duration.
+            </p>
+
+            <p>
+              Your monthly repayment amount will remain the same, allowing you
+              to pay off the loan sooner.
+            </p>
+
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            <p>Would you like to continue with this repayment?</p>
+
+            <div className="loan-repayment-modal-actions">
+              <button
+                type="button"
+                className="loan-repayment-modal-cancel"
+                onClick={() => setShowOverpaymentWarning(false)}
+                disabled={repaying}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="loan-repayment-modal-confirm"
+                onClick={() => void acknowledgeAndRepay("overpayment")}
+                disabled={repaying}
+              >
+                {repaying ? "Processing..." : "Acknowledge & make payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exact EMI confirmation */}
+      {showRepaymentConfirmation && (
+        <div className="loan-repayment-modal-backdrop" role="presentation">
+          <div
+            className="loan-repayment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repayment-confirmation-title"
+          >
+            <h2 id="repayment-confirmation-title">Confirm repayment</h2>
+
+            <p>
+              You are making your expected monthly repayment of{" "}
+              <strong>{formattedEmi}</strong>.
+            </p>
+
+            {repaymentBreakdown && (
+              <div className="loan-repayment-breakdown">
+                <div>
+                  <span>Accrued interest: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.interest)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Principal: </span>
+                  <strong>
+                    {currencyFormatter.format(repaymentBreakdown.principal)}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            <p>Would you like to continue with this repayment?</p>
+
+            <div className="loan-repayment-modal-actions">
+              <button
+                type="button"
+                className="loan-repayment-modal-cancel"
+                onClick={() => setShowRepaymentConfirmation(false)}
+                disabled={repaying}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="loan-repayment-modal-confirm"
+                onClick={() => {
+                  setShowRepaymentConfirmation(false);
+                  void submitRepayment();
+                }}
+                disabled={repaying}
+              >
+                {repaying ? "Processing..." : "Confirm repayment"}
               </button>
             </div>
           </div>

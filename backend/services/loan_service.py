@@ -1,9 +1,13 @@
+import math
+from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import uuid4
 from domain.loan import (
     LoanApplication,
     assess_loan,
     get_interest_rate,
     calculate_emi,
+    calculate_accrued_interest
 )
 from domain.transaction import Transaction
 from enums import TransactionType, TransactionDirection, TransactionStatus
@@ -45,6 +49,7 @@ class LoanService:
         application = LoanApplication(
             loan_type=request.loan_type,
             loan_amount=request.loan_amount,
+            accrued_interest=Decimal("0.00"),
             monthly_income=request.monthly_income,
             monthly_expenses=request.monthly_expenses,
             interest=interest,
@@ -99,6 +104,9 @@ class LoanService:
             raise InvalidLoanStatusError()
 
         loan.current_loan_status = status
+        
+        if status == "ACCEPTED":
+            loan.last_interest_calculated_at = datetime.now(timezone.utc)
 
         return LoanApplicationResponse(
             eligible=True,
@@ -117,6 +125,10 @@ class LoanService:
             account_id=account_id
         )
 
+        for loan in loans:
+            if loan.current_loan_status == "ACCEPTED":
+                self._accrue_interest(loan)
+
         return LoanListResponse(
             loans=[
                 LoanResponse(
@@ -127,6 +139,7 @@ class LoanService:
                             interest=loan.interest,
                             emi=loan.emi,
                             current_loan_status=loan.current_loan_status,
+                            accrued_interest=loan.accrued_interest,
                         )
                 for loan in loans
             ]
@@ -146,10 +159,59 @@ class LoanService:
                             interest=loan.interest,
                             emi=loan.emi,
                             current_loan_status=loan.current_loan_status,
+                            accrued_interest=loan.accrued_interest
                         )
                 for loan in loans
             ]
         )
+
+    def calculate_duration(
+        self,
+        loan_amount: Decimal,
+        interest: int,
+        emi: Decimal,
+    ) -> int:
+        monthly_rate = (
+            Decimal(interest) / Decimal("100") / Decimal("12")
+        )
+
+        if monthly_rate == 0:
+            return math.ceil(loan_amount / emi)
+
+        duration = (
+            -math.log(
+                1 - (
+                    float(loan_amount * monthly_rate / emi)
+                )
+            )
+            / math.log(1 + float(monthly_rate))
+        )
+
+        return math.ceil(duration)
+
+    def _accrue_interest(self, loan: LoanRow) -> None:
+        now = datetime.now(timezone.utc)
+
+        if loan.last_interest_calculated_at is None:
+            loan.last_interest_calculated_at = now
+            return
+
+        last_date = loan.last_interest_calculated_at.date()
+        current_date = now.date()
+
+        days_elapsed = (current_date - last_date).days
+
+        if days_elapsed <= 0:
+            return
+
+        accrued_interest = calculate_accrued_interest(
+            loan_amount=loan.loan_amount,
+            interest=loan.interest,
+            days_elapsed=days_elapsed,
+        )
+
+        loan.accrued_interest += accrued_interest
+        loan.last_interest_calculated_at = now
 
     async def repay_loan(
         self,
@@ -168,7 +230,11 @@ class LoanService:
         if loan.current_loan_status != "ACCEPTED":
             raise InvalidLoanStatusError()
 
-        if request.amount > loan.loan_amount:
+        self._accrue_interest(loan)
+
+        total_owed = loan.loan_amount + loan.accrued_interest
+
+        if request.amount > total_owed:
             raise InvalidRepaymentAmountError()
 
         try:
@@ -179,10 +245,27 @@ class LoanService:
         except InsufficientFundsError:
             raise InvalidRepaymentAmountError()
 
-        loan.loan_amount -= request.amount
+        interest_payment = min(
+            request.amount,
+            loan.accrued_interest
+        )
 
-        if loan.loan_amount == 0:
+        loan.accrued_interest -= interest_payment
+
+        principal_amount = request.amount - interest_payment
+
+        loan.loan_amount -= principal_amount
+
+        if loan.loan_amount == 0 and loan.accrued_interest == 0:
             loan.current_loan_status = "PAID"
+            loan.duration = 0
+
+        else:
+            loan.duration = self.calculate_duration(
+                loan_amount=loan.loan_amount,
+                interest=loan.interest,
+                emi=loan.emi,
+            )
 
         transaction = Transaction(
             account_id=user_context.account.id,
@@ -199,6 +282,6 @@ class LoanService:
         return LoanRepaymentResponse(
             loan_id=loan.id,
             repayment_amount=request.amount,
-            remaining_amount=loan.loan_amount,
+            remaining_amount=loan.loan_amount + loan.accrued_interest,
             status=loan.current_loan_status,
         )

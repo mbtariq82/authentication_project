@@ -14,3 +14,47 @@ export async function getCurrentAccount(): Promise<Account> {
 
   return response.json() as Promise<Account>;
 }
+
+export async function freezeAccount(): Promise<Account> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/accounts/me/freeze`, {
+    method: "PATCH",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getApiErrorMessage(response, "Failed to freeze your account."),
+    );
+  }
+
+  return response.json() as Promise<Account>;
+}
+
+export async function unfreezeAccount(): Promise<Account> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/accounts/me/unfreeze`, {
+    method: "PATCH",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getApiErrorMessage(response, "Failed to unfreeze your account."),
+    );
+  }
+
+  return response.json() as Promise<Account>;
+}
+
+export async function closeAccount(closeReason: string): Promise<Account> {
+  const response = await fetchWithAuth(`${API_BASE_URL}/accounts/me/close`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ close_reason: closeReason }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getApiErrorMessage(response, "Failed to close your account."),
+    );
+  }
+
+  return response.json() as Promise<Account>;
+}

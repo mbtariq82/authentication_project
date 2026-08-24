@@ -5,7 +5,7 @@ export const routes = {
   beneficiaries: "/beneficiaries",
   transactions: "/transactions",
   transactionHistory: "/transactions/history",
-  adminDashboard: "/admin/dashboard",
+  adminDashboard: "/bank/admin/dashboard",
   adminConsultants: "/admin/consultants",
   adminNewConsultant: "/admin/consultants/new",
   loans: "/my-loans",

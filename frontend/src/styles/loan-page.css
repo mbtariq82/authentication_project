@@ -270,3 +270,45 @@
     flex-wrap: wrap;
   }
 }
+
+.loan-account-pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 32px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+}
+
+.loan-account-pending-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.loan-account-pending-content h2 {
+  margin: 0 0 8px;
+  color: #102a43;
+  font-size: 20px;
+}
+
+.loan-account-pending-content p {
+  margin: 0 0 8px;
+  color: #627d98;
+  line-height: 1.6;
+}
+
+.loan-account-pending-content p:last-child {
+  margin-bottom: 0;
+}

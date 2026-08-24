@@ -17,7 +17,14 @@ export default function LoansPage() {
         const response = await getUserLoans();
         setLoans(response.loans);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load loans.");
+        const message =
+          err instanceof Error ? err.message : "Failed to load loans.";
+
+        if (message === "Account not found") {
+          setError("ACCOUNT_NOT_APPROVED");
+        } else {
+          setError(message);
+        }
       } finally {
         setLoading(false);
       }
@@ -57,8 +64,31 @@ export default function LoansPage() {
           <p className="loans-page-subtitle">View and manage your loans.</p>
         </header>
 
-        {error && <div className="loans-error">{error}</div>}
+        {error === "ACCOUNT_NOT_APPROVED" && (
+          <div className="loan-account-pending">
+            <div className="loan-account-pending-icon" aria-hidden="true">
+              ✓
+            </div>
 
+            <div className="loan-account-pending-content">
+              <h2>Your account is still being set up</h2>
+
+              <p>
+                We're currently preparing your account. Once your account has
+                been approved, you'll be able to view your loans and submit
+                applications.
+              </p>
+
+              <p>Please check back later.</p>
+            </div>
+          </div>
+        )}
+
+        {error && error !== "ACCOUNT_NOT_APPROVED" && (
+          <div className="loans-error" role="alert">
+            {error}
+          </div>
+        )}
         {!error && loans.length === 0 && (
           <div className="loan-empty-card">
             <h2>No current loans</h2>
@@ -121,10 +151,10 @@ type LoanCardProps = {
 };
 
 function LoanCard({ loan }: LoanCardProps) {
-  const formattedAmount = new Intl.NumberFormat("en-GB", {
+  const currencyFormatter = new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
-  }).format(loan.loan_amount);
+  });
 
   return (
     <article className="loan-card">
@@ -143,22 +173,23 @@ function LoanCard({ loan }: LoanCardProps) {
 
       <div className="loan-card-details">
         <div className="loan-detail">
-          <span className="loan-detail-label">Amount</span>
-          <span className="loan-detail-value">{formattedAmount}</span>
+          <span className="loan-detail-label">Loan Amount</span>
+          <span className="loan-detail-value">
+            {currencyFormatter.format(Number(loan.loan_amount))}
+          </span>
         </div>
 
         <div className="loan-detail">
-          <span className="loan-detail-label">Interest</span>
-          <span className="loan-detail-value">{loan.interest}%</span>
+          <span className="loan-detail-label">Accrued Interest</span>
+          <span className="loan-detail-value">
+            {currencyFormatter.format(Number(loan.accrued_interest))}
+          </span>
         </div>
 
         <div className="loan-detail">
           <span className="loan-detail-label">Monthly EMI</span>
           <span className="loan-detail-value">
-            {new Intl.NumberFormat("en-GB", {
-              style: "currency",
-              currency: "GBP",
-            }).format(Number(loan.emi))}
+            {currencyFormatter.format(Number(loan.emi))}
           </span>
         </div>
 

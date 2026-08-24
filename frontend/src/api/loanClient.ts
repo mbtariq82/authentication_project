@@ -7,11 +7,12 @@ export type LoanStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "PAID";
 export type Loan = {
   id: number;
   loan_type: string;
-  loan_amount: number;
+  loan_amount: string;
   duration: number;
   current_loan_status: LoanStatus;
   interest: number;
-  emi: number;
+  emi: string;
+  accrued_interest: string;
 };
 
 export type LoanListResponse = {

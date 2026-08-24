@@ -184,12 +184,11 @@ export default function Sidebar({
   // PROFILE
   // ==============================
 
-  // function handleProfile() {
-  //   setShowSettings(false);
+  function handleProfile() {
+    setShowSettings(false);
 
-  //   navigate(routes.profile);
-  // }
-
+    navigate(routes.profile);
+  }
   // ==============================
   // PROFILE IMAGE / INITIALS
   // ==============================
@@ -336,15 +335,15 @@ export default function Sidebar({
 
           {showSettings && (
             <div className="settings-menu">
-              {/* <button
+              <button
                 type="button"
                 className="settings-menu-item"
                 onClick={handleProfile}
               >
                 Profile
-              </button> */}
+              </button>
 
-              {/* <div className="settings-menu-divider" /> */}
+              <div className="settings-menu-divider" />
 
               <button
                 type="button"
