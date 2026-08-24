@@ -12,7 +12,7 @@ from config import (
 from database import engine
 from exception_handlers import register_exception_handlers
 from redis_client import redis_client
-from router import accounts, admin, auth, card, users, loan,ai_chatbot
+from router import accounts, admin, auth, card, users, loan,ai_chatbot,admin_api_chatbot
 from telemetry import configure_telemetry, instrument_application
 
 from router import beneficiaries, transactions
@@ -70,6 +70,7 @@ app.include_router(transactions.router)
 app.include_router(card.router)
 app.include_router(loan.router)
 app.include_router(ai_chatbot.router)
+app.include_router(admin_api_chatbot.router)
 
 instrument_application(
     app=app,

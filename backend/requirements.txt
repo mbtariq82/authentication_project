@@ -48,4 +48,6 @@ chromadb
 # PDF Loader
 pypdf
 
+#
+psycopg[binary]
 
