@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -37,6 +37,14 @@ router = APIRouter(
 )
 
 
+NOT_FOUND_MESSAGE = (
+    "I could not find enough information in the provided knowledge "
+    "base to answer that."
+)
+
+NO_RESULTS_TOOL_OUTPUT = "No relevant documents were found for this query."
+
+
 # ---------------------------------------------------------
 # Agent system prompt
 # ---------------------------------------------------------
@@ -44,7 +52,7 @@ router = APIRouter(
 # for an agent that DECIDES when to call the retrieval tool,
 # rather than a chain that always retrieves first.
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 You are a grounded banking assistant with access to a document
 search tool called `search_banking_documents`.
 
@@ -77,10 +85,13 @@ Grounding rules (apply whenever you use retrieved context):
    retrieved context.
 
 5. If the retrieved context does not contain enough information
-   to answer the question, respond with:
+   to answer the question, respond with EXACTLY this message and
+   nothing else — no elaboration, no apology, no suggestions to
+   "contact the bank" or "visit the website," and no phone
+   numbers, emails, or URLs, since none of that is present in the
+   retrieved context and you cannot verify it is accurate:
 
-   "I could not find enough information in the provided knowledge
-   base to answer that."
+   "{NOT_FOUND_MESSAGE}"
 
 6. If the tool result contains conflicting information, clearly
    state that there is conflicting information rather than
@@ -190,7 +201,7 @@ def search_banking_documents(query: str) -> str:
     results = retriever.invoke(query)
 
     if not results:
-        return "No relevant documents were found for this query."
+        return NO_RESULTS_TOOL_OUTPUT
 
     formatted = []
     for i, doc in enumerate(results, start=1):
@@ -225,6 +236,40 @@ def get_agent():
     )
 
     return agent
+
+
+# ---------------------------------------------------------
+# Deterministic guard against ungrounded elaboration
+# ---------------------------------------------------------
+# The prompt asks the LLM to reply with an exact fixed message
+# when nothing relevant was found, but prompts aren't guarantees
+# — models sometimes pad a correct "not found" with unverified
+# extras ("try the website", "call support"). Rather than trust
+# wording alone, check what the tool actually returned and force
+# the canonical message when every search came back empty.
+
+def _search_found_nothing(messages: list) -> bool:
+    """
+    True only if search_banking_documents was called at least once
+    AND every call came back empty. If the tool was never called
+    (e.g. the user just said "hi"), this returns False — there's
+    nothing to override, the LLM's direct reply stands.
+    """
+
+    tool_messages = [
+        message
+        for message in messages
+        if isinstance(message, ToolMessage)
+        and message.name == "search_banking_documents"
+    ]
+
+    if not tool_messages:
+        return False
+
+    return all(
+        (message.content or "").strip() == NO_RESULTS_TOOL_OUTPUT
+        for message in tool_messages
+    )
 
 
 # ---------------------------------------------------------
@@ -264,22 +309,18 @@ async def customer_chat(
         messages = result.get("messages", [])
 
         if not messages:
-            return ChatResponse(
-                answer=(
-                    "I could not find enough information in the "
-                    "provided knowledge base to answer that."
-                )
-            )
+            return ChatResponse(answer=NOT_FOUND_MESSAGE)
 
         answer = messages[-1].content
 
         if not answer:
-            return ChatResponse(
-                answer=(
-                    "I could not find enough information in the "
-                    "provided knowledge base to answer that."
-                )
-            )
+            return ChatResponse(answer=NOT_FOUND_MESSAGE)
+
+        # Override ungrounded elaboration: if every search came back
+        # empty, ignore whatever extra text the LLM added and return
+        # exactly the canonical fallback message instead.
+        if _search_found_nothing(messages):
+            answer = NOT_FOUND_MESSAGE
 
         return ChatResponse(answer=answer)
 
