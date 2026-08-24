@@ -1,4 +1,5 @@
 import os
+import glob
 from functools import lru_cache
 
 from dotenv import load_dotenv
@@ -113,8 +114,12 @@ def get_retriever():
     """
     Builds the Chroma retriever once and caches it.
 
+    Loads every .pdf file found in the `llm_document/` directory
+    (not just one file), so you can add more banking documents by
+    dropping additional PDFs into that folder.
+
     Flow:
-    PDF -> text chunks -> embeddings -> Chroma vector store -> retriever
+    PDFs -> text chunks -> embeddings -> Chroma vector store -> retriever
     """
 
     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -122,16 +127,29 @@ def get_retriever():
     if not openai_api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured.")
 
-    pdf_path = "llm_document/card_document.pdf"
+    pdf_dir = "llm_document"
 
-    if not os.path.exists(pdf_path):
-        raise RuntimeError(f"PDF file not found: {pdf_path}")
+    if not os.path.isdir(pdf_dir):
+        raise RuntimeError(f"Document directory not found: {pdf_dir}")
 
-    pdf_loader = PyPDFLoader(pdf_path)
-    pdf_documents = pdf_loader.load()
+    pdf_paths = sorted(glob.glob(os.path.join(pdf_dir, "*.pdf")))
+
+    if not pdf_paths:
+        raise RuntimeError(f"No PDF files found in directory: {pdf_dir}")
+
+    pdf_documents = []
+    for pdf_path in pdf_paths:
+        try:
+            pdf_documents.extend(PyPDFLoader(pdf_path).load())
+        except Exception as exc:
+            # Skip a single bad/corrupt PDF rather than failing the
+            # whole knowledge base build; log it so it's noticed.
+            print(f"Skipping unreadable PDF '{pdf_path}': {exc}")
 
     if not pdf_documents:
-        raise RuntimeError("No content could be loaded from the PDF document.")
+        raise RuntimeError(
+            f"No content could be loaded from any PDF in: {pdf_dir}"
+        )
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -160,11 +178,12 @@ def get_retriever():
 @tool
 def search_banking_documents(query: str) -> str:
     """
-    Search the bank's card/registration document knowledge base
-    for information relevant to the query. Use this whenever the
-    user asks a factual question about banking products, cards,
-    fees, policies, or procedures. Returns the top matching
-    passages along with their source page metadata.
+    Search the bank's document knowledge base (which may span
+    multiple PDFs, e.g. cards, fees, terms, account policies) for
+    information relevant to the query. Use this whenever the user
+    asks a factual question about banking products, cards, fees,
+    policies, or procedures. Returns the top matching passages
+    along with their source file and page metadata.
     """
 
     retriever = get_retriever()
@@ -193,7 +212,7 @@ def search_banking_documents(query: str) -> str:
 def get_agent():
     llm = ChatOpenAI(
         model="gpt-4o",
-        temperature=0, # deterministic answers for factual questions
+        temperature=0,  # deterministic answers for factual questions
     )
 
     checkpointer = MemorySaver()
@@ -224,10 +243,10 @@ async def customer_chat(
     """
     Customer banking agent endpoint.
 
-    This agent decides
-    per-message whether it needs to search the banking document
-    knowledge base, and keeps a running conversation per user via
-    an in-memory checkpointer (thread_id = user id).
+    This agent decides per-message whether it needs to search the
+    banking document knowledge base, and keeps a running
+    conversation per user via an in-memory checkpointer
+    (thread_id = user id).
     """
 
     try:

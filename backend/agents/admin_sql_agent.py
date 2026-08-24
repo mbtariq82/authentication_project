@@ -1,4 +1,5 @@
 import os
+import re
 from sqlalchemy import create_engine, text
 
 from langchain_community.utilities import SQLDatabase
@@ -127,7 +128,12 @@ class AdminSQLAgent:
             }
 
         for keyword in blocked_keywords:
-            if keyword in query_upper:
+            # Whole-word match only — a plain substring check would
+            # false-positive on column/alias names that happen to
+            # contain a blocked word, e.g. "is_deleted" contains
+            # "DELETE", or "recreated_view" would contain "CREATE".
+            pattern = r"\b" + re.escape(keyword) + r"\b"
+            if re.search(pattern, query_upper):
                 return {
                     "error": f"Blocked SQL operation: {keyword}"
                 }

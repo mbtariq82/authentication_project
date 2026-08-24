@@ -48,6 +48,7 @@ chromadb==1.5.9
 pypdf==6.16.2
  
 
-#
+# TEXT TO SQL Agent
 psycopg[binary]
+openpyxl
 
