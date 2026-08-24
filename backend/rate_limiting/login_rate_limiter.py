@@ -5,8 +5,8 @@ class LoginRateLimiter:
     def __init__(
         self,
         redis: Redis,
-        max_attempts: int = 5,
-        window_seconds: int = 60,
+        max_attempts: int = 50,
+        window_seconds: int = 600,
     ):
         self.redis = redis
         self.max_attempts = max_attempts

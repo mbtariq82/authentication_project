@@ -1,5 +1,7 @@
 import glob
+import json
 import os
+import glob
 from functools import lru_cache
 
 from dotenv import load_dotenv
@@ -7,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -40,6 +42,14 @@ router = APIRouter(
 )
 
 
+NOT_FOUND_MESSAGE = (
+    "I could not find enough information in the provided knowledge "
+    "base to answer that."
+)
+
+NO_RESULTS_TOOL_OUTPUT = "No relevant documents were found for this query."
+
+
 # ---------------------------------------------------------
 # Agent system prompt
 # ---------------------------------------------------------
@@ -47,7 +57,7 @@ router = APIRouter(
 # for an agent that DECIDES when to call the retrieval tool,
 # rather than a chain that always retrieves first.
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 You are a grounded banking assistant with access to a document
 search tool called `search_banking_documents`.
 
@@ -80,10 +90,13 @@ Grounding rules (apply whenever you use retrieved context):
    retrieved context.
 
 5. If the retrieved context does not contain enough information
-   to answer the question, respond with:
+   to answer the question, respond with EXACTLY this message and
+   nothing else — no elaboration, no apology, no suggestions to
+   "contact the bank" or "visit the website," and no phone
+   numbers, emails, or URLs, since none of that is present in the
+   retrieved context and you cannot verify it is accurate:
 
-   "I could not find enough information in the provided knowledge
-   base to answer that."
+   "{NOT_FOUND_MESSAGE}"
 
 6. If the tool result contains conflicting information, clearly
    state that there is conflicting information rather than
@@ -117,8 +130,12 @@ def get_retriever():
     """
     Builds the Chroma retriever once and caches it.
 
+    Loads every .pdf file found in the `llm_document/` directory
+    (not just one file), so you can add more banking documents by
+    dropping additional PDFs into that folder.
+
     Flow:
-    PDF -> text chunks -> embeddings -> Chroma vector store -> retriever
+    PDFs -> text chunks -> embeddings -> Chroma vector store -> retriever
     """
 
     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -127,20 +144,28 @@ def get_retriever():
         raise RuntimeError("OPENAI_API_KEY is not configured.")
 
     pdf_dir = "llm_document"
+
+    if not os.path.isdir(pdf_dir):
+        raise RuntimeError(f"Document directory not found: {pdf_dir}")
+
     pdf_paths = sorted(glob.glob(os.path.join(pdf_dir, "*.pdf")))
 
     if not pdf_paths:
-        raise RuntimeError(f"No PDF files found in: {pdf_dir}")
+        raise RuntimeError(f"No PDF files found in directory: {pdf_dir}")
 
     pdf_documents = []
     for pdf_path in pdf_paths:
         try:
             pdf_documents.extend(PyPDFLoader(pdf_path).load())
         except Exception as exc:
+            # Skip a single bad/corrupt PDF rather than failing the
+            # whole knowledge base build; log it so it's noticed.
             print(f"Skipping unreadable PDF '{pdf_path}': {exc}")
 
     if not pdf_documents:
-        raise RuntimeError("No content could be loaded from any PDF document.")
+        raise RuntimeError(
+            f"No content could be loaded from any PDF in: {pdf_dir}"
+        )
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -169,18 +194,19 @@ def get_retriever():
 @tool
 def search_banking_documents(query: str) -> str:
     """
-    Search the bank's document knowledge base
-    for information relevant to the query. Use this whenever the
-    user asks a factual question about banking products, cards,
-    fees, policies, or procedures. Returns the top matching
-    passages along with their source page metadata.
+    Search the bank's document knowledge base (which may span
+    multiple PDFs, e.g. cards, fees, terms, account policies) for
+    information relevant to the query. Use this whenever the user
+    asks a factual question about banking products, cards, fees,
+    policies, or procedures. Returns the top matching passages
+    along with their source file and page metadata.
     """
 
     retriever = get_retriever()
     results = retriever.invoke(query)
 
     if not results:
-        return "No relevant documents were found for this query."
+        return NO_RESULTS_TOOL_OUTPUT
 
     formatted = []
     for i, doc in enumerate(results, start=1):
@@ -202,7 +228,7 @@ def search_banking_documents(query: str) -> str:
 def get_agent():
     llm = ChatOpenAI(
         model="gpt-4o",
-        temperature=0, # deterministic answers for factual questions
+        temperature=0,  # deterministic answers for factual questions
     )
 
     checkpointer = MemorySaver()
@@ -215,6 +241,53 @@ def get_agent():
     )
 
     return agent
+
+
+# ---------------------------------------------------------
+# Deterministic guard against ungrounded elaboration
+# ---------------------------------------------------------
+# The prompt asks the LLM to reply with an exact fixed message
+# when nothing relevant was found, but prompts aren't guarantees
+# — models sometimes pad a correct "not found" with unverified
+# extras ("try the website", "call support"). Rather than trust
+# wording alone, check what the tool actually returned and force
+# the canonical message when every search came back empty.
+
+def _search_found_nothing(messages: list) -> bool:
+    """
+    True only if search_banking_documents was called at least once
+    AND every call came back empty. If the tool was never called
+    (e.g. the user just said "hi"), this returns False — there's
+    nothing to override, the LLM's direct reply stands.
+    """
+
+    tool_messages = [
+        message
+        for message in messages
+        if isinstance(message, ToolMessage)
+        and message.name == "search_banking_documents"
+    ]
+
+    if not tool_messages:
+        return False
+
+    def _normalize_tool_content(content):
+        if isinstance(content, list):
+            normalized_parts = []
+            for item in content:
+                if isinstance(item, str):
+                    normalized_parts.append(item)
+                elif isinstance(item, dict):
+                    normalized_parts.append(json.dumps(item, default=str))
+                else:
+                    normalized_parts.append(str(item))
+            return " ".join(normalized_parts)
+        return str(content or "")
+
+    return all(
+        _normalize_tool_content(message.content).strip() == NO_RESULTS_TOOL_OUTPUT
+        for message in tool_messages
+    )
 
 
 # ---------------------------------------------------------
@@ -290,10 +363,10 @@ async def customer_chat(
     """
     Customer banking agent endpoint.
 
-    This agent decides
-    per-message whether it needs to search the banking document
-    knowledge base, and keeps a running conversation per user via
-    an in-memory checkpointer (thread_id = user id).
+    This agent decides per-message whether it needs to search the
+    banking document knowledge base, and keeps a running
+    conversation per user via an in-memory checkpointer
+    (thread_id = user id).
     """
 
     try:
@@ -313,22 +386,18 @@ async def customer_chat(
         messages = result.get("messages", [])
 
         if not messages:
-            return ChatResponse(
-                answer=(
-                    "I could not find enough information in the "
-                    "provided knowledge base to answer that."
-                )
-            )
+            return ChatResponse(answer=NOT_FOUND_MESSAGE)
 
         answer = messages[-1].content
 
         if not answer:
-            return ChatResponse(
-                answer=(
-                    "I could not find enough information in the "
-                    "provided knowledge base to answer that."
-                )
-            )
+            return ChatResponse(answer=NOT_FOUND_MESSAGE)
+
+        # Override ungrounded elaboration: if every search came back
+        # empty, ignore whatever extra text the LLM added and return
+        # exactly the canonical fallback message instead.
+        if _search_found_nothing(messages):
+            answer = NOT_FOUND_MESSAGE
 
         return ChatResponse(answer=answer)
 
