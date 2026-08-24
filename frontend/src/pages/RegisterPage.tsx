@@ -122,7 +122,7 @@ export default function RegisterPage() {
     }
   }
   return (
-    <AuthShell>
+    <AuthShell variant="registration">
       <form
         className="auth-form"
         onSubmit={handleSubmit}
