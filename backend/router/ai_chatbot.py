@@ -6,14 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage
+from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from langchain_classic.chains import create_retrieval_chain
-from langchain_classic.chains.combine_documents import (
-    create_stuff_documents_chain,
-)
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import create_react_agent
 
 from dependencies.auth import get_current_user
 from domain.user import User
@@ -38,31 +37,40 @@ router = APIRouter(
 
 
 # ---------------------------------------------------------
-# RAG system prompt
+# Agent system prompt
 # ---------------------------------------------------------
+# Same grounding rules as before, now framed as instructions
+# for an agent that DECIDES when to call the retrieval tool,
+# rather than a chain that always retrieves first.
 
 SYSTEM_PROMPT = """
-You are a grounded banking RAG assistant.
+You are a grounded banking assistant with access to a document
+search tool called `search_banking_documents`.
 
-Your task is to answer the user's question using ONLY the information
-contained in the retrieved context.
+Routing rules:
 
-Rules:
+1. If the user's message is a greeting, small talk, or does not
+   require factual banking information (e.g. "hi", "thanks",
+   "what can you help with?"), respond directly WITHOUT calling
+   the search tool.
 
-1. Treat the retrieved context as the only source of truth.
+2. If the user's question requires factual information about
+   banking products, cards, fees, policies, or procedures, you
+   MUST call `search_banking_documents` before answering. Do not
+   answer from memory or general knowledge.
+
+3. You may call the tool more than once if the first search does
+   not return enough information to answer confidently.
+
+Grounding rules (apply whenever you use retrieved context):
+
+1. Treat the retrieved context as the only source of truth for
+   factual claims.
 
 2. Do NOT use outside knowledge to fill in missing information.
 
-3. Do NOT invent:
-   - facts
-   - names
-   - dates
-   - numbers
-   - banking policies
-   - requirements
-   - URLs
-   - procedures
-   - conclusions
+3. Do NOT invent facts, names, dates, numbers, banking policies,
+   requirements, URLs, procedures, or conclusions.
 
 4. Every factual claim in your answer must be supported by the
    retrieved context.
@@ -73,199 +81,131 @@ Rules:
    "I could not find enough information in the provided knowledge
    base to answer that."
 
-6. If the context contains conflicting information, clearly state
-   that there is conflicting information.
+6. If the tool result contains conflicting information, clearly
+   state that there is conflicting information rather than
+   picking one side.
 
-7. Do not choose one conflicting statement unless the retrieved
-   context provides enough evidence.
+7. If the user's question is unrelated to banking documents and
+   the tool returns nothing relevant, clearly say that the
+   requested information is not available in the knowledge base.
 
-8. If the user's question is unrelated to the retrieved documents,
-   clearly say that the requested information is not available in
-   the knowledge base.
+8. Keep answers clear, concise, and factual.
 
-9. Do not make assumptions.
-
-10. Keep the answer clear, concise, and factual.
-
-11. When source metadata is available, mention the source of the
-    information.
+9. When source metadata is available in the tool result, mention
+   the source of the information.
 
 Before answering, internally verify:
-
-- Is every important statement supported by the context?
+- Did I need to search, and did I search if so?
+- Is every important statement supported by the retrieved context?
 - Did I introduce any information not contained in the context?
 - Does the answer directly answer the user's question?
 
 If any statement is unsupported, remove it.
-
-Retrieved context:
-
-<context>
-{context}
-</context>
 """
 
 
 # ---------------------------------------------------------
-# Prompt template
-# ---------------------------------------------------------
-
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            SYSTEM_PROMPT,
-        ),
-        (
-            "human",
-            "{input}",
-        ),
-    ]
-)
-
-
-# ---------------------------------------------------------
-# Create RAG chain
+# Retrieval tool (wraps the old RAG chain's retriever)
 # ---------------------------------------------------------
 
 @lru_cache(maxsize=1)
-def get_rag_chain():
+def get_retriever():
     """
-    Creates the RAG chain once and caches it.
+    Builds the Chroma retriever once and caches it.
 
     Flow:
-    PDF
-      -> text chunks
-      -> embeddings
-      -> Chroma vector store
-      -> retriever
-      -> prompt
-      -> LLM
+    PDF -> text chunks -> embeddings -> Chroma vector store -> retriever
     """
 
-    # -----------------------------------------------------
-    # Check OpenAI API key
-    # -----------------------------------------------------
-
-    openai_api_key = os.getenv(
-        "OPENAI_API_KEY"
-    )
+    openai_api_key = os.getenv("OPENAI_API_KEY")
 
     if not openai_api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not configured."
-        )
-
-    # -----------------------------------------------------
-    # Load PDF
-    # -----------------------------------------------------
+        raise RuntimeError("OPENAI_API_KEY is not configured.")
 
     pdf_path = "llm_document/card_document.pdf"
 
     if not os.path.exists(pdf_path):
-        raise RuntimeError(
-            f"PDF file not found: {pdf_path}"
-        )
+        raise RuntimeError(f"PDF file not found: {pdf_path}")
 
-    pdf_loader = PyPDFLoader(
-        pdf_path
-    )
-
+    pdf_loader = PyPDFLoader(pdf_path)
     pdf_documents = pdf_loader.load()
 
     if not pdf_documents:
-        raise RuntimeError(
-            "No content could be loaded "
-            "from the PDF document."
-        )
+        raise RuntimeError("No content could be loaded from the PDF document.")
 
-    # -----------------------------------------------------
-    # Split document into chunks
-    # -----------------------------------------------------
-
-    text_splitter = (
-        RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-        )
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
     )
 
-    document_chunks = (
-        text_splitter.split_documents(
-            pdf_documents
-        )
-    )
+    document_chunks = text_splitter.split_documents(pdf_documents)
 
     if not document_chunks:
-        raise RuntimeError(
-            "No document chunks were created."
-        )
+        raise RuntimeError("No document chunks were created.")
 
-    # -----------------------------------------------------
-    # Create embeddings
-    # -----------------------------------------------------
-
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small"
-    )
-
-    # -----------------------------------------------------
-    # Create Chroma vector database
-    # -----------------------------------------------------
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
     vectorstore = Chroma.from_documents(
         documents=document_chunks,
         embedding=embeddings,
-        collection_name=(
-            "bank_registration_documents"
-        ),
+        collection_name="bank_registration_documents",
     )
 
-    # -----------------------------------------------------
-    # Create retriever
-    # -----------------------------------------------------
-
-    retriever = (
-        vectorstore.as_retriever(
-            search_type="similarity",
-            search_kwargs={
-                "k": 3,
-            },
-        )
+    return vectorstore.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 3},
     )
 
-    # -----------------------------------------------------
-    # Create LLM
-    # -----------------------------------------------------
 
+@tool
+def search_banking_documents(query: str) -> str:
+    """
+    Search the bank's card/registration document knowledge base
+    for information relevant to the query. Use this whenever the
+    user asks a factual question about banking products, cards,
+    fees, policies, or procedures. Returns the top matching
+    passages along with their source page metadata.
+    """
+
+    retriever = get_retriever()
+    results = retriever.invoke(query)
+
+    if not results:
+        return "No relevant documents were found for this query."
+
+    formatted = []
+    for i, doc in enumerate(results, start=1):
+        source = doc.metadata.get("source", "unknown source")
+        page = doc.metadata.get("page")
+        location = f"{source}" + (f", page {page}" if page is not None else "")
+        formatted.append(f"[{i}] (source: {location})\n{doc.page_content}")
+
+    return "\n\n".join(formatted)
+
+
+# ---------------------------------------------------------
+# Create the agent (cached singleton, same lifecycle as the
+# old RAG chain). MemorySaver holds conversation state
+# in-process only — it resets whenever the app restarts.
+# ---------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def get_agent():
     llm = ChatOpenAI(
         model="gpt-4o",
         temperature=0,
     )
 
-    # -----------------------------------------------------
-    # Create question-answer chain
-    # -----------------------------------------------------
+    checkpointer = MemorySaver()
 
-    question_answering_chain = (
-        create_stuff_documents_chain(
-            llm=llm,
-            prompt=prompt,
-        )
+    agent = create_react_agent(
+        model=llm,
+        tools=[search_banking_documents],
+        prompt=SYSTEM_PROMPT,
+        checkpointer=checkpointer,
     )
 
-    # -----------------------------------------------------
-    # Connect Retriever + LLM
-    # -----------------------------------------------------
-
-    rag_chain = create_retrieval_chain(
-        retriever=retriever,
-        combine_docs_chain=(
-            question_answering_chain
-        ),
-    )
-
-    return rag_chain
+    return agent
 
 
 # ---------------------------------------------------------
@@ -279,85 +219,61 @@ def get_rag_chain():
 )
 async def customer_chat(
     data: ChatRequest,
-    current_user: User = Depends(
-        get_current_user
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     """
-    Customer RAG chatbot endpoint.
+    Customer banking agent endpoint.
 
-    The authenticated customer sends a message.
-
-    The message is:
-    1. searched against the banking PDF
-    2. relevant chunks are retrieved
-    3. chunks are provided to the LLM
-    4. a grounded answer is returned
+    This agent decides
+    per-message whether it needs to search the banking document
+    knowledge base, and keeps a running conversation per user via
+    an in-memory checkpointer (thread_id = user id).
     """
 
     try:
+        agent = get_agent()
 
-        # ---------------------------------------------
-        # Get cached RAG chain
-        # ---------------------------------------------
+        # thread_id scopes memory per user; swap for a session id
+        # if you want separate memory per conversation/tab instead.
+        config = {"configurable": {"thread_id": str(current_user.id)}}
 
-        rag_chain = get_rag_chain()
-
-        # ---------------------------------------------
-        # Ask RAG
-        # ---------------------------------------------
-
-        response = rag_chain.invoke(
-            {
-                "input": data.message,
-            }
+        result = agent.invoke(
+            {"messages": [HumanMessage(content=data.message)]},
+            config=config,
         )
 
-        # ---------------------------------------------
-        # Extract final answer
-        # ---------------------------------------------
+        messages = result.get("messages", [])
 
-        answer = response.get(
-            "answer"
-        )
+        if not messages:
+            return ChatResponse(
+                answer=(
+                    "I could not find enough information in the "
+                    "provided knowledge base to answer that."
+                )
+            )
+
+        answer = messages[-1].content
 
         if not answer:
             return ChatResponse(
                 answer=(
-                    "I could not find enough "
-                    "information in the provided "
-                    "knowledge base to answer that."
+                    "I could not find enough information in the "
+                    "provided knowledge base to answer that."
                 )
             )
 
-        return ChatResponse(
-            answer=answer
-        )
+        return ChatResponse(answer=answer)
 
     except RuntimeError as exc:
-
-        print(
-            f"RAG configuration error: {exc}"
-        )
-
+        print(f"Agent configuration error: {exc}")
         raise HTTPException(
-            status_code=(
-                status.HTTP_500_INTERNAL_SERVER_ERROR
-            ),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         )
 
     except Exception as exc:
-
-        print(
-            f"RAG chatbot error: {exc}"
-        )
-
+        print(f"Agent chatbot error: {exc}")
         raise HTTPException(
-            status_code=(
-                status.HTTP_500_INTERNAL_SERVER_ERROR
-            ),
-            detail=(
-                "Unable to process chatbot request."
-            ),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to process chatbot request.",
         )
