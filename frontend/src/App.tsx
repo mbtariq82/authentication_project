@@ -17,6 +17,7 @@ import LoanApplicationPage from "./pages/LoanApplicationPage";
 import EMICalculatorPage from "./pages/EMICalculatorPage";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import CardPage from "./pages/CardPage";
+import ChatWidget from "./components/ChatWidget";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ function App() {
         <Route path="/loans/apply" element={<LoanApplicationPage />} />
         <Route path="/emi-calculator" element={<EMICalculatorPage />} />
       </Routes>
+      <ChatWidget />
     </QueryClientProvider>
   );
 }
