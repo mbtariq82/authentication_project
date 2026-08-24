@@ -1,4 +1,5 @@
 import os
+from sqlalchemy import create_engine, text
 
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
@@ -25,10 +26,12 @@ class AdminSQLAgent:
 
         if not database_url:
             raise RuntimeError(
-                "AGENT_DATABASE_URL environment variable is not configured"
+                "AGENT_DATABASE_URL is not configured"
             )
 
-        return SQLDatabase.from_uri(database_url)
+        self.engine = create_engine(database_url)
+
+        return SQLDatabase(self.engine)
 
     def _get_schema(self, state: AgentState):
         schema = self.db.get_table_info(
@@ -47,38 +50,38 @@ class AdminSQLAgent:
     def _generate_sql(self, state: AgentState):
         prompt = ChatPromptTemplate.from_template(
             """
-You are a PostgreSQL expert working with a banking database.
+            You are a PostgreSQL expert working with a banking database.
 
-Generate a PostgreSQL SELECT query that answers
-the administrator's question.
+            Generate a PostgreSQL SELECT query that answers
+            the administrator's question.
 
-Database schema:
+            Database schema:
 
-{schema}
+            {schema}
 
-Admin question:
+            Admin question:
 
-{question}
+            {question}
 
-Rules:
+            Rules:
 
-- Return ONLY SQL.
-- Generate PostgreSQL syntax.
-- Only SELECT statements are allowed.
-- Never use INSERT.
-- Never use UPDATE.
-- Never use DELETE.
-- Never use DROP.
-- Never use ALTER.
-- Never use TRUNCATE.
-- Never modify database data.
-- Exclude soft-deleted records when appropriate.
-- Use JOINs when necessary.
-- Prefer explicit column names instead of SELECT *.
-- Use LIMIT 20 unless the user explicitly requests another amount.
+            - Return ONLY SQL.
+            - Generate PostgreSQL syntax.
+            - Only SELECT statements are allowed.
+            - Never use INSERT.
+            - Never use UPDATE.
+            - Never use DELETE.
+            - Never use DROP.
+            - Never use ALTER.
+            - Never use TRUNCATE.
+            - Never modify database data.
+            - Exclude soft-deleted records when appropriate.
+            - Use JOINs when necessary.
+            - Prefer explicit column names instead of SELECT *.
+            - Use LIMIT 20 unless the user explicitly requests another amount.
 
-SQL:
-"""
+            SQL:
+            """
         )
 
         chain = prompt | self.llm
@@ -134,31 +137,36 @@ SQL:
         }
 
     def _execute_sql(self, state: AgentState):
+
         if state.get("error"):
             return {
-                "query_result": state["error"]
+                "query_result": []
             }
 
         try:
-            result = self.db.run(
-                state["sql_query"]
-            )
+            with self.engine.connect() as connection:
 
-            return {
-                "query_result": (
-                    str(result)
-                    if result
-                    else "No results found."
+                result = connection.execute(
+                    text(state["sql_query"])
                 )
-            }
+
+                rows = [
+                    dict(row._mapping)
+                    for row in result
+                ]
+
+                return {
+                    "query_result": rows
+                }
 
         except Exception as e:
             return {
-                "query_result":
-                    f"Error executing query: {str(e)}"
+                "error": f"Error executing query: {str(e)}",
+                "query_result": [],
             }
 
     def _generate_answer(self, state: AgentState):
+
         if state.get("error"):
             return {
                 "final_answer": state["error"]
@@ -166,39 +174,34 @@ SQL:
 
         prompt = ChatPromptTemplate.from_template(
             """
-You are an assistant for a banking admin dashboard.
+            You are an assistant for a banking admin dashboard.
 
-Answer the administrator's question using
-the SQL result.
+            Question:
+            {question}
 
-Question:
-{question}
+            PostgreSQL Query:
+            {sql_query}
 
-SQL query:
-{sql_query}
+            Database Result:
+            {query_result}
 
-Database result:
-{query_result}
-
-Give a short and clear answer.
-
-Do not mention implementation details unless necessary.
-"""
-        )
+            Provide a short and clear natural language answer.
+            """
+                )
 
         chain = prompt | self.llm
 
         response = chain.invoke(
-            {
-                "question": state["question"],
-                "sql_query": state["sql_query"],
-                "query_result": state["query_result"],
-            }
-        )
+                    {
+                        "question": state["question"],
+                        "sql_query": state["sql_query"],
+                        "query_result": str(state["query_result"]),
+                    }
+                )
 
         return {
-            "final_answer": response.content
-        }
+                    "final_answer": response.content
+                }
 
     def _build_graph(self):
         workflow = StateGraph(AgentState)
@@ -279,9 +282,9 @@ Do not mention implementation details unless necessary.
                 "",
             ),
 
-            "raw_result": result.get(
+            "rows": result.get(
                 "query_result",
-                "",
+                [],
             ),
 
             "answer": result.get(
