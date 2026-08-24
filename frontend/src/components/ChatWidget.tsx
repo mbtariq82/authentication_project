@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { resetGuestChatSession, sendChatMessage } from "../api/chatbotClient";
 import "./ChatWidget.css";
 
 const CHAT_WIDGET_OPEN_KEY = "chat_widget_open";
@@ -53,17 +54,27 @@ function ChatWidget() {
     setMessages([welcomeMessage]);
     setErrorMessage(null);
     setLastSubmittedMessage(null);
+    resetGuestChatSession();
   }
 
-  function attemptMessage(message: string) {
+  async function attemptMessage(message: string) {
     setIsLoading(true);
     setErrorMessage(null);
     setLastSubmittedMessage(message);
 
-    queueMicrotask(() => {
+    try {
+      const answer = await sendChatMessage(message);
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        { id: crypto.randomUUID(), content: answer, sender: "assistant" },
+      ]);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to send your message.",
+      );
+    } finally {
       setIsLoading(false);
-      setErrorMessage("The assistant connection is not available yet.");
-    });
+    }
   }
 
   function submitMessage(event: FormEvent<HTMLFormElement>) {
@@ -79,7 +90,7 @@ function ChatWidget() {
       { id: crypto.randomUUID(), content: message, sender: "user" },
     ]);
     setDraft("");
-    attemptMessage(message);
+    void attemptMessage(message);
   }
 
   if (!isOpen) {
@@ -152,7 +163,7 @@ function ChatWidget() {
               type="button"
               onClick={() => {
                 if (lastSubmittedMessage) {
-                  attemptMessage(lastSubmittedMessage);
+                  void attemptMessage(lastSubmittedMessage);
                 }
               }}
               disabled={!lastSubmittedMessage || isLoading}
