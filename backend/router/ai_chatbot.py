@@ -2,6 +2,7 @@ import glob
 import os
 import glob
 from functools import lru_cache
+from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -268,6 +269,53 @@ def _search_found_nothing(messages: list) -> bool:
 # ---------------------------------------------------------
 # Customer chatbot endpoint
 # ---------------------------------------------------------
+
+@router.post(
+    "/public",
+    response_model=ChatResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def public_chat(data: ChatRequest):
+    """Public banking agent endpoint without user authentication."""
+
+    try:
+        agent = get_agent()
+        config: RunnableConfig = {
+            "configurable": {"thread_id": f"public:{uuid4()}"}
+        }
+
+        result = agent.invoke(
+            {"messages": [HumanMessage(content=data.message)]},
+            config=config,
+        )
+
+        messages = result.get("messages", [])
+        answer = messages[-1].content if messages else None
+
+        if not answer:
+            return ChatResponse(
+                answer=(
+                    "I could not find enough information in the "
+                    "provided knowledge base to answer that."
+                )
+            )
+
+        return ChatResponse(answer=answer)
+
+    except RuntimeError as exc:
+        print(f"Agent configuration error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        )
+
+    except Exception as exc:
+        print(f"Agent chatbot error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to process chatbot request.",
+        )
+
 
 @router.post(
     "/customer",
