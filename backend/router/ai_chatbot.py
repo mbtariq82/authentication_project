@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 import glob
 from functools import lru_cache
@@ -8,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -261,8 +262,21 @@ def _search_found_nothing(messages: list) -> bool:
     if not tool_messages:
         return False
 
+    def _normalize_tool_content(content):
+        if isinstance(content, list):
+            normalized_parts = []
+            for item in content:
+                if isinstance(item, str):
+                    normalized_parts.append(item)
+                elif isinstance(item, dict):
+                    normalized_parts.append(json.dumps(item, default=str))
+                else:
+                    normalized_parts.append(str(item))
+            return " ".join(normalized_parts)
+        return str(content or "")
+
     return all(
-        (message.content or "").strip() == NO_RESULTS_TOOL_OUTPUT
+        _normalize_tool_content(message.content).strip() == NO_RESULTS_TOOL_OUTPUT
         for message in tool_messages
     )
 
