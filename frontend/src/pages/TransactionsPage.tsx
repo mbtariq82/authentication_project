@@ -69,6 +69,7 @@ export default function TransactionsPage() {
   const isLoading = accountQuery.isLoading || beneficiariesQuery.isLoading;
   const accountError = accountQuery.error?.message;
   const isTransfer = type === "TRANSFER";
+  const isFrozen = accountQuery.data?.account_status === "FROZEN";
 
   return (
     <main className="customer-home">
@@ -103,7 +104,14 @@ export default function TransactionsPage() {
         {isLoading && <p role="status">Loading account details...</p>}
         {accountError && <p className="transaction-error">{accountError}</p>}
 
-        {!isLoading && !accountError && (
+        {!isLoading && !accountError && isFrozen && (
+          <div className="customer-frozen-notice" role="alert">
+            Your account is frozen. Transfers, deposits, and withdrawals are
+            unavailable until you unfreeze it from your account page.
+          </div>
+        )}
+
+        {!isLoading && !accountError && !isFrozen && (
           <section
             className="transaction-panel"
             aria-labelledby="transaction-form-title"

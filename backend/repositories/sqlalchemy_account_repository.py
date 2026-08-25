@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from exceptions import (
     AccountAlreadyClosedError,
     AccountBalanceNotZeroError,
+    AccountNotActiveError,
     AccountNotFoundError,
     InsufficientFundsError,
     InvalidBalanceAmountError,
@@ -131,6 +132,8 @@ class SqlAlchemyAccountRepository(AbstractAccountRepository):
         row: Any = result.scalar_one_or_none()
         if row is None:
             raise AccountNotFoundError()
+        if row.account_status != AccountStatus.APPROVED:
+            raise AccountNotActiveError()
         if row.balance < amount:
             raise InsufficientFundsError()
 

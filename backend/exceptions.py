@@ -44,6 +44,8 @@ class PermissionDeniedError(ApplicationError):
 class AccountNotFoundError(ApplicationError):
     pass
 
+class AccountNotActiveError(ApplicationError):
+    pass
 
 class AccountAlreadyExistsError(ApplicationError):
     pass
