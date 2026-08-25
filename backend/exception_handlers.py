@@ -8,6 +8,7 @@ from exceptions import (
     AccountAlreadyClosedError,
     AccountBalanceNotZeroError,
     AccountNotFrozenError,
+    AccountNotActiveError,
     EmailAlreadyRegisteredError,
     BeneficiaryNotFoundError,
     InvalidBeneficiaryUpdateError,
@@ -263,6 +264,14 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "Account is not frozen"},
         )
+
+    @app.exception_handler(AccountNotActiveError)
+    async def account_balance_not_zero_handler(request, error):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Account is frozen and cannot perform this action."},
+        )
+
 
     @app.exception_handler(AccountBalanceNotZeroError)
     async def account_balance_not_zero_handler(request, error):
