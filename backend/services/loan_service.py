@@ -108,6 +108,23 @@ class LoanService:
         if status == "ACCEPTED":
             loan.last_interest_calculated_at = datetime.now(timezone.utc)
 
+            await self.uow.account.credit(
+                account_id=loan.account_id,
+                amount=loan.loan_amount
+            )
+
+            transaction = Transaction(
+                account_id=loan.account_id,
+                transaction_type=TransactionType.DEPOSIT,
+                direction=TransactionDirection.CREDIT,
+                amount=loan.loan_amount,
+                reference=f"LOAN-{loan.id}-{uuid4().hex}",
+                status=TransactionStatus.COMPLETED,
+                description=f"Loan disbursement for loan {loan.id}",
+            )
+
+            await self.uow.transaction.add(transaction)
+
         return LoanApplicationResponse(
             eligible=True,
             status=status,
