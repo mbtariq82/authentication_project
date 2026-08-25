@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import type { AdminLoan, LoanStatus } from "../../types/admin";
+import type {
+  AdminLoan,
+  LoanStatus,
+  AdminSearchResult,
+} from "../../types/admin";
 import { fetchLoans, updateLoanStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
+
+interface LoansPanelProps {
+  searchQuery: string;
+  searchResults: AdminSearchResult[];
+  searching: boolean;
+}
+
+type LoanSearchResult = AdminSearchResult &
+  Partial<AdminLoan> & {
+    loan_id?: number;
+    loan_created_at?: string | null;
+  };
 
 const FILTERS: {
   key: LoanStatus | "all";
@@ -13,7 +29,11 @@ const FILTERS: {
   { key: "REJECTED", label: "Rejected" },
 ];
 
-export default function LoansPanel() {
+export default function LoansPanel({
+  searchQuery,
+  searchResults,
+  searching,
+}: LoansPanelProps) {
   // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -73,10 +93,44 @@ export default function LoansPanel() {
     }
   }
 
+  // ==========================
+  // SEARCH + FILTER
+  // ==========================
+
+  const searchedLoans: AdminLoan[] = searchResults
+    .map((result) => result as LoanSearchResult)
+    .filter((result) => result.loan_id != null)
+    .map(
+      (result) =>
+        ({
+          ...result,
+          id: result.loan_id!,
+          user_id: result.user_id,
+
+          first_name: result.first_name ?? "",
+          last_name: result.last_name ?? "",
+          email: result.email ?? "",
+
+          loan_type: result.loan_type ?? "",
+          loan_amount: result.loan_amount ?? 0,
+          duration: result.duration ?? 0,
+
+          interest: result.interest ?? 0,
+          emi: result.emi ?? 0,
+
+          current_loan_status: (result.current_loan_status ??
+            "PENDING") as LoanStatus,
+
+          created_at: result.loan_created_at ?? result.created_at ?? null,
+        }) as AdminLoan,
+    );
+
+  const sourceLoans = searchQuery.trim() ? searchedLoans : loans;
+
   const visible =
     filter === "all"
-      ? loans
-      : loans.filter((loan) => loan.current_loan_status === filter);
+      ? sourceLoans
+      : sourceLoans.filter((loan) => loan.current_loan_status === filter);
 
   function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setPageSize(Number(event.target.value));
@@ -124,6 +178,10 @@ export default function LoansPanel() {
 
       {loading && <div className="panel-loading">Loading loans...</div>}
 
+      {searching && searchQuery.trim() && (
+        <div className="panel-loading">Searching...</div>
+      )}
+
       {/* ==========================
           ERROR
       ========================== */}
@@ -137,7 +195,11 @@ export default function LoansPanel() {
       {!loading && !error && (
         <>
           {visible.length === 0 ? (
-            <div className="panel-empty">No loans match this filter.</div>
+            <div className="panel-empty">
+              {searchQuery.trim()
+                ? "No loans match your search."
+                : "No loans match this filter."}
+            </div>
           ) : (
             <table>
               <thead>
@@ -245,41 +307,43 @@ export default function LoansPanel() {
               PAGINATION
           ========================== */}
 
-          <div className="pagination">
-            <div className="page-size">
-              <span>Rows per page:</span>
+          {!searchQuery.trim() && (
+            <div className="pagination">
+              <div className="page-size">
+                <span>Rows per page:</span>
 
-              <select value={pageSize} onChange={handlePageSizeChange}>
-                <option value={20}>20</option>
+                <select value={pageSize} onChange={handlePageSizeChange}>
+                  <option value={20}>20</option>
 
-                <option value={40}>40</option>
+                  <option value={40}>40</option>
 
-                <option value={60}>60</option>
-              </select>
+                  <option value={60}>60</option>
+                </select>
+              </div>
+
+              <div className="page-controls">
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={page === 1}
+                  onClick={handlePrevious}
+                >
+                  Previous
+                </button>
+
+                <span className="page-number">Page {page}</span>
+
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={loans.length < pageSize}
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-
-            <div className="page-controls">
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={page === 1}
-                onClick={handlePrevious}
-              >
-                Previous
-              </button>
-
-              <span className="page-number">Page {page}</span>
-
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={loans.length < pageSize}
-                onClick={handleNext}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          )}
         </>
       )}
 

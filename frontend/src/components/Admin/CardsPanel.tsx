@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import type { AdminCard, CardStatus } from "../../types/admin";
+import type {
+  AdminCard,
+  CardStatus,
+  AdminSearchResult,
+} from "../../types/admin";
 import { fetchCards, updateCardStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
+
+interface CardsPanelProps {
+  searchQuery: string;
+  searchResults: AdminSearchResult[];
+  searching: boolean;
+}
+
+type CardSearchResult = AdminSearchResult &
+  Partial<AdminCard> & {
+    card_id?: number;
+    card_created_at?: string | null;
+  };
 
 const FILTERS: {
   key: CardStatus | "all";
@@ -13,7 +29,11 @@ const FILTERS: {
   { key: "CLOSED", label: "Closed" },
 ];
 
-export default function CardsPanel() {
+export default function CardsPanel({
+  searchQuery,
+  searchResults,
+  searching,
+}: CardsPanelProps) {
   // ==========================
   // PAGINATION
   // ==========================
@@ -89,11 +109,39 @@ export default function CardsPanel() {
   }
 
   // ==========================
-  // FILTER
+  // SEARCH + FILTER
   // ==========================
 
+  const searchedCards: AdminCard[] = searchResults
+    .map((result) => result as CardSearchResult)
+    .filter((result) => result.card_id != null)
+    .map(
+      (result) =>
+        ({
+          ...result,
+          id: result.card_id!,
+          account_id: result.account_id,
+          user_id: result.user_id,
+
+          first_name: result.first_name ?? "",
+          last_name: result.last_name ?? "",
+          email: result.email ?? "",
+
+          card_number: result.card_number ?? null,
+          status: (result.status ?? "ACTIVE") as CardStatus,
+
+          expiry_date: result.expiry_date ?? null,
+
+          created_at: result.card_created_at ?? result.created_at ?? null,
+        }) as AdminCard,
+    );
+
+  const sourceCards = searchQuery.trim() ? searchedCards : cards;
+
   const visible =
-    filter === "all" ? cards : cards.filter((card) => card.status === filter);
+    filter === "all"
+      ? sourceCards
+      : sourceCards.filter((card) => card.status === filter);
 
   // ==========================
   // PAGINATION
@@ -144,6 +192,10 @@ export default function CardsPanel() {
 
       {loading && <div className="panel-loading">Loading cards...</div>}
 
+      {searching && searchQuery.trim() && (
+        <div className="panel-loading">Searching...</div>
+      )}
+
       {/* ==========================
           ERROR
       ========================== */}
@@ -157,7 +209,11 @@ export default function CardsPanel() {
       {!loading && !error && (
         <>
           {visible.length === 0 ? (
-            <div className="panel-empty">No cards match this filter.</div>
+            <div className="panel-empty">
+              {searchQuery.trim()
+                ? "No cards match your search."
+                : "No cards match this filter."}
+            </div>
           ) : (
             <table className="cards-table">
               <thead>
@@ -246,39 +302,41 @@ export default function CardsPanel() {
               PAGINATION
           ========================== */}
 
-          <div className="pagination">
-            <div className="page-size">
-              <span>Rows per page:</span>
+          {!searchQuery.trim() && (
+            <div className="pagination">
+              <div className="page-size">
+                <span>Rows per page:</span>
 
-              <select value={pageSize} onChange={handlePageSizeChange}>
-                <option value={20}>20</option>
-                <option value={40}>40</option>
-                <option value={60}>60</option>
-              </select>
+                <select value={pageSize} onChange={handlePageSizeChange}>
+                  <option value={20}>20</option>
+                  <option value={40}>40</option>
+                  <option value={60}>60</option>
+                </select>
+              </div>
+
+              <div className="page-controls">
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={page === 1}
+                  onClick={handlePrevious}
+                >
+                  Previous
+                </button>
+
+                <span className="page-number">Page {page}</span>
+
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={cards.length < pageSize}
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-
-            <div className="page-controls">
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={page === 1}
-                onClick={handlePrevious}
-              >
-                Previous
-              </button>
-
-              <span className="page-number">Page {page}</span>
-
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={cards.length < pageSize}
-                onClick={handleNext}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          )}
         </>
       )}
 

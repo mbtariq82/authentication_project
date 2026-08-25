@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { PanelKey } from "../../types/admin";
+import type { AdminSearchResult, PanelKey } from "../../types/admin";
 
 import Sidebar from "./Sidebar";
 import DashboardPanel from "./DashboardPanel";
@@ -10,7 +10,7 @@ import UsersPanel from "./UsersPanel";
 
 import "../../styles/admin-dashboard.css";
 
-import { searchAdmin, type AdminSearchResult } from "../../api/adminApi";
+import { searchAdmin } from "../../api/adminApi";
 
 const PANEL_TITLES: Record<PanelKey, { title: string; subtitle: string }> = {
   dashboard: {
@@ -43,17 +43,33 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<AdminSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+
   const [activePanel, setActivePanel] = useState<PanelKey>("dashboard");
 
+  // ==========================
+  // SEARCH
+  // ==========================
+
   useEffect(() => {
-    if (activePanel !== "users" && activePanel !== "accounts") {
+    // Search is currently available only
+    // for Users and Accounts ,loans, cards panels. If the user switches to another panel, we clear the search state.
+
+    if (
+      activePanel !== "users" &&
+      activePanel !== "accounts" &&
+      activePanel !== "loans" &&
+      activePanel !== "cards"
+    ) {
       setSearchQuery("");
       setSearchResults([]);
+      setSearching(false);
       return;
     }
 
+    // Empty search
     if (!searchQuery.trim()) {
       setSearchResults([]);
+      setSearching(false);
       return;
     }
 
@@ -66,6 +82,7 @@ export default function AdminDashboard() {
         setSearchResults(data);
       } catch (error) {
         console.error("Search failed:", error);
+
         setSearchResults([]);
       } finally {
         setSearching(false);
@@ -74,6 +91,10 @@ export default function AdminDashboard() {
 
     return () => clearTimeout(timer);
   }, [searchQuery, activePanel]);
+
+  // ==========================
+  // SIDEBAR COUNTS
+  // ==========================
 
   const pendingCounts: Record<PanelKey, number> = {
     dashboard: 0,
@@ -87,6 +108,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-app">
+      {/* ==========================
+          SIDEBAR
+      ========================== */}
+
       <Sidebar
         activePanel={activePanel}
         onSelectPanel={setActivePanel}
@@ -94,14 +119,25 @@ export default function AdminDashboard() {
       />
 
       <main className="main">
-        {/* PAGE HEADER */}
+        {/* ==========================
+            PAGE HEADER
+        ========================== */}
+
         <div className="topbar">
           <div>
             <h1>{title}</h1>
 
             <p className="subtitle">{subtitle}</p>
           </div>
-          {activePanel === "users" && (
+
+          {/* ==========================
+              SEARCH
+          ========================== */}
+
+          {(activePanel === "users" ||
+            activePanel === "accounts" ||
+            activePanel === "loans" ||
+            activePanel === "cards") && (
             <div className="search">
               <svg
                 width="15"
@@ -118,18 +154,28 @@ export default function AdminDashboard() {
               <input
                 type="text"
                 value={searchQuery}
-                placeholder="Search by name or account no."
+                placeholder={
+                  activePanel === "accounts"
+                    ? "Search by customer or account no."
+                    : "Search by customer name"
+                }
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </div>
           )}
         </div>
 
-        {/* DASHBOARD */}
+        {/* ==========================
+            DASHBOARD
+        ========================== */}
+
         {activePanel === "dashboard" && <DashboardPanel />}
 
-        {/* CUSTOMERS */}
-        {(activePanel === "users" || activePanel === "accounts") && (
+        {/* ==========================
+            CUSTOMERS
+        ========================== */}
+
+        {activePanel === "users" && (
           <UsersPanel
             searchQuery={searchQuery}
             searchResults={searchResults}
@@ -137,14 +183,41 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* ACCOUNTS */}
-        {activePanel === "accounts" && <AccountsPanel />}
+        {/* ==========================
+            ACCOUNTS
+        ========================== */}
 
-        {/* LOANS */}
-        {activePanel === "loans" && <LoansPanel />}
+        {activePanel === "accounts" && (
+          <AccountsPanel
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            searching={searching}
+          />
+        )}
 
-        {/* CARDS */}
-        {activePanel === "cards" && <CardsPanel />}
+        {/* ==========================
+            LOANS
+        ========================== */}
+
+        {activePanel === "loans" && (
+          <LoansPanel
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            searching={searching}
+          />
+        )}
+
+        {/* ==========================
+            CARDS
+        ========================== */}
+
+        {activePanel === "cards" && (
+          <CardsPanel
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            searching={searching}
+          />
+        )}
       </main>
     </div>
   );
