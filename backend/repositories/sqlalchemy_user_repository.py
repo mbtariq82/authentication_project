@@ -27,6 +27,7 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
             postcode=row.postcode,
             country=row.country,
             city=row.city,
+            user_status=row.user_status,
         )
     
     @staticmethod
