@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
 
-from enums import Role
+from enums import Role, UserStatus
 
 
 @dataclass(slots=True)
@@ -20,6 +20,7 @@ class User:
     postcode: str | None = None
     country: str | None = None
     city: str | None = None
+    user_status: UserStatus = UserStatus.PENDING
 
     @classmethod
     def register_with_password(
