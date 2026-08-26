@@ -13,12 +13,6 @@ interface LoansPanelProps {
   searching: boolean;
 }
 
-type LoanSearchResult = AdminSearchResult &
-  Partial<AdminLoan> & {
-    loan_id?: number;
-    loan_created_at?: string | null;
-  };
-
 const FILTERS: {
   key: LoanStatus | "all";
   label: string;
@@ -97,35 +91,19 @@ export default function LoansPanel({
   // SEARCH + FILTER
   // ==========================
 
-  const searchedLoans: AdminLoan[] = searchResults
-    .map((result) => result as LoanSearchResult)
-    .filter((result) => result.loan_id != null)
-    .map(
-      (result) =>
-        ({
-          ...result,
-          id: result.loan_id!,
-          user_id: result.user_id,
+  // Elasticsearch currently returns matching customers/users.
+  // Collect their user IDs and match them against the loaded loans.
+  const searchedUserIds = new Set(
+    searchResults
+      .map((result) => result.user_id)
+      .filter((userId): userId is number => userId != null),
+  );
 
-          first_name: result.first_name ?? "",
-          last_name: result.last_name ?? "",
-          email: result.email ?? "",
-
-          loan_type: result.loan_type ?? "",
-          loan_amount: result.loan_amount ?? 0,
-          duration: result.duration ?? 0,
-
-          interest: result.interest ?? 0,
-          emi: result.emi ?? 0,
-
-          current_loan_status: (result.current_loan_status ??
-            "PENDING") as LoanStatus,
-
-          created_at: result.loan_created_at ?? result.created_at ?? null,
-        }) as AdminLoan,
-    );
-
-  const sourceLoans = searchQuery.trim() ? searchedLoans : loans;
+  const sourceLoans = searchQuery.trim()
+    ? loans.filter((loan) =>
+        loan.user_id != null ? searchedUserIds.has(loan.user_id) : false,
+      )
+    : loans;
 
   const visible =
     filter === "all"

@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 value={searchQuery}
                 placeholder={
                   activePanel === "accounts"
-                    ? "Search by customer or account no."
+                    ? "Search by customer name."
                     : "Search by customer name"
                 }
                 onChange={(event) => setSearchQuery(event.target.value)}

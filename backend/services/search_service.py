@@ -39,7 +39,14 @@ class SearchService:
             mappings={
                 "properties": {
                     "user_id": {"type": "integer"},
-                    "first_name": {"type": "text"},
+                    "first_name": {
+                            "type": "text",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
                     "last_name": {"type": "text"},
                     "email": {"type": "keyword"},
                     "country": {"type": "text"},

@@ -13,12 +13,6 @@ interface CardsPanelProps {
   searching: boolean;
 }
 
-type CardSearchResult = AdminSearchResult &
-  Partial<AdminCard> & {
-    card_id?: number;
-    card_created_at?: string | null;
-  };
-
 const FILTERS: {
   key: CardStatus | "all";
   label: string;
@@ -112,31 +106,19 @@ export default function CardsPanel({
   // SEARCH + FILTER
   // ==========================
 
-  const searchedCards: AdminCard[] = searchResults
-    .map((result) => result as CardSearchResult)
-    .filter((result) => result.card_id != null)
-    .map(
-      (result) =>
-        ({
-          ...result,
-          id: result.card_id!,
-          account_id: result.account_id,
-          user_id: result.user_id,
+  // Elasticsearch currently returns matching customers/users.
+  // Collect their user IDs and match them against the loaded cards.
+  const searchedUserIds = new Set(
+    searchResults
+      .map((result) => result.user_id)
+      .filter((userId): userId is number => userId != null),
+  );
 
-          first_name: result.first_name ?? "",
-          last_name: result.last_name ?? "",
-          email: result.email ?? "",
-
-          card_number: result.card_number ?? null,
-          status: (result.status ?? "ACTIVE") as CardStatus,
-
-          expiry_date: result.expiry_date ?? null,
-
-          created_at: result.card_created_at ?? result.created_at ?? null,
-        }) as AdminCard,
-    );
-
-  const sourceCards = searchQuery.trim() ? searchedCards : cards;
+  const sourceCards = searchQuery.trim()
+    ? cards.filter((card) =>
+        card.user_id != null ? searchedUserIds.has(card.user_id) : false,
+      )
+    : cards;
 
   const visible =
     filter === "all"
