@@ -1240,6 +1240,76 @@
   color: #bae6fd;
   font-weight: 750;
 }
+.transactions-trend-card {
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 0.9rem;
+  box-shadow: 0 1rem 2.5rem rgb(15 42 67 / 7%);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.transactions-trend-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.15rem 1.35rem;
+}
+.transactions-trend-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+.transactions-trend-icon {
+  align-items: center;
+  background: #e0f2fe;
+  border-radius: 0.65rem;
+  color: #0369a1;
+  display: inline-flex;
+  height: 2.35rem;
+  justify-content: center;
+  width: 2.35rem;
+}
+.transactions-trend-header .customer-card-label {
+  color: #627d98;
+  margin: 0 0 0.15rem;
+}
+.transactions-trend-header h2 {
+  color: #102a43;
+  font-size: 1.05rem;
+  margin: 0;
+}
+.transactions-trend-toggle {
+  align-items: center;
+  background: #f0f4f8;
+  border: 1px solid #d9e2ec;
+  border-radius: 0.5rem;
+  color: #486581;
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.25rem;
+  justify-content: center;
+  width: 2.25rem;
+}
+.transactions-trend-toggle:hover,
+.transactions-trend-toggle:focus-visible {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
+}
+.transactions-trend-content {
+  border-top: 1px solid #e6edf2;
+  padding: 1rem 1.35rem 1.35rem;
+}
+.transactions-trend-plot {
+  height: 19rem;
+  width: 100%;
+}
+.transactions-trend-state {
+  color: #627d98;
+  margin: 0;
+  padding: 2rem 0;
+  text-align: center;
+}
 .transaction-submit-button {
   display: inline-flex;
   align-items: center;
@@ -1572,6 +1642,14 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 0.6rem;
+  }
+  .transactions-trend-header,
+  .transactions-trend-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .transactions-trend-plot {
+    height: 15rem;
   }
   .transaction-type-tabs {
     overflow-x: auto;
