@@ -79,7 +79,23 @@ export default function CustomerHomePage() {
           aria-label="Account overview"
         >
           <article className="customer-primary-card">
-            {isAccountError ? (
+            {user.user_status === "PENDING" ? (
+              <div>
+                <p className="customer-card-label">Account Not Verified</p>
+                <p>
+                  Your account is pending and still in progress of being
+                  verified. Please wait until the bank administrator has
+                  verified your account.
+                </p>
+              </div>
+            ) : isAccountError ? (
+              <div>
+                <h2>Account Unavailable</h2>
+                <p>
+                  Sorry, we couldn't find your account. Please try again later.
+                </p>
+              </div>
+            ) : isAccountLoading || !account ? (
               <div>
                 <h2>Account Unavailable</h2>
                 <p>

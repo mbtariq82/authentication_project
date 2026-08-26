@@ -4,6 +4,8 @@ from pydantic import BaseModel, ConfigDict
 
 from enums import Role
 
+from enums import Role, UserStatus
+
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -13,6 +15,7 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     role: Role
+    user_status: UserStatus
     profile_image_url: str | None = None
     phone: str | None = None
     address: str | None = None
