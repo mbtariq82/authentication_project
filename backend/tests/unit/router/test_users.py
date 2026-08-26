@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 
 from dependencies.auth import get_current_user
 from dependencies.users import get_user_service
-from enums import Role
+from enums import Role, UserStatus
 from exception_handlers import register_exception_handlers
 from router.users import MAX_PROFILE_IMAGE_BYTES, router
 from schemas.user import UpdateUserProfileCommand, UserResponse
@@ -15,8 +15,8 @@ CURRENT_USER = UserResponse(
     first_name="Old",
     last_name="Name",
     role=Role.USER,
+    user_status=UserStatus.APPROVED,
 )
-
 
 class FakeUserService:
     def __init__(self) -> None:
