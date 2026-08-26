@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 
 import CustomerNavigation from "../components/CustomerNavigation";
+import TransactionsTrendChart from "../components/TransactionsTrendChart";
 import { useAccount } from "../hooks/useAccount";
 import { useBeneficiaries } from "../hooks/useBeneficiaries";
 import { useCreateTransaction } from "../hooks/useTransactions";
@@ -100,6 +101,8 @@ export default function TransactionsPage() {
             {accountQuery.data ? `Balance £${accountQuery.data.balance}` : ""}
           </span>
         </div>
+
+        <TransactionsTrendChart />
 
         {isLoading && <p role="status">Loading account details...</p>}
         {accountError && <p className="transaction-error">{accountError}</p>}
