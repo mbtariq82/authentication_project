@@ -1,6 +1,5 @@
 from elasticsearch import NotFoundError
 from numpy import size
-from numpy import size
 from httpx2 import query
 from sqlalchemy.ext.asyncio import AsyncSession
 
