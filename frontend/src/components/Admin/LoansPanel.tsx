@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import type { AdminLoan, LoanStatus } from "../../types/admin";
+import type {
+  AdminLoan,
+  LoanStatus,
+  AdminSearchResult,
+} from "../../types/admin";
 import { fetchLoans, updateLoanStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
+
+interface LoansPanelProps {
+  searchQuery: string;
+  searchResults: AdminSearchResult[];
+  searching: boolean;
+}
 
 const FILTERS: {
   key: LoanStatus | "all";
@@ -13,7 +23,11 @@ const FILTERS: {
   { key: "REJECTED", label: "Rejected" },
 ];
 
-export default function LoansPanel() {
+export default function LoansPanel({
+  searchQuery,
+  searchResults,
+  searching,
+}: LoansPanelProps) {
   // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -73,10 +87,28 @@ export default function LoansPanel() {
     }
   }
 
+  // ==========================
+  // SEARCH + FILTER
+  // ==========================
+
+  // Elasticsearch currently returns matching customers/users.
+  // Collect their user IDs and match them against the loaded loans.
+  const searchedUserIds = new Set(
+    searchResults
+      .map((result) => result.user_id)
+      .filter((userId): userId is number => userId != null),
+  );
+
+  const sourceLoans = searchQuery.trim()
+    ? loans.filter((loan) =>
+        loan.user_id != null ? searchedUserIds.has(loan.user_id) : false,
+      )
+    : loans;
+
   const visible =
     filter === "all"
-      ? loans
-      : loans.filter((loan) => loan.current_loan_status === filter);
+      ? sourceLoans
+      : sourceLoans.filter((loan) => loan.current_loan_status === filter);
 
   function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setPageSize(Number(event.target.value));
@@ -124,6 +156,10 @@ export default function LoansPanel() {
 
       {loading && <div className="panel-loading">Loading loans...</div>}
 
+      {searching && searchQuery.trim() && (
+        <div className="panel-loading">Searching...</div>
+      )}
+
       {/* ==========================
           ERROR
       ========================== */}
@@ -137,7 +173,11 @@ export default function LoansPanel() {
       {!loading && !error && (
         <>
           {visible.length === 0 ? (
-            <div className="panel-empty">No loans match this filter.</div>
+            <div className="panel-empty">
+              {searchQuery.trim()
+                ? "No loans match your search."
+                : "No loans match this filter."}
+            </div>
           ) : (
             <table>
               <thead>
@@ -245,41 +285,43 @@ export default function LoansPanel() {
               PAGINATION
           ========================== */}
 
-          <div className="pagination">
-            <div className="page-size">
-              <span>Rows per page:</span>
+          {!searchQuery.trim() && (
+            <div className="pagination">
+              <div className="page-size">
+                <span>Rows per page:</span>
 
-              <select value={pageSize} onChange={handlePageSizeChange}>
-                <option value={20}>20</option>
+                <select value={pageSize} onChange={handlePageSizeChange}>
+                  <option value={20}>20</option>
 
-                <option value={40}>40</option>
+                  <option value={40}>40</option>
 
-                <option value={60}>60</option>
-              </select>
+                  <option value={60}>60</option>
+                </select>
+              </div>
+
+              <div className="page-controls">
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={page === 1}
+                  onClick={handlePrevious}
+                >
+                  Previous
+                </button>
+
+                <span className="page-number">Page {page}</span>
+
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={loans.length < pageSize}
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-
-            <div className="page-controls">
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={page === 1}
-                onClick={handlePrevious}
-              >
-                Previous
-              </button>
-
-              <span className="page-number">Page {page}</span>
-
-              <button
-                className="pagination-btn"
-                type="button"
-                disabled={loans.length < pageSize}
-                onClick={handleNext}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          )}
         </>
       )}
 
