@@ -1,0 +1,108 @@
+SUPERVISED CODING AGENT
+Project Plan and Decisions
+
+Purpose
+Build a supervised AI coding agent inside the banking project. The agent will detect bugs, analyze their causes, propose fixes, apply approved changes, rerun validation, and produce a report.
+
+Learning Approach
+Extend the existing banking project instead of creating a separate demo. This provides practical experience with FastAPI, React, TypeScript, PostgreSQL, Redis, Docker, migrations, tests, linting, environment configuration, and realistic integration errors.
+
+Scope
+- Analyze Python syntax, import, and runtime errors.
+- Analyze FastAPI tracebacks.
+- Analyze failing pytest tests.
+- Analyze frontend TypeScript, build, and ESLint errors.
+- Analyze database migration mismatches.
+- Analyze Docker and environment configuration issues.
+- Suggest focused patches and validation reports.
+
+Initial Workflow
+1. User selects a project area or submits an error.
+2. Agent reads only relevant project files.
+3. Agent runs approved tests or static checks.
+4. Agent analyzes the failure and identifies the likely root cause.
+5. Agent produces a report and suggested patch.
+6. User reviews and approves the patch.
+7. Agent applies the patch on a separate branch.
+8. Agent reruns relevant validation.
+9. Agent reports the result and remaining risks.
+
+Suggested Structure
+backend/
+  agents/
+    coding_agent/
+      agent.py
+      tools.py
+      models.py
+      prompts.py
+      report.py
+
+Potential Tools
+- read_project_file()
+- search_project_code()
+- run_backend_tests()
+- run_frontend_checks()
+- analyze_error()
+- create_patch()
+- apply_patch_after_approval()
+- generate_report()
+
+Safety Decisions
+- Begin with read-only reporting mode.
+- Require explicit user approval before changing files.
+- Never expose .env files, API keys, passwords, or other secrets.
+- Restrict file access to the project workspace.
+- Block destructive commands such as git reset --hard and git checkout.
+- Do not allow unapproved database writes.
+- Use a separate Git branch for generated fixes.
+- Run tests after every approved change.
+- Keep an audit record of errors, proposed patches, commands, and results.
+- Never claim a fix succeeded unless validation actually passed.
+
+Agent Report Responsibilities
+- Detected issue
+- Affected files
+- Root cause
+- Proposed change
+- Commands or checks executed
+- Validation results
+- Remaining errors or risks
+- Whether the fix was approved and applied
+
+Useful Learning Exercises
+- Missing Python imports
+- Invalid request schemas
+- Docker host configuration
+- Database migration mismatches
+- Frontend TypeScript errors
+- Failing tests
+- Lint violations
+- Missing runtime dependencies
+- Redis or PostgreSQL connectivity errors
+
+Recommended Milestones
+1. Read-only error analysis and reporting.
+2. Generate patches without applying them.
+3. Add approval workflow and separate-branch changes.
+4. Add automatic validation after approval.
+5. Improve reporting, audit history, and multi-area support.
+
+Existing Project Context
+The banking chatbot already uses LangGraph agents, OpenAI, RAG, Chroma, transaction documents, Docker, FastAPI, and frontend/backend tests. The coding agent must remain separate from the customer banking agent and the admin SQL agent.
+
+Customer banking agent:
+- Answers banking questions.
+- Uses RAG and banking data.
+
+Supervised coding agent:
+- Inspects project source code.
+- Runs approved checks.
+- Analyzes errors.
+- Proposes and applies reviewed patches.
+- Reports validation results.
+
+Branch Decision
+Continue implementation on Transactions_Graph or create a dedicated coding-agent branch before coding-agent work begins.
+
+First Task When Resuming
+Confirm the Git branch and clean working tree, then implement the read-only diagnostic/reporting MVP without automatically modifying project files.
