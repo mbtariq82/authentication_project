@@ -222,7 +222,7 @@ def get_agent():
         temperature=0,  # deterministic answers for factual questions
     )
 
-    checkpointer = MemorySaver()
+    checkpointer = MemorySaver() #if some thing fails it should not start from scratch, it should continue from the last checkpoint
 
     agent = create_react_agent(
         model=llm,
