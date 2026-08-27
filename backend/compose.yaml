@@ -14,6 +14,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
+      # Elasticsearch
+      ELASTICSEARCH_URL: http://elasticsearch:9200
       SECRET_KEY: ${SECRET_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       OTEL_SERVICE_NAME: authentication-api
@@ -27,6 +29,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
       otel-collector:
         condition: service_started
@@ -79,6 +83,9 @@ services:
       xpack.security.enabled: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
+    ports:
+      - "9200:9200"
+
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
 
@@ -93,3 +100,4 @@ services:
 volumes:
   redis_data:
   postgres_data:
+  elasticsearch_data:
