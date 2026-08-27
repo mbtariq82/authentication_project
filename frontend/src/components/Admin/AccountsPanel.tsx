@@ -4,19 +4,6 @@ import type { AdminAccount, AccountStatus } from "../../types/admin";
 import { fetchAccounts, updateAccountStatus } from "../../api/adminApi";
 
 import StatusBadge from "./StatusBadge";
-import type { AdminSearchResult } from "../../types/admin";
-
-interface AccountPanelProps {
-  searchQuery: string;
-  searchResults: AdminSearchResult[];
-  searching: boolean;
-}
-
-type AccountSearchResult = AdminSearchResult &
-  Partial<AdminAccount> & {
-    account_id?: number;
-    account_created_at?: string | null;
-  };
 
 const FILTERS: {
   key: AccountStatus | "all";
@@ -29,11 +16,7 @@ const FILTERS: {
   { key: "CLOSED", label: "Closed" },
 ];
 
-export default function AccountsPanel({
-  searchQuery,
-  searchResults,
-  searching,
-}: AccountPanelProps) {
+export default function AccountsPanel() {
   // ==========================
   // PAGINATION
   // ==========================
@@ -150,54 +133,13 @@ export default function AccountsPanel({
   }
 
   // ==========================
-  // SEARCH + FILTER
+  // FILTER
   // ==========================
-  // ==========================
-  // SEARCH + FILTER
-  // ==========================
-
-  const searchedAccounts: AdminAccount[] = searchResults
-    .map((result) => result as AccountSearchResult)
-    .filter((result) => result.account_id != null)
-    .map(
-      (result) =>
-        ({
-          id: result.account_id!,
-          user_id: result.user_id,
-
-          first_name: result.first_name ?? "",
-          last_name: result.last_name ?? "",
-          email: result.email ?? "",
-
-          account_number: result.account_number ?? null,
-          sort_code: result.sort_code ?? null,
-
-          account_type: result.account_type ?? "savings",
-
-          account_status: (result.account_status as AccountStatus) ?? "PENDING",
-
-          balance: result.balance ?? 0,
-
-          branch: result.branch ?? null,
-
-          created_at: result.account_created_at ?? result.created_at ?? null,
-
-          updated_at: result.updated_at ?? null,
-
-          close_reason: result.close_reason ?? null,
-
-          closed_at: result.closed_at ?? null,
-
-          // is_deleted: result.is_deleted ?? false,
-        }) as AdminAccount,
-    );
-
-  const sourceAccounts = searchQuery.trim() ? searchedAccounts : accounts;
 
   const visible =
     filter === "all"
-      ? sourceAccounts
-      : sourceAccounts.filter((account) => account.account_status === filter);
+      ? accounts
+      : accounts.filter((account) => account.account_status === filter);
 
   // ==========================
   // PAGINATION
@@ -249,10 +191,6 @@ export default function AccountsPanel({
 
       {loading && <div className="panel-loading">Loading accounts...</div>}
 
-      {searching && searchQuery.trim() && (
-        <div className="panel-loading">Searching...</div>
-      )}
-
       {/* ==========================
           ERROR
       ========================== */}
@@ -266,11 +204,7 @@ export default function AccountsPanel({
       {!loading && !error && (
         <>
           {visible.length === 0 ? (
-            <div className="panel-empty">
-              {searchQuery.trim()
-                ? "No accounts match your search."
-                : "No accounts match this filter."}
-            </div>
+            <div className="panel-empty">No accounts match this filter.</div>
           ) : (
             <table>
               <thead>
@@ -378,43 +312,41 @@ export default function AccountsPanel({
               PAGINATION
           ========================== */}
 
-          {!searchQuery.trim() && (
-            <div className="pagination">
-              <div className="page-size">
-                <span>Rows per page:</span>
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
 
-                <select value={pageSize} onChange={handlePageSizeChange}>
-                  <option value={20}>20</option>
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={20}>20</option>
 
-                  <option value={40}>40</option>
+                <option value={40}>40</option>
 
-                  <option value={60}>60</option>
-                </select>
-              </div>
-
-              <div className="page-controls">
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={page === 1}
-                  onClick={handlePrevious}
-                >
-                  Previous
-                </button>
-
-                <span className="page-number">Page {page}</span>
-
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={accounts.length < pageSize}
-                  onClick={handleNext}
-                >
-                  Next
-                </button>
-              </div>
+                <option value={60}>60</option>
+              </select>
             </div>
-          )}
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={accounts.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </>
       )}
 

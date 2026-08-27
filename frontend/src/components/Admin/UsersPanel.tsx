@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import type { AdminUser, UserStatus } from "../../types/admin";
 import { fetchUsers, updateUserStatus } from "../../api/adminApi";
 import StatusBadge from "./StatusBadge";
-import type { AdminSearchResult } from "../../types/admin";
 
-interface UsersPanelProps {
-  searchQuery: string;
-  searchResults: AdminSearchResult[];
-  searching: boolean;
-}
 const FILTERS: {
   key: UserStatus | "all";
   label: string;
@@ -19,12 +13,7 @@ const FILTERS: {
   { key: "REJECTED", label: "Rejected" },
 ];
 
-// export default function UsersPanel() {
-export default function UsersPanel({
-  searchQuery,
-  searchResults,
-  searching,
-}: UsersPanelProps) {
+export default function UsersPanel() {
   // ==========================
   // PAGINATION
   // ==========================
@@ -155,23 +144,10 @@ export default function UsersPanel({
   // FILTER
   // ==========================
 
-  const searchedUsers: AdminUser[] = searchResults.map((result) => ({
-    id: result.user_id,
-    first_name: result.first_name,
-    last_name: result.last_name,
-    email: result.email,
-    country: result.country ?? undefined,
-    role: result.role,
-    user_status: result.user_status as UserStatus,
-    is_deleted: false,
-  }));
-
-  const sourceUsers = searchQuery.trim() ? searchedUsers : users;
-
   const visibleUsers =
     filter === "all"
-      ? sourceUsers
-      : sourceUsers.filter((user) => user.user_status === filter);
+      ? users
+      : users.filter((user) => user.user_status === filter);
 
   // ==========================
   // PAGINATION FUNCTIONS
@@ -221,10 +197,6 @@ export default function UsersPanel({
 
       {loading && <div className="panel-loading">Loading users...</div>}
 
-      {searching && searchQuery.trim() && (
-        <div className="panel-loading">Searching...</div>
-      )}
-
       {/* ==========================
           ERROR
       ========================== */}
@@ -238,11 +210,7 @@ export default function UsersPanel({
       {!loading && (
         <>
           {visibleUsers.length === 0 ? (
-            <div className="panel-empty">
-              {searchQuery.trim()
-                ? "No customers match your search."
-                : "No users match this filter."}
-            </div>
+            <div className="panel-empty">No users match this filter.</div>
           ) : (
             <table>
               <thead>
@@ -333,41 +301,39 @@ export default function UsersPanel({
               PAGINATION
           ========================== */}
 
-          {!searchQuery.trim() && (
-            <div className="pagination">
-              <div className="page-size">
-                <span>Rows per page:</span>
+          <div className="pagination">
+            <div className="page-size">
+              <span>Rows per page:</span>
 
-                <select value={pageSize} onChange={handlePageSizeChange}>
-                  <option value={20}>20</option>
-                  <option value={40}>40</option>
-                  <option value={60}>60</option>
-                </select>
-              </div>
-
-              <div className="page-controls">
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={page === 1}
-                  onClick={handlePrevious}
-                >
-                  Previous
-                </button>
-
-                <span className="page-number">Page {page}</span>
-
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={users.length < pageSize}
-                  onClick={handleNext}
-                >
-                  Next
-                </button>
-              </div>
+              <select value={pageSize} onChange={handlePageSizeChange}>
+                <option value={20}>20</option>
+                <option value={40}>40</option>
+                <option value={60}>60</option>
+              </select>
             </div>
-          )}
+
+            <div className="page-controls">
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={page === 1}
+                onClick={handlePrevious}
+              >
+                Previous
+              </button>
+
+              <span className="page-number">Page {page}</span>
+
+              <button
+                className="pagination-btn"
+                type="button"
+                disabled={users.length < pageSize}
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </>
       )}
 
