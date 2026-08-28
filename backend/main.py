@@ -30,7 +30,10 @@ async def lifespan(app: FastAPI):
         try:
             await redis_client.aclose()
         finally:
-            telemetry_providers.shutdown()
+            try:
+                await engine.dispose()
+            finally:
+                telemetry_providers.shutdown()
 
 app = FastAPI(lifespan=lifespan)
 
