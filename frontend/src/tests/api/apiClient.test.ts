@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getApiErrorMessage } from "./apiClient";
+import { getApiErrorMessage } from "../../api/apiClient";
 
 describe("getApiErrorMessage", () => {
   it("reads a backend detail message", async () => {
