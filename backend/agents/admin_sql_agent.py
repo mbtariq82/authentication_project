@@ -91,6 +91,10 @@ class AdminSQLAgent:
             {
                 "schema": state["schema"],
                 "question": state["question"],
+                "additional_instruction": state.get(
+                    "additional_instruction",
+                    "",
+                ),
             }
         )
 

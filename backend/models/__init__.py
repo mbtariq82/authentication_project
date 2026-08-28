@@ -9,7 +9,7 @@ from models.loan import LoanRow
 from models.refresh_token import RefreshToken
 from models.transaction import TransactionLogRow, TransactionRow
 from models.user import UserRow
-
+from models.campaign import CampaignRow
 __all__ = [
     "AccountRow",
     "Base",
@@ -21,4 +21,5 @@ __all__ = [
     "TransactionRow",
     "TransactionLogRow",
     "UserRow",
+    "CampaignRow"
 ]
