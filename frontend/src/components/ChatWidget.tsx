@@ -6,6 +6,7 @@ import {
   Send,
   X,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { resetGuestChatSession, sendChatMessage } from "../api/chatbotClient";
@@ -147,7 +148,11 @@ function ChatWidget() {
             className={`chat-widget-message chat-widget-message--${message.sender}`}
             key={message.id}
           >
-            {message.content}
+            {message.sender === "assistant" ? (
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            ) : (
+              message.content
+            )}
           </div>
         ))}
         {isLoading && (
