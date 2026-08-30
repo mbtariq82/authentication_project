@@ -29,11 +29,15 @@ class AdminAgent:
         self.instagram_generator = InstagramGeneratorTool()
         self.image_generator = ImageGeneratorTool()
 
+        logger.info("AdminAgent initialized")
+
     # ---------------------------------------------------
     # Decide what tools are required
     # ---------------------------------------------------
 
     def _plan(self, question: str) -> dict:
+
+        logger.info("PLAN | question=%r", question)
 
         prompt = ChatPromptTemplate.from_template(
             """
@@ -174,8 +178,8 @@ class AdminAgent:
 
         except json.JSONDecodeError:
             logger.warning(
-                "AdminAgent._plan: could not parse planner output "
-                "as JSON, defaulting to no-op plan: %r",
+                "PLAN | could not parse planner output as JSON, "
+                "defaulting to no-op plan: %r",
                 content,
             )
 
@@ -192,6 +196,8 @@ class AdminAgent:
         if plan.get("excel_required") or plan.get("email_required"):
             plan["sql_required"] = True
 
+        logger.info("PLAN | result=%s", plan)
+
         return plan
 
     # ---------------------------------------------------
@@ -202,17 +208,61 @@ class AdminAgent:
         self,
         rows: list[dict],
     ) -> list[str]:
+        """
+        Pulls email addresses out of SQL result rows.
 
-        emails = []
+        The SQL agent's LLM doesn't always alias the column back as
+        exactly "email" (it might come back as "Email", "user_email",
+        etc.), so a naive row.get("email") silently returns nothing
+        in those cases — the request looks successful but ends up
+        with 0 recipients. This matches case-insensitively first,
+        then falls back to any column whose name merely contains
+        "email", and validates each value looks like an address
+        before including it.
+        """
+
+        emails: set[str] = set()
 
         for row in rows:
 
-            email = row.get("email")
+            value = self._find_email_value(row)
 
-            if email:
-                emails.append(email)
+            if value and "@" in value:
+                emails.add(value.strip())
 
-        return list(set(emails))
+        logger.info(
+            "EXTRACT_EMAILS | rows=%d | emails_found=%d",
+            len(rows), len(emails),
+        )
+
+        if rows and not emails:
+            logger.warning(
+                "EXTRACT_EMAILS | rows were returned but no email "
+                "column was found | sample_row_keys=%s",
+                list(rows[0].keys()) if rows else [],
+            )
+
+        return list(emails)
+
+    @staticmethod
+    def _find_email_value(row: dict) -> str | None:
+
+        # Exact match first (the common, expected case).
+        if "email" in row and row["email"]:
+            return str(row["email"])
+
+        # Case-insensitive exact match, e.g. "Email".
+        for key, value in row.items():
+            if key.lower() == "email" and value:
+                return str(value)
+
+        # Fallback: any column whose name merely contains "email",
+        # e.g. "user_email", "customer_email".
+        for key, value in row.items():
+            if "email" in key.lower() and value:
+                return str(value)
+
+        return None
 
     # ---------------------------------------------------
     # Main Agent
@@ -223,6 +273,8 @@ class AdminAgent:
         question: str,
         created_by: str | None = None,
     ) -> dict:
+
+        logger.info("QUERY START | created_by=%s | question=%r", created_by, question)
 
         plan = self._plan(question)
 
@@ -245,12 +297,22 @@ class AdminAgent:
 
         if plan.get("sql_required"):
 
+            logger.info("SQL | running (sql_required=True)")
+
             sql_instruction = ""
 
             if plan.get("email_required"):
                 sql_instruction = (
                     "The result will be used for sending emails. "
-                    "Always include users.email in the SELECT result."
+                    "The SELECT list MUST include the users.email "
+                    "column, aliased to exactly the lowercase column "
+                    "name 'email' (e.g. \"users.email AS email\"), "
+                    "with no other alias or casing. If the admin's "
+                    "question names a specific customer, filter for "
+                    "that customer explicitly (by name and/or email) "
+                    "rather than returning unrelated rows — if no "
+                    "matching customer exists, return zero rows "
+                    "rather than guessing."
                 )
 
             sql_result = self.sql_agent.query(
@@ -262,11 +324,20 @@ class AdminAgent:
             result["rows"] = sql_result.get("rows", [])
             result["answer"] = sql_result.get("answer", "")
 
+            logger.info(
+                "SQL | done | rows=%d | sql=%s",
+                len(result["rows"]), result["sql_query"],
+            )
+        else:
+            logger.info("SQL | skipped (sql_required=False)")
+
         # -------------------------------------------
         # EXCEL
         # -------------------------------------------
 
         if plan.get("excel_required"):
+
+            logger.info("EXCEL | building workbook | rows=%d", len(result["rows"]))
 
             filename = save_query_result_workbook(
                 rows=result["rows"],
@@ -280,6 +351,8 @@ class AdminAgent:
                 "download_url": f"/admin/download/{filename}",
             }
 
+            logger.info("EXCEL | saved | filename=%s", filename)
+
         # -------------------------------------------
         # EMAIL — draft only. Actual sending happens
         # from the /admin/approve/{id} endpoint once a
@@ -287,6 +360,8 @@ class AdminAgent:
         # -------------------------------------------
 
         if plan.get("email_required"):
+
+            logger.info("EMAIL | drafting")
 
             recipients = []
 
@@ -327,6 +402,11 @@ class AdminAgent:
 
             result["approvals"].append(approval["id"])
 
+            logger.info(
+                "EMAIL | drafted | approval_id=%s | recipients=%d | subject=%r",
+                approval["id"], len(recipients), email["subject"],
+            )
+
         # -------------------------------------------
         # INSTAGRAM — draft only. Actual publishing
         # happens from /admin/approve/{id} once a human
@@ -334,6 +414,8 @@ class AdminAgent:
         # -------------------------------------------
 
         if plan.get("instagram_required"):
+
+            logger.info("INSTAGRAM | drafting")
 
             post = self.instagram_generator.generate(instruction=question)
 
@@ -343,13 +425,14 @@ class AdminAgent:
                 image_url = self.image_generator.generate(
                     post["image_prompt"]
                 )
+                logger.info("INSTAGRAM | image generated | url=%s", image_url)
             except Exception:
                 # Image generation is best-effort. If it fails (bad
                 # API key, content policy rejection, network issue),
                 # fall through with no image — the admin can attach
                 # one manually when approving.
                 logger.exception(
-                    "AdminAgent: Instagram image generation failed, "
+                    "INSTAGRAM | image generation failed, "
                     "continuing without an image_url"
                 )
 
@@ -373,6 +456,16 @@ class AdminAgent:
 
             result["approvals"].append(approval["id"])
 
+            logger.info(
+                "INSTAGRAM | drafted | approval_id=%s | has_image=%s",
+                approval["id"], image_url is not None,
+            )
+
         result["approval_required"] = bool(result["approvals"])
+
+        logger.info(
+            "QUERY END | approvals=%s | approval_required=%s",
+            result["approvals"], result["approval_required"],
+        )
 
         return result

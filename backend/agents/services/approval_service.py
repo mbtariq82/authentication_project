@@ -1,7 +1,10 @@
+import logging
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ApprovalStatus(str, Enum):
@@ -52,6 +55,11 @@ class ApprovalService:
 
         self._approvals[approval_id] = approval
 
+        logger.info(
+            "APPROVAL_SERVICE | create | id=%s | action_type=%s | created_by=%s",
+            approval_id, action_type, created_by,
+        )
+
         return approval
 
     def get(self, approval_id: str) -> Optional[dict[str, Any]]:
@@ -69,6 +77,8 @@ class ApprovalService:
         approval["status"] = ApprovalStatus.APPROVED
         approval["decided_at"] = datetime.now(timezone.utc).isoformat()
 
+        logger.info("APPROVAL_SERVICE | approved | id=%s", approval_id)
+
         return approval
 
     def reject(self, approval_id: str) -> dict[str, Any]:
@@ -77,18 +87,32 @@ class ApprovalService:
         approval["status"] = ApprovalStatus.REJECTED
         approval["decided_at"] = datetime.now(timezone.utc).isoformat()
 
+        logger.info("APPROVAL_SERVICE | rejected | id=%s", approval_id)
+
         return approval
 
     def mark_executed(self, approval_id: str, result: Any) -> dict[str, Any]:
         approval = self._approvals[approval_id]
         approval["status"] = ApprovalStatus.EXECUTED
         approval["result"] = result
+
+        logger.info(
+            "APPROVAL_SERVICE | executed | id=%s | result=%s",
+            approval_id, result,
+        )
+
         return approval
 
     def mark_failed(self, approval_id: str, error: str) -> dict[str, Any]:
         approval = self._approvals[approval_id]
         approval["status"] = ApprovalStatus.FAILED
         approval["result"] = {"error": error}
+
+        logger.warning(
+            "APPROVAL_SERVICE | failed | id=%s | error=%s",
+            approval_id, error,
+        )
+
         return approval
 
     def update_payload(self, approval_id: str, **updates: Any) -> dict[str, Any]:
@@ -96,15 +120,26 @@ class ApprovalService:
         attaching an image_url an admin supplies at approval time."""
         approval = self._approvals[approval_id]
         approval["payload"].update(updates)
+
+        logger.info(
+            "APPROVAL_SERVICE | payload updated | id=%s | keys=%s",
+            approval_id, list(updates.keys()),
+        )
+
         return approval
 
     def _require_pending(self, approval_id: str) -> dict[str, Any]:
         approval = self._approvals.get(approval_id)
 
         if not approval:
+            logger.warning("APPROVAL_SERVICE | not found | id=%s", approval_id)
             raise KeyError(f"No approval found for id {approval_id}")
 
         if approval["status"] != ApprovalStatus.PENDING:
+            logger.warning(
+                "APPROVAL_SERVICE | not pending | id=%s | status=%s",
+                approval_id, approval["status"],
+            )
             raise ValueError(
                 f"Approval {approval_id} is not pending "
                 f"(status={approval['status']})"

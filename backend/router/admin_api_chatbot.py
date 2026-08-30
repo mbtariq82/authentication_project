@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -8,14 +9,26 @@ from dependencies.auth import require_admin, get_current_user
 from schemas.admin_agent_schema import AdminAgentRequest
 from agents.admin_agent import AdminAgent
 from agents.excel_export import EXPORT_DIR, excel_streaming_response
+from agents.image_branding import MEDIA_DIR
 from agents.tools.instagram_publish_tool import InstagramPublishTool
 from agents.services.approval_service import approval_service
 from agents.services.email_service import EmailService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin",
     tags=["Admin AI"],
     dependencies=[Depends(require_admin)],
+)
+
+# Separate, unauthenticated router for media Zernio's servers need to
+# fetch directly (not through the admin's browser session) when
+# publishing to Instagram — require_admin would 401/403 that request
+# since Zernio has no admin token to send.
+public_media_router = APIRouter(
+    prefix="/admin",
+    tags=["Admin AI"],
 )
 
 
@@ -37,10 +50,29 @@ async def ask_admin_agent(
     or published until /admin/approve/{approval_id} is called.
     """
 
-    result = await run_in_threadpool(
-        agent.query,
-        request.question,
-        getattr(current_user, "id", None),
+    user_id = getattr(current_user, "id", None)
+
+    logger.info(
+        "POST /admin/ask | user=%s | question=%r",
+        user_id, request.question,
+    )
+
+    try:
+        result = await run_in_threadpool(
+            agent.query,
+            request.question,
+            user_id,
+        )
+    except Exception:
+        logger.exception("POST /admin/ask | user=%s | agent.query failed", user_id)
+        raise
+
+    logger.info(
+        "POST /admin/ask | user=%s | plan=%s | rows=%d | approvals=%s",
+        user_id,
+        result.get("plan"),
+        len(result.get("rows", [])),
+        result.get("approvals"),
     )
 
     return result
@@ -55,7 +87,10 @@ async def download_export(filename: str):
     safe_name = os.path.basename(filename)
     path = os.path.join(EXPORT_DIR, safe_name)
 
+    logger.info("GET /admin/download/%s", safe_name)
+
     if not os.path.isfile(path):
+        logger.warning("GET /admin/download/%s | file not found at %s", safe_name, path)
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(
@@ -66,6 +101,27 @@ async def download_export(filename: str):
         ),
         filename=safe_name,
     )
+
+
+@public_media_router.get("/media/{filename}")
+async def get_media(filename: str):
+    """
+    Serves a branded Instagram post image (logo composited on by
+    agents/image_branding.py). This is the URL Zernio's servers fetch
+    when publishing, so it must be reachable at PUBLIC_BASE_URL, not
+    just from the admin's own browser.
+    """
+
+    safe_name = os.path.basename(filename)
+    path = os.path.join(MEDIA_DIR, safe_name)
+
+    logger.info("GET /admin/media/%s", safe_name)
+
+    if not os.path.isfile(path):
+        logger.warning("GET /admin/media/%s | file not found at %s", safe_name, path)
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(path, media_type="image/png", filename=safe_name)
 
 
 @router.post("/ask/export")
@@ -80,9 +136,16 @@ async def export_admin_agent_result(
     asked for "excel" in the question.
     """
 
+    logger.info("POST /admin/ask/export | question=%r", request.question)
+
     result = await run_in_threadpool(
         agent.query,
         request.question,
+    )
+
+    logger.info(
+        "POST /admin/ask/export | rows=%d | building xlsx",
+        len(result.get("rows", [])),
     )
 
     return excel_streaming_response(
@@ -96,7 +159,9 @@ async def export_admin_agent_result(
 
 @router.get("/approvals/pending")
 async def list_pending_approvals():
-    return approval_service.list_pending()
+    pending = approval_service.list_pending()
+    logger.info("GET /admin/approvals/pending | count=%d", len(pending))
+    return pending
 
 
 @router.get("/approvals/{approval_id}")
@@ -104,6 +169,7 @@ async def get_approval(approval_id: str):
     approval = approval_service.get(approval_id)
 
     if not approval:
+        logger.warning("GET /admin/approvals/%s | not found", approval_id)
         raise HTTPException(status_code=404, detail="Approval not found")
 
     return approval
@@ -127,12 +193,21 @@ async def approve_action(
     "Human approves" -> "Send / Publish" step in the agent flow.
     """
 
+    logger.info("POST /admin/approve/%s | image_url_override=%s", approval_id, bool(image_url))
+
     try:
         approval = approval_service.mark_approved(approval_id)
     except KeyError:
+        logger.warning("POST /admin/approve/%s | not found", approval_id)
         raise HTTPException(status_code=404, detail="Approval not found")
     except ValueError as e:
+        logger.warning("POST /admin/approve/%s | %s", approval_id, e)
         raise HTTPException(status_code=409, detail=str(e))
+
+    logger.info(
+        "POST /admin/approve/%s | action_type=%s | marked APPROVED, executing",
+        approval_id, approval["action_type"],
+    )
 
     if approval["action_type"] == "instagram" and image_url:
         approval = approval_service.update_payload(
@@ -144,11 +219,36 @@ async def approve_action(
         if approval["action_type"] == "email":
             payload = approval["payload"]
 
+            logger.info(
+                "POST /admin/approve/%s | sending email | recipients=%d | subject=%r",
+                approval_id, len(payload["recipients"]), payload["subject"],
+            )
+
             send_result = await run_in_threadpool(
                 email_service.send_email,
                 payload["recipients"],
                 payload["subject"],
                 payload["body"],
+            )
+
+            # send_email() returns {"status": "skipped", ...} instead
+            # of raising when there are no recipients — don't let
+            # that silently look like a successful send.
+            if send_result.get("status") == "skipped":
+                logger.warning(
+                    "POST /admin/approve/%s | email skipped: no recipients",
+                    approval_id,
+                )
+                raise RuntimeError(
+                    "No recipients were found for this email, so "
+                    "nothing was sent. This usually means the SQL "
+                    "query behind this request didn't match any "
+                    "customers, or didn't return an email column."
+                )
+
+            logger.info(
+                "POST /admin/approve/%s | email sent | result=%s",
+                approval_id, send_result,
             )
 
             approval_service.mark_executed(approval_id, send_result)
@@ -157,16 +257,30 @@ async def approve_action(
             payload = approval["payload"]
 
             if not payload.get("image_url"):
+                logger.warning(
+                    "POST /admin/approve/%s | no image_url set, aborting publish",
+                    approval_id,
+                )
                 raise RuntimeError(
                     "No image_url is set for this Instagram post. "
                     "Retry with ?image_url=... to attach one before "
                     "publishing."
                 )
 
+            logger.info(
+                "POST /admin/approve/%s | publishing to instagram | image_url=%s",
+                approval_id, payload["image_url"],
+            )
+
             publish_result = await instagram_publish_tool.publish(
                 image_url=payload["image_url"],
                 caption=payload["caption"],
                 approved=True,
+            )
+
+            logger.info(
+                "POST /admin/approve/%s | published | result=%s",
+                approval_id, publish_result,
             )
 
             approval_service.mark_executed(approval_id, publish_result)
@@ -177,6 +291,7 @@ async def approve_action(
             )
 
     except Exception as e:
+        logger.exception("POST /admin/approve/%s | execution failed", approval_id)
         approval_service.mark_failed(approval_id, str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -185,9 +300,13 @@ async def approve_action(
 
 @router.post("/reject/{approval_id}")
 async def reject_action(approval_id: str):
+    logger.info("POST /admin/reject/%s", approval_id)
+
     try:
         return approval_service.reject(approval_id)
     except KeyError:
+        logger.warning("POST /admin/reject/%s | not found", approval_id)
         raise HTTPException(status_code=404, detail="Approval not found")
     except ValueError as e:
+        logger.warning("POST /admin/reject/%s | %s", approval_id, e)
         raise HTTPException(status_code=409, detail=str(e))

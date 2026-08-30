@@ -19,7 +19,8 @@ const PANEL_TITLES: Record<PanelKey, { title: string; subtitle: string }> = {
 
   aiAssistant: {
     title: "AI assistant",
-    subtitle: "Ask questions about customers, accounts, loans, and cards",
+    subtitle:
+      "Ask about customers, accounts, loans, and cards — or ask it to draft an email, Excel report, or Instagram post",
   },
 
   users: {

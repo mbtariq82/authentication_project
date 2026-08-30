@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import uuid
 from datetime import date, datetime, timezone
@@ -9,6 +10,8 @@ from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+
+logger = logging.getLogger(__name__)
 
 
 HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
@@ -160,6 +163,8 @@ def save_query_result_workbook(
 
     os.makedirs(EXPORT_DIR, exist_ok=True)
 
+    logger.info("EXCEL_EXPORT | building workbook | rows=%d", len(rows))
+
     buffer = build_query_result_workbook(
         rows=rows,
         question=question,
@@ -174,6 +179,8 @@ def save_query_result_workbook(
 
     with open(path, "wb") as f:
         f.write(buffer.getvalue())
+
+    logger.info("EXCEL_EXPORT | saved | path=%s", path)
 
     return filename
 

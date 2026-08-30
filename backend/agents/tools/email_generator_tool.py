@@ -1,5 +1,9 @@
+import logging
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+
+logger = logging.getLogger(__name__)
 
 
 class EmailGeneratorTool:
@@ -15,6 +19,11 @@ class EmailGeneratorTool:
         instruction: str,
         customer_context: str = "",
     ) -> dict:
+
+        logger.info(
+            "EMAIL_GEN | generate | instruction=%r | customer_context=%r",
+            instruction, customer_context,
+        )
 
         prompt = ChatPromptTemplate.from_template(
             """
@@ -74,6 +83,13 @@ class EmailGeneratorTool:
             )
 
             body = body_part.strip()
+        else:
+            logger.warning(
+                "EMAIL_GEN | generate | LLM output did not contain "
+                "expected SUBJECT:/BODY: markers, using raw content as body"
+            )
+
+        logger.info("EMAIL_GEN | generate | subject=%r", subject)
 
         return {
             "subject": subject,

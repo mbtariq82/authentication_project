@@ -1,4 +1,8 @@
+import logging
+
 from agents.services.instagram_service import InstagramService
+
+logger = logging.getLogger(__name__)
 
 
 class InstagramPublishTool:
@@ -12,8 +16,15 @@ class InstagramPublishTool:
         caption: str,
         approved: bool,
     ):
+        logger.info(
+            "INSTAGRAM_PUBLISH_TOOL | publish | approved=%s | image_url=%s",
+            approved, image_url,
+        )
 
         if not approved:
+            logger.warning(
+                "INSTAGRAM_PUBLISH_TOOL | publish blocked — not approved"
+            )
             raise PermissionError(
                 "Human approval is required "
                 "before publishing to Instagram."

@@ -1,6 +1,13 @@
-import type { AdminAgentAskResponse } from "../types/admin";
+import type {
+  AdminAgentAskResponse,
+  AdminApprovalRecord,
+} from "../types/admin";
 
-import { fetchWithAuth, type ApiErrorResponse } from "./apiClient";
+import {
+  fetchWithAuth,
+  getApiErrorMessage,
+  type ApiErrorResponse,
+} from "./apiClient";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -61,6 +68,33 @@ export async function exportAdminAgentResult(question: string): Promise<void> {
   const match = disposition.match(/filename="?([^"]+)"?/);
   const filename = match?.[1] ?? "admin_query_result.xlsx";
 
+  triggerBlobDownload(blob, filename);
+}
+
+// Downloads a report that /admin/ask already generated inline
+// (entry.excel_file.download_url), instead of re-running the whole
+// SQL query again the way exportAdminAgentResult does.
+export async function downloadAdminExcelFile(
+  downloadUrl: string,
+  filename: string,
+): Promise<void> {
+  const response = await fetchWithAuth(`${API_BASE_URL}${downloadUrl}`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    const message = await getApiErrorMessage(
+      response,
+      `Download failed with status ${response.status}`,
+    );
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  triggerBlobDownload(blob, filename);
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
   const objectUrl = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -71,4 +105,36 @@ export async function exportAdminAgentResult(question: string): Promise<void> {
   link.remove();
 
   window.URL.revokeObjectURL(objectUrl);
+}
+
+// ---------------- APPROVALS (email / instagram) ----------------
+
+export async function approveAdminAction(
+  approvalId: string,
+  imageUrl?: string,
+): Promise<AdminApprovalRecord> {
+  const url = new URL(`${API_BASE_URL}/admin/approve/${approvalId}`);
+
+  if (imageUrl) {
+    url.searchParams.set("image_url", imageUrl);
+  }
+
+  const response = await fetchWithAuth(url.toString(), {
+    method: "POST",
+  });
+
+  return handle<AdminApprovalRecord>(response);
+}
+
+export async function rejectAdminAction(
+  approvalId: string,
+): Promise<AdminApprovalRecord> {
+  const response = await fetchWithAuth(
+    `${API_BASE_URL}/admin/reject/${approvalId}`,
+    {
+      method: "POST",
+    },
+  );
+
+  return handle<AdminApprovalRecord>(response);
 }

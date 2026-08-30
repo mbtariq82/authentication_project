@@ -1,5 +1,9 @@
+import logging
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+
+logger = logging.getLogger(__name__)
 
 
 class InstagramGeneratorTool:
@@ -14,6 +18,8 @@ class InstagramGeneratorTool:
         self,
         instruction: str,
     ) -> dict:
+
+        logger.info("INSTAGRAM_GEN | generate | instruction=%r", instruction)
 
         prompt = ChatPromptTemplate.from_template(
             """
@@ -39,6 +45,20 @@ class InstagramGeneratorTool:
             - Do not invent interest rates or financial offers.
             - Do not make misleading financial claims.
             - Keep promotional wording clear and appropriate.
+
+            Rules specifically for IMAGE_PROMPT:
+
+            - The image is a photo/scene only. It must NOT contain
+              any logo, brand name, watermark, badge, text overlay,
+              caption text, sign, label, or lettering of any kind —
+              not on packaging, screens, clothing, signage, or
+              anywhere else in the scene. Describe people, setting,
+              props, mood, and lighting only.
+            - Do not mention "Nexa Bank" or any bank name inside the
+              IMAGE_PROMPT itself. The real Nexa Bank logo is added
+              afterward by a separate, exact compositing step — if
+              the prompt asks the model to draw a bank name or logo,
+              it will invent its own incorrect one instead.
             """
         )
 
@@ -69,6 +89,16 @@ class InstagramGeneratorTool:
                 "IMAGE_PROMPT:",
                 1,
             )
+        else:
+            logger.warning(
+                "INSTAGRAM_GEN | generate | LLM output missing "
+                "IMAGE_PROMPT: marker, image_prompt will be empty"
+            )
+
+        logger.info(
+            "INSTAGRAM_GEN | generate | caption=%r | image_prompt=%r",
+            caption.strip(), image_prompt.strip(),
+        )
 
         return {
             "caption": caption.strip(),

@@ -1,7 +1,9 @@
 import os
 
 import httpx
-
+import logging
+ 
+logger = logging.getLogger(__name__)
 
 class InstagramService:
     """
@@ -28,6 +30,10 @@ class InstagramService:
         image_url: str,
         caption: str,
     ) -> dict:
+        logger.info(
+            "INSTAGRAM_SERVICE | publish_post called | image_url=%s | caption_len=%d",
+            image_url, len(caption or ""),
+        )
 
         if not self.api_key or not self.account_id:
             raise RuntimeError(

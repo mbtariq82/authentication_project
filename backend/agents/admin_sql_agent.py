@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from sqlalchemy import create_engine, text
@@ -8,6 +9,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, START, END
 
 from agents.agent_state import AgentState
+
+logger = logging.getLogger(__name__)
 
 
 class AdminSQLAgent:
@@ -22,6 +25,8 @@ class AdminSQLAgent:
 
         self.app = self._build_graph()
 
+        logger.info("AdminSQLAgent initialized")
+
     def _connect_db(self):
         database_url = os.getenv("AGENT_DATABASE_URL")
 
@@ -32,9 +37,13 @@ class AdminSQLAgent:
 
         self.engine = create_engine(database_url)
 
+        logger.info("SQL_AGENT | connected to database")
+
         return SQLDatabase(self.engine)
 
     def _get_schema(self, state: AgentState):
+        logger.info("SQL_AGENT | node=get_schema")
+
         schema = self.db.get_table_info(
             table_names=[
                 "users",
@@ -49,6 +58,8 @@ class AdminSQLAgent:
         }
 
     def _generate_sql(self, state: AgentState):
+        logger.info("SQL_AGENT | node=generate_sql | question=%r", state["question"])
+
         prompt = ChatPromptTemplate.from_template(
             """
             You are a PostgreSQL expert working with a banking database.
@@ -110,11 +121,15 @@ class AdminSQLAgent:
             .strip()
         )
 
+        logger.info("SQL_AGENT | node=generate_sql | generated_sql=%s", sql)
+
         return {
             "sql_query": sql
         }
 
     def _validate_sql(self, state: AgentState):
+        logger.info("SQL_AGENT | node=validate_sql")
+
         query = state["sql_query"].strip()
         query_upper = query.upper()
 
@@ -131,6 +146,10 @@ class AdminSQLAgent:
         ]
 
         if not query_upper.startswith("SELECT"):
+            logger.warning(
+                "SQL_AGENT | node=validate_sql | rejected: not a SELECT | sql=%s",
+                query,
+            )
             return {
                 "error": "Only SELECT queries are allowed."
             }
@@ -142,17 +161,29 @@ class AdminSQLAgent:
             # "DELETE", or "recreated_view" would contain "CREATE".
             pattern = r"\b" + re.escape(keyword) + r"\b"
             if re.search(pattern, query_upper):
+                logger.warning(
+                    "SQL_AGENT | node=validate_sql | rejected: blocked "
+                    "keyword %s | sql=%s",
+                    keyword, query,
+                )
                 return {
                     "error": f"Blocked SQL operation: {keyword}"
                 }
+
+        logger.info("SQL_AGENT | node=validate_sql | passed")
 
         return {
             "error": ""
         }
 
     def _execute_sql(self, state: AgentState):
+        logger.info("SQL_AGENT | node=execute_sql")
 
         if state.get("error"):
+            logger.info(
+                "SQL_AGENT | node=execute_sql | skipped, prior error: %s",
+                state["error"],
+            )
             return {
                 "query_result": []
             }
@@ -169,19 +200,33 @@ class AdminSQLAgent:
                     for row in result
                 ]
 
+                logger.info(
+                    "SQL_AGENT | node=execute_sql | success | rows=%d",
+                    len(rows),
+                )
+
                 return {
                     "query_result": rows
                 }
 
         except Exception as e:
+            logger.exception(
+                "SQL_AGENT | node=execute_sql | query failed | sql=%s",
+                state["sql_query"],
+            )
             return {
                 "error": f"Error executing query: {str(e)}",
                 "query_result": [],
             }
 
     def _generate_answer(self, state: AgentState):
+        logger.info("SQL_AGENT | node=generate_answer")
 
         if state.get("error"):
+            logger.info(
+                "SQL_AGENT | node=generate_answer | returning error as answer: %s",
+                state["error"],
+            )
             return {
                 "final_answer": state["error"]
             }
@@ -283,11 +328,21 @@ class AdminSQLAgent:
         additional_instruction: str = "",
     ) -> dict:
 
+        logger.info(
+            "SQL_AGENT | query start | question=%r | additional_instruction=%r",
+            question, additional_instruction,
+        )
+
         result = self.app.invoke(
             {
                 "question": question,
                 "additional_instruction": additional_instruction,
             }
+        )
+
+        logger.info(
+            "SQL_AGENT | query end | rows=%d",
+            len(result.get("query_result", [])),
         )
 
         return {

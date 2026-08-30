@@ -93,9 +93,65 @@ export type CardStatus = "ACTIVE" | "FROZEN" | "CLOSED";
 
 // AI ASSISTANT
 
+export interface AdminAgentPlan {
+  sql_required: boolean;
+  excel_required: boolean;
+  email_required: boolean;
+  instagram_required: boolean;
+}
+
+export interface AdminAgentExcelFile {
+  filename: string;
+  download_url: string;
+}
+
+// Mirrors ApprovalStatus in services/approval_service.py
+export type ApprovalStatus =
+  | "PENDING_APPROVAL"
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "EXECUTED"
+  | "FAILED";
+
+export interface AdminAgentEmailDraft {
+  recipients: string[];
+  recipient_count: number;
+  subject: string;
+  body: string;
+  status: ApprovalStatus;
+  approval_id: string;
+}
+
+export interface AdminAgentInstagramDraft {
+  caption: string;
+  image_prompt: string;
+  image_url: string | null;
+  status: ApprovalStatus;
+  approval_id: string;
+}
+
 export interface AdminAgentAskResponse {
   question: string;
+  plan: AdminAgentPlan;
   sql_query: string;
   rows: Record<string, unknown>[];
   answer: string;
+  excel_file: AdminAgentExcelFile | null;
+  email: AdminAgentEmailDraft | null;
+  instagram: AdminAgentInstagramDraft | null;
+  approvals: string[];
+  approval_required: boolean;
+}
+
+// Shape returned by POST /admin/approve/{id} and /admin/reject/{id}
+export interface AdminApprovalRecord {
+  id: string;
+  action_type: "email" | "instagram";
+  payload: Record<string, unknown>;
+  status: ApprovalStatus;
+  created_by?: string | null;
+  created_at: string;
+  decided_at?: string | null;
+  result?: unknown;
 }

@@ -1,7 +1,10 @@
+import logging
 import os
 import time
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 class ImageGeneratorTool:
@@ -36,6 +39,11 @@ class ImageGeneratorTool:
         self.poll_interval = poll_interval
         self.timeout_seconds = timeout_seconds
 
+        logger.info(
+            "ImageGeneratorTool initialized | configured=%s",
+            bool(self.api_key),
+        )
+
     def generate(
         self,
         prompt: str,
@@ -44,7 +52,24 @@ class ImageGeneratorTool:
         output_format: str = "png",
     ) -> str:
 
+        # Append a hard negative instruction regardless of what the
+        # caller's prompt already says — image models frequently add
+        # invented logos/text/watermarks to "brand-adjacent" scenes
+        # (banking, retail, etc.) even when not asked to. The real
+        # logo gets composited on afterward by image_branding.py, so
+        # any logo the model draws here would just be a second, wrong
+        # one layered under it.
+        full_prompt = (
+            f"{prompt}\n\n"
+            "Do not include any logos, brand names, watermarks, text, "
+            "lettering, signage, or labels anywhere in the image. "
+            "Photo-realistic scene only, no text overlays of any kind."
+        )
+
+        logger.info("IMAGE_GEN | generate | prompt=%r", prompt)
+
         if not self.api_key:
+            logger.error("IMAGE_GEN | KIE_API_KEY not configured")
             raise RuntimeError(
                 "kie.ai is not configured. Set the KIE_API_KEY "
                 "environment variable."
@@ -58,7 +83,7 @@ class ImageGeneratorTool:
         body = {
             "model": "nano-banana-pro",
             "input": {
-                "prompt": prompt,
+                "prompt": full_prompt,
                 "image_input": [],
                 "aspect_ratio": aspect_ratio,
                 "resolution": resolution,
@@ -77,12 +102,18 @@ class ImageGeneratorTool:
             create_data = create_response.json()
 
             if create_data.get("code") != 200:
+                logger.error(
+                    "IMAGE_GEN | task creation failed | msg=%s",
+                    create_data.get("msg"),
+                )
                 raise RuntimeError(
                     f"kie.ai task creation failed: "
                     f"{create_data.get('msg')}"
                 )
 
             task_id = create_data["data"]["taskId"]
+
+            logger.info("IMAGE_GEN | task created | task_id=%s", task_id)
 
             deadline = time.monotonic() + self.timeout_seconds
 
@@ -98,6 +129,11 @@ class ImageGeneratorTool:
 
                 state = status_data.get("state")
 
+                logger.info(
+                    "IMAGE_GEN | polling | task_id=%s | state=%s",
+                    task_id, state,
+                )
+
                 if state == "success":
                     import json as _json
 
@@ -105,14 +141,27 @@ class ImageGeneratorTool:
                     urls = result.get("resultUrls", [])
 
                     if not urls:
+                        logger.error(
+                            "IMAGE_GEN | task_id=%s | succeeded but no resultUrls",
+                            task_id,
+                        )
                         raise RuntimeError(
                             "kie.ai task succeeded but returned no "
                             "resultUrls"
                         )
 
+                    logger.info(
+                        "IMAGE_GEN | task_id=%s | success | url=%s",
+                        task_id, urls[0],
+                    )
+
                     return urls[0]
 
                 if state == "fail":
+                    logger.error(
+                        "IMAGE_GEN | task_id=%s | failed | fail_msg=%s | fail_code=%s",
+                        task_id, status_data.get("failMsg"), status_data.get("failCode"),
+                    )
                     raise RuntimeError(
                         f"kie.ai task failed: "
                         f"{status_data.get('failMsg')} "
@@ -120,6 +169,11 @@ class ImageGeneratorTool:
                     )
 
                 time.sleep(self.poll_interval)
+
+        logger.error(
+            "IMAGE_GEN | task_id=%s | timed out after %ss",
+            task_id, self.timeout_seconds,
+        )
 
         raise TimeoutError(
             f"kie.ai task {task_id} did not complete within "

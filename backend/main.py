@@ -16,6 +16,10 @@ from router import accounts, admin, auth, card, users, loan,ai_chatbot,admin_api
 from telemetry import configure_telemetry, instrument_application
 
 from router import beneficiaries, transactions
+from logging_config import configure_logging
+configure_logging()
+
+from fastapi import FastAPI
 
 telemetry_providers = configure_telemetry()
 
@@ -71,6 +75,8 @@ app.include_router(card.router)
 app.include_router(loan.router)
 app.include_router(ai_chatbot.router)
 app.include_router(admin_api_chatbot.router)
+app.include_router(admin_api_chatbot.public_media_router)
+
 
 instrument_application(
     app=app,
