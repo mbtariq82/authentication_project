@@ -1,4 +1,4 @@
-from services.instagram_service import InstagramService
+from agents.services.instagram_service import InstagramService
 
 
 class InstagramPublishTool:

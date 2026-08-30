@@ -64,6 +64,10 @@ class AdminSQLAgent:
 
             {question}
 
+            Additional instructions (follow these too, if present):
+
+            {additional_instruction}
+
             Rules:
 
             - Return ONLY SQL.
@@ -276,11 +280,13 @@ class AdminSQLAgent:
     def query(
         self,
         question: str,
+        additional_instruction: str = "",
     ) -> dict:
 
         result = self.app.invoke(
             {
-                "question": question
+                "question": question,
+                "additional_instruction": additional_instruction,
             }
         )
 

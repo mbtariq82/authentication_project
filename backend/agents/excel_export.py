@@ -1,4 +1,6 @@
 import io
+import os
+import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any
@@ -13,6 +15,11 @@ HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
 HEADER_FILL = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
 BODY_FONT = Font(name="Calibri", size=11)
 LABEL_FONT = Font(name="Calibri", size=11, bold=True)
+
+# Where generated reports are written so the /admin/download/{filename}
+# endpoint can serve them back. Override with ADMIN_EXPORT_DIR in prod
+# (e.g. point it at a mounted volume / S3-synced folder).
+EXPORT_DIR = os.getenv("ADMIN_EXPORT_DIR", "exports")
 
 
 def _sanitize_value(value: Any) -> Any:
@@ -132,6 +139,43 @@ def build_query_result_workbook(
     buffer.seek(0)
 
     return buffer
+
+
+def save_query_result_workbook(
+    rows: list[dict[str, Any]],
+    question: str = "",
+    sql_query: str = "",
+    answer: str = "",
+    filename_prefix: str = "admin_query_result",
+) -> str:
+    """
+    Builds the workbook and writes it to EXPORT_DIR on disk, returning
+    just the filename (not the full path). Used by the main /ask flow
+    so a request like "give me an excel report of X" returns a
+    downloadable file inline, without needing the separate
+    /ask/export round trip.
+
+    Pair with GET /admin/download/{filename} to actually serve it.
+    """
+
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+
+    buffer = build_query_result_workbook(
+        rows=rows,
+        question=question,
+        sql_query=sql_query,
+        answer=answer,
+    )
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"{filename_prefix}_{timestamp}_{uuid.uuid4().hex[:8]}.xlsx"
+
+    path = os.path.join(EXPORT_DIR, filename)
+
+    with open(path, "wb") as f:
+        f.write(buffer.getvalue())
+
+    return filename
 
 
 def excel_streaming_response(
