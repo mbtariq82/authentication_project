@@ -20,11 +20,20 @@ class ImageGeneratorTool:
 
     Configure via environment variables:
       KIE_API_KEY — from https://kie.ai/api-key
+      IMAGE_GEN_TIMEOUT_SECONDS — how long to wait before giving up
+        (default 240 seconds). Nano Banana Pro's generation time
+        varies with kie.ai's current load and can occasionally run
+        past 2 minutes even for a normal request — this was raised
+        from an original 120s default after hitting real timeouts.
 
     This is best-effort: callers should catch exceptions and fall
     back to leaving image_url unset, letting the admin attach an
     image manually when approving the post (see
-    POST /admin/approve/{id}?image_url=...).
+    POST /admin/approve/{id}?image_url=...). If a task times out
+    here, it's usually still finishing on kie.ai's side — check its
+    status with the task_id from the timeout log line:
+      curl "https://api.kie.ai/api/v1/jobs/recordInfo?taskId=TASK_ID" \
+        -H "Authorization: Bearer $KIE_API_KEY"
     """
 
     CREATE_URL = "https://api.kie.ai/api/v1/jobs/createTask"
@@ -33,11 +42,13 @@ class ImageGeneratorTool:
     def __init__(
         self,
         poll_interval: float = 3.0,
-        timeout_seconds: float = 120.0,
+        timeout_seconds: float | None = None,
     ):
         self.api_key = os.getenv("KIE_API_KEY")
         self.poll_interval = poll_interval
-        self.timeout_seconds = timeout_seconds
+        self.timeout_seconds = timeout_seconds or float(
+            os.getenv("IMAGE_GEN_TIMEOUT_SECONDS", "240")
+        )
 
         logger.info(
             "ImageGeneratorTool initialized | configured=%s",
